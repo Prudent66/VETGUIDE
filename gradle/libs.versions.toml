@@ -10,11 +10,15 @@ ksp = "2.2.21-2.0.5"
 hilt = "2.57.2"
 hiltNavigationCompose = "1.2.0"
 # Compose
-composeBom = "2026.09.00"
+# NOTE: BOM >= 2026.08.00 pulls compose 1.12.x, which requires compileSdk 37
+# (AGP 8.x maxes out at 36). 2026.06.01 is the newest AGP-8-compatible BOM.
+composeBom = "2026.06.01"
 # AndroidX app libraries
 activityCompose = "1.13.0"
-navigationCompose = "2.10.2"
-lifecycleRuntimeKtx = "2.11.0"
+# NOTE: navigation 2.10.x requires compileSdk 37; 2.9.x is the last AGP-8-compatible line.
+navigationCompose = "2.9.8"
+# NOTE: lifecycle 2.11.0 requires compileSdk 37; 2.10.0 is the last AGP-8-compatible release.
+lifecycleRuntimeKtx = "2.10.0"
 coreKtx = "1.15.0"
 # Static analysis & testing
 detekt = "1.23.7"
