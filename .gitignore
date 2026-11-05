@@ -1,0 +1,32 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+gradle-app.setting
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Local configuration (never commit — keeps machine paths and any future secrets local)
+local.properties
+
+# Signing material — keys live only in backend secrets (see docs/SECURITY.md)
+*.jks
+*.keystore
+keystore.properties
+
+# Secrets (defense in depth; secrets never live on the client per VETGUIDE_ROADMAP.md §8)
+secrets.properties
+*.env
+!*.env.example
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp

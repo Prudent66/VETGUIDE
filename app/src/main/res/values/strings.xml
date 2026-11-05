@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VETGUIDE</string>
+    <string name="home_subtitle">AI-powered veterinary clinical assistant</string>
+    <string name="disclaimer">Decision support — not a diagnosis. The veterinarian remains responsible for all clinical decisions.</string>
+</resources>

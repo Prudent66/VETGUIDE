@@ -1,0 +1,15 @@
+# Minimal detekt configuration for a Compose codebase.
+# Built on detekt defaults (see build.gradle.kts: buildUponDefaultConfig = true).
+build:
+  maxIssues: 0
+
+style:
+  # Composable functions are PascalCase by convention (Jetpack Compose style guide).
+  FunctionNaming:
+    active: false
+  # UI theme colors are intentionally declared as literal hex values.
+  MagicNumber:
+    active: false
+  # Compose modifier chains and KDoc strings can exceed 120 chars without harm.
+  MaxLineLength:
+    active: false

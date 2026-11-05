@@ -1,0 +1,43 @@
+name: PR checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle 8.13
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.13"
+
+      - name: Secret scan (roadmap §8 — no credentials in history)
+        uses: gitleaks/gitleaks-action@v2
+
+      - name: Static analysis (detekt)
+        run: gradle detekt
+
+      - name: Unit tests
+        run: gradle testDebugUnitTest
+
+      - name: Build debug APK
+        run: gradle assembleDebug
+
+      - name: Upload debug APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vetguide-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
