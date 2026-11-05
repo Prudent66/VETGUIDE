@@ -3,10 +3,12 @@
 build:
   maxIssues: 0
 
-style:
+naming:
   # Composable functions are PascalCase by convention (Jetpack Compose style guide).
   FunctionNaming:
     active: false
+
+style:
   # UI theme colors are intentionally declared as literal hex values.
   MagicNumber:
     active: false
