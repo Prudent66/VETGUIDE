@@ -5,7 +5,9 @@ agp = "8.13.2"
 kotlin = "2.2.21"
 ksp = "2.2.21-2.0.5"
 # Dependency injection
-hilt = "2.60.1"
+# NOTE: Hilt Gradle plugin >= 2.59 requires AGP 9 (which itself requires Gradle 9.1+).
+# While we're on AGP 8.x, pin to the last AGP-8-compatible Hilt line (2.57.x).
+hilt = "2.57.2"
 hiltNavigationCompose = "1.2.0"
 # Compose
 composeBom = "2026.09.00"
