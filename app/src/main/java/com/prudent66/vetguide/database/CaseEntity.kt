@@ -20,7 +20,7 @@ import com.prudent66.vetguide.domain.model.CaseStatus
             onDelete = ForeignKey.CASCADE,
         ),
     ],
-    indices = [Index("patientId"), Index("updatedAt")],
+    indices = [Index("patientId"), Index("updatedAtEpochMs")],
 )
 data class CaseEntity(
     @PrimaryKey val id: String,

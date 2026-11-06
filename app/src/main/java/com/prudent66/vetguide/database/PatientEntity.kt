@@ -14,7 +14,7 @@ import com.prudent66.vetguide.domain.model.Species
  */
 @Entity(
     tableName = "patients",
-    indices = [Index("updatedAt")],
+    indices = [Index("updatedAtEpochMs")],
 )
 data class PatientEntity(
     @PrimaryKey val id: String,
