@@ -12,20 +12,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.prudent66.vetguide.ui.navigation.Destinations
-import com.prudent66.vetguide.ui.screens.cases.CasesScreen
+import com.prudent66.vetguide.ui.screens.cases.CaseListScreen
 import com.prudent66.vetguide.ui.screens.diagnose.DiagnoseScreen
 import com.prudent66.vetguide.ui.screens.home.HomeScreen
 import com.prudent66.vetguide.ui.screens.knowledge.KnowledgeScreen
+import com.prudent66.vetguide.ui.screens.patients.AddPatientScreen
+import com.prudent66.vetguide.ui.screens.patients.PatientListScreen
 import com.prudent66.vetguide.ui.screens.settings.SettingsScreen
 
 /**
- * App scaffold: bottom navigation bar + NavHost.
- * Top-level tab navigation uses saveState/restoreState so tab state survives switches.
+ * App scaffold: bottom navigation bar (top-level tabs) + NavHost.
+ * Drill-in routes (add patient, case timeline) hide the bottom bar.
  */
 @Composable
 fun VetguideApp() {
@@ -35,34 +38,8 @@ fun VetguideApp() {
 
     Scaffold(
         bottomBar = {
-            NavigationBar {
-                Destinations.items.forEach { item ->
-                    val selected = currentRoute == item.route
-                    NavigationBarItem(
-                        selected = selected,
-                        onClick = {
-                            navController.navigate(item.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        icon = {
-                            Icon(
-                                painter = painterResource(item.iconRes),
-                                contentDescription = item.label,
-                                tint = if (selected) {
-                                    MaterialTheme.colorScheme.primary
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                },
-                            )
-                        },
-                        label = { Text(item.label) },
-                    )
-                }
+            if (Destinations.isTopLevel(currentRoute)) {
+                VetguideBottomBar(navController, currentRoute)
             }
         },
     ) { innerPadding ->
@@ -73,9 +50,63 @@ fun VetguideApp() {
         ) {
             composable(Destinations.HOME) { HomeScreen() }
             composable(Destinations.DIAGNOSE) { DiagnoseScreen() }
-            composable(Destinations.CASES) { CasesScreen() }
+            composable(Destinations.PATIENTS) {
+                PatientListScreen(
+                    onPatientClick = { patientId ->
+                        navController.navigate(Destinations.casesForPatient(patientId))
+                    },
+                    onAddPatientClick = { navController.navigate(Destinations.PATIENTS_ADD) },
+                )
+            }
             composable(Destinations.KNOWLEDGE) { KnowledgeScreen() }
             composable(Destinations.SETTINGS) { SettingsScreen() }
+            composable(Destinations.PATIENTS_ADD) {
+                AddPatientScreen(
+                    onSaved = navController::popBackStack,
+                    onDismiss = navController::popBackStack,
+                )
+            }
+            composable(Destinations.CASES_FOR_PATIENT) {
+                CaseListScreen(onBack = navController::popBackStack)
+            }
         }
+    }
+}
+
+@Composable
+private fun VetguideBottomBar(
+    navController: NavHostController,
+    currentRoute: String?,
+) {
+    NavigationBar {
+        Destinations.items.forEach { item ->
+            val selected = currentRoute == item.route
+            NavigationBarItem(
+                selected = selected,
+                onClick = { if (!selected) { navigateToTopLevel(navController, item.route) } },
+                icon = {
+                    Icon(
+                        painter = painterResource(item.iconRes),
+                        contentDescription = item.label,
+                        tint = if (selected) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                    )
+                },
+                label = { Text(item.label) },
+            )
+        }
+    }
+}
+
+private fun navigateToTopLevel(navController: NavHostController, route: String) {
+    navController.navigate(route) {
+        popUpTo(navController.graph.findStartDestination().id) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
     }
 }
