@@ -11,7 +11,7 @@ import androidx.room.RoomDatabase
  */
 @Database(
     entities = [PatientEntity::class, CaseEntity::class, CaseArtifactEntity::class],
-    version = VETGUIDE_DB_VERSION,
+    version = 1, // literal required by the Room processor
     exportSchema = true,
 )
 abstract class VetguideDatabase : RoomDatabase() {
