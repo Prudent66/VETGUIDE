@@ -3,6 +3,7 @@ package com.prudent66.vetguide.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prudent66.vetguide.domain.model.NeuterStatus
+import com.prudent66.vetguide.domain.model.Patient
 import com.prudent66.vetguide.domain.model.PatientDraft
 import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.domain.repository.PatientRepository
