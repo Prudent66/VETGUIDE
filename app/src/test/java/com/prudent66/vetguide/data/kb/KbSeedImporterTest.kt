@@ -72,7 +72,7 @@ class KbSeedImporterTest {
 
     @Test
     fun `parse rejects unknown references inside a condition`() {
-        val bad = seedJson.replace("\"ref-placeholder-1\"", "\"ref-unknown\"")
+        val bad = seedJson.replaceFirst("\n\"ref-placeholder-1\"", "\n\"ref-unknown\"")
         assertThrows(IllegalArgumentException::class.java) { KbSeedParser.parse(bad) }
     }
 
