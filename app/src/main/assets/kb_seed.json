@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "conditions": [
+    {
+      "id": "canine-parvovirus",
+      "name": "Canine Parvovirus",
+      "urgency": "EMERGENCY",
+      "overview": "Placeholder clinical overview — requires veterinary review. A highly contagious viral enteritis; the attending veterinarian is responsible for investigation, diagnosis, and all management decisions.",
+      "species": ["DOG"],
+      "symptoms": ["lethargy", "vomiting", "hemorrhagic-diarrhea", "fever", "anorexia"],
+      "references": ["ref-placeholder-1"]
+    },
+    {
+      "id": "feline-upper-respiratory-infection",
+      "name": "Feline Upper Respiratory Infection",
+      "urgency": "ROUTINE",
+      "overview": "Placeholder clinical overview — requires veterinary review. A common respiratory syndrome of cats; investigation and management decisions must be made by the attending veterinarian.",
+      "species": ["CAT"],
+      "symptoms": ["sneezing", "nasal-discharge", "ocular-discharge", "fever", "anorexia"],
+      "references": ["ref-placeholder-1"]
+    },
+    {
+      "id": "bovine-helminthosis",
+      "name": "Bovine Helminthosis (Placeholder)",
+      "urgency": "ROUTINE",
+      "overview": "Placeholder clinical overview — requires veterinary review. Refers to parasitic worm burdens of cattle; treatment decisions rest entirely with the attending veterinarian.",
+      "species": ["CATTLE"],
+      "symptoms": ["wasting", "diarrhea", "pale-membranes", "reduced-milk-yield", "anorexia"],
+      "references": ["ref-placeholder-1"]
+    },
+    {
+      "id": "peste-des-petits-ruminants",
+      "name": "Peste des Petits Ruminants (PPR)",
+      "urgency": "EMERGENCY",
+      "overview": "Placeholder clinical overview — requires veterinary review. A highly contagious viral disease of small ruminants; suspicion must be handled by the attending veterinarian under local reporting rules.",
+      "species": ["GOAT", "SHEEP"],
+      "symptoms": ["fever", "nasal-discharge", "mouth-erosions", "respiratory-distress", "sudden-death"],
+      "references": ["ref-placeholder-1"]
+    },
+    {
+      "id": "newcastle-disease",
+      "name": "Newcastle Disease",
+      "urgency": "EMERGENCY",
+      "overview": "Placeholder clinical overview — requires veterinary review. A viral disease of poultry; suspicion must be handled by the attending veterinarian under local reporting rules.",
+      "species": ["POULTRY"],
+      "symptoms": ["respiratory-distress", "sudden-death", "diarrhea", "neurologic-signs", "reduced-egg-production"],
+      "references": ["ref-placeholder-1"]
+    },
+    {
+      "id": "african-swine-fever",
+      "name": "African Swine Fever",
+      "urgency": "EMERGENCY",
+      "overview": "Placeholder clinical overview — requires veterinary review. A viral disease of swine; suspicion must be handled by the attending veterinarian under local reporting rules.",
+      "species": ["PIG"],
+      "symptoms": ["fever", "anorexia", "skin-reddening", "weakness", "sudden-death"],
+      "references": ["ref-placeholder-1"]
+    },
+    {
+      "id": "equine-colic",
+      "name": "Equine Colic",
+      "urgency": "URGENT",
+      "overview": "Placeholder clinical overview — requires veterinary review. A symptom cluster of abdominal pain in horses; the attending veterinarian is responsible for workup and escalation decisions.",
+      "species": ["EQUINE"],
+      "symptoms": ["colic-signs", "rolling-pawing", "reduced-fecal-output", "restlessness"],
+      "references": ["ref-placeholder-1"]
+    },
+    {
+      "id": "anthrax-multi-species",
+      "name": "Anthrax (Multi-species, Placeholder)",
+      "urgency": "EMERGENCY",
+      "overview": "Placeholder clinical overview — requires veterinary review. Suspicion of this disease requires strict local-reporting and safety procedures handled by the attending veterinarian.",
+      "species": ["DOG", "CAT", "CATTLE", "GOAT", "SHEEP", "POULTRY", "PIG", "EQUINE", "OTHER"],
+      "symptoms": ["sudden-death", "fever", "unexplained-bleeding"],
+      "references": ["ref-placeholder-1"]
+    }
+  ],
+  "symptoms": [
+    {"id": "lethargy", "name": "Lethargy", "bodySystem": "General"},
+    {"id": "fever", "name": "Fever", "bodySystem": "General"},
+    {"id": "anorexia", "name": "Loss of appetite", "bodySystem": "General"},
+    {"id": "weakness", "name": "Weakness", "bodySystem": "General"},
+    {"id": "sudden-death", "name": "Sudden death", "bodySystem": "General"},
+    {"id": "wasting", "name": "Wasting / weight loss", "bodySystem": "General"},
+    {"id": "pale-membranes", "name": "Pale mucous membranes", "bodySystem": "General"},
+    {"id": "unexplained-bleeding", "name": "Unexplained bleeding", "bodySystem": "General"},
+    {"id": "vomiting", "name": "Vomiting", "bodySystem": "Gastrointestinal"},
+    {"id": "hemorrhagic-diarrhea", "name": "Hemorrhagic diarrhea", "bodySystem": "Gastrointestinal"},
+    {"id": "diarrhea", "name": "Diarrhea", "bodySystem": "Gastrointestinal"},
+    {"id": "reduced-fecal-output", "name": "Reduced fecal output", "bodySystem": "Gastrointestinal"},
+    {"id": "mouth-erosions", "name": "Mouth erosions", "bodySystem": "Gastrointestinal"},
+    {"id": "sneezing", "name": "Sneezing", "bodySystem": "Respiratory"},
+    {"id": "nasal-discharge", "name": "Nasal discharge", "bodySystem": "Respiratory"},
+    {"id": "coughing", "name": "Coughing", "bodySystem": "Respiratory"},
+    {"id": "respiratory-distress", "name": "Respiratory distress", "bodySystem": "Respiratory"},
+    {"id": "ocular-discharge", "name": "Ocular discharge", "bodySystem": "Ocular"},
+    {"id": "neurologic-signs", "name": "Neurologic signs", "bodySystem": "Nervous"},
+    {"id": "skin-reddening", "name": "Skin reddening", "bodySystem": "Integument"},
+    {"id": "colic-signs", "name": "Signs of abdominal pain", "bodySystem": "Abdomen"},
+    {"id": "rolling-pawing", "name": "Rolling / pawing", "bodySystem": "Abdomen"},
+    {"id": "reduced-milk-yield", "name": "Reduced milk yield", "bodySystem": "Reproductive"},
+    {"id": "reduced-egg-production", "name": "Reduced egg production", "bodySystem": "Reproductive"},
+    {"id": "restlessness", "name": "Restlessness", "bodySystem": "Behavior"}
+  ],
+  "references": [
+    {
+      "id": "ref-placeholder-1",
+      "title": "Placeholder reference — requires veterinary review",
+      "note": "No citation content is provided in this seed. Replace with verified, authoritative veterinary sources before any clinical use."
+    }
+  ]
+}

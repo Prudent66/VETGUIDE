@@ -21,6 +21,7 @@ import com.prudent66.vetguide.ui.navigation.Destinations
 import com.prudent66.vetguide.ui.screens.cases.CaseListScreen
 import com.prudent66.vetguide.ui.screens.diagnose.DiagnoseScreen
 import com.prudent66.vetguide.ui.screens.home.HomeScreen
+import com.prudent66.vetguide.ui.screens.knowledge.KnowledgeDetailScreen
 import com.prudent66.vetguide.ui.screens.knowledge.KnowledgeScreen
 import com.prudent66.vetguide.ui.screens.patients.AddPatientScreen
 import com.prudent66.vetguide.ui.screens.patients.PatientListScreen
@@ -58,7 +59,13 @@ fun VetguideApp() {
                     onAddPatientClick = { navController.navigate(Destinations.PATIENTS_ADD) },
                 )
             }
-            composable(Destinations.KNOWLEDGE) { KnowledgeScreen() }
+            composable(Destinations.KNOWLEDGE) {
+                KnowledgeScreen(
+                    onConditionClick = { id ->
+                        navController.navigate(Destinations.knowledgeDetail(id))
+                    },
+                )
+            }
             composable(Destinations.SETTINGS) { SettingsScreen() }
             composable(Destinations.PATIENTS_ADD) {
                 AddPatientScreen(
@@ -68,6 +75,9 @@ fun VetguideApp() {
             }
             composable(Destinations.CASES_FOR_PATIENT) {
                 CaseListScreen(onBack = navController::popBackStack)
+            }
+            composable(Destinations.KB_CONDITION_DETAIL) {
+                KnowledgeDetailScreen(onBack = navController::popBackStack)
             }
         }
     }

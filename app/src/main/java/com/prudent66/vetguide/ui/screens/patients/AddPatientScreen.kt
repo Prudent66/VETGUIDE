@@ -5,10 +5,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,6 +36,7 @@ import com.prudent66.vetguide.R
 import com.prudent66.vetguide.domain.model.PatientDraft
 import com.prudent66.vetguide.domain.model.PatientSex
 import com.prudent66.vetguide.domain.model.Species
+import com.prudent66.vetguide.ui.screens.knowledge.speciesLabel
 import com.prudent66.vetguide.ui.viewmodels.PatientViewModel
 import kotlin.math.roundToInt
 
@@ -72,11 +76,9 @@ fun AddPatientScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             PatientTextFields(form)
-            ChoiceRow(
-                label = "Species",
-                options = listOf("Dog", "Cat"),
-                selectedIndex = if (form.species == Species.DOG) 0 else 1,
-                onSelect = { index -> form.species = if (index == 0) Species.DOG else Species.CAT },
+            SpeciesDropdown(
+                selected = form.species,
+                onSelect = { form.species = it },
             )
             ChoiceRow(
                 label = "Sex",
@@ -182,6 +184,39 @@ private fun PatientTextFields(form: PatientFormState) {
         singleLine = true,
         modifier = Modifier.fillMaxWidth(),
     )
+}
+
+/** Species selector covering the Nigerian veterinary scope (no hardcoded claims). */
+@Composable
+private fun SpeciesDropdown(
+    selected: Species,
+    onSelect: (Species) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(speciesLabel(selected))
+            Icon(
+                painter = painterResource(R.drawable.nav_chevron_down),
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+    }
+    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        Species.entries.forEach { species ->
+            DropdownMenuItem(
+                text = { Text(speciesLabel(species)) },
+                onClick = {
+                    onSelect(species)
+                    expanded = false
+                },
+            )
+        }
+    }
 }
 
 @Composable

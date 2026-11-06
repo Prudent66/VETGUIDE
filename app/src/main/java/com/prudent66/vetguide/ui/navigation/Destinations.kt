@@ -26,9 +26,14 @@ object Destinations {
     /** Drill-in routes (no bottom bar). */
     const val PATIENTS_ADD = "patients/new"
     const val CASES_FOR_PATIENT = "patients/{$ARG_PATIENT_ID}"
+    const val ARG_CONDITION_ID = "conditionId"
+    const val KB_CONDITION_DETAIL = "knowledge/{$ARG_CONDITION_ID}"
 
     /** Route for the case timeline of a concrete patient. */
     fun casesForPatient(patientId: String): String = "patients/$patientId"
+
+    /** Route for a KB condition's detail view. */
+    fun knowledgeDetail(conditionId: String): String = "knowledge/$conditionId"
 
     /** Order defines bottom-bar order: Home, Diagnose, Patients, Knowledge, Settings. */
     val items: List<VetguideDestination> = listOf(
