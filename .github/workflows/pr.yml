@@ -40,6 +40,12 @@ jobs:
       - name: Build debug APK
         run: gradle assembleDebug
 
+      # room.schemaLocation is written by the Room processor outside the KSP
+      # task's declared outputs, so a FROM-CACHE kspDebugKotlin hit never
+      # exports the schema JSON. Re-run KSP fresh to guarantee the export.
+      - name: Export Room schema (KSP cache bypass)
+        run: gradle kspDebugKotlin --rerun
+
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
         with:
