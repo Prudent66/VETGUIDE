@@ -12,8 +12,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 
 /**
- * Android-side orchestrator: reads the seed asset and applies it once per
- * seed version (skipping when the stored version matches — idempotent).
+ * Android-side seed orchestrator: reads the seed assets and applies each once
+ * per seed version (skipping when the stored version matches — idempotent).
  */
 class KbSeeder @Inject constructor(
     private val db: VetguideDatabase,
@@ -21,41 +21,64 @@ class KbSeeder @Inject constructor(
 ) {
 
     /**
-     * @return true when a seed (re)import was applied; false if already at
-     * the current seed version or the asset failed to parse.
+     * @return true when at least one seed (re)import was applied; false when
+     * already at current versions or assets failed to parse.
      */
     suspend fun seedIfNeeded(): Boolean = withContext(Dispatchers.IO) {
-        val payload = try {
-            KbSeedParser.parse(readSeedAsset(SEED_ASSET))
-        } catch (e: IOException) {
-            android.util.Log.e(TAG, "KB seed skipped: seed asset unreadable", e)
-            return@withContext false
-        } catch (e: SerializationException) {
-            android.util.Log.e(TAG, "KB seed skipped: invalid seed asset", e)
-            return@withContext false
-        }
+        val kbApplied = applyKbSeed()
+        val questionnaireApplied = applyQuestionnaireSeed()
+        kbApplied || questionnaireApplied
+    }
+
+    private suspend fun applyKbSeed(): Boolean {
+        val payload = parseSeed(KB_ASSET) { KbSeedParser.parse(it) } ?: return false
 
         val dao = db.kbDao()
         if (dao.getSettingValue(KbSeedMarker.SEED_VERSION_KEY) == payload.version.toString()) {
-            return@withContext false
+            return false
         }
-
-        try {
-            db.withTransaction {
-                KbSeedApplier.apply(payload, dao)
-            }
-        } catch (e: SQLiteException) {
-            android.util.Log.e(TAG, "KB seed apply failed", e)
-            return@withContext false
+        return runTransaction("KB seed") {
+            KbSeedApplier.apply(payload, dao)
         }
-        true
     }
 
-    private fun readSeedAsset(assetPath: String): String =
+    private suspend fun applyQuestionnaireSeed(): Boolean {
+        val payload = parseSeed(QUESTIONNAIRE_ASSET) { QuestionnaireSeedParser.parse(it) } ?: return false
+
+        val dao = db.questionnaireDao()
+        if (dao.getSettingValue(QuestionnaireSeedMarker.SEED_VERSION_KEY) == payload.version.toString()) {
+            return false
+        }
+        return runTransaction("questionnaire seed", dao) {
+            QuestionnaireSeedApplier.apply(payload, dao)
+        }
+    }
+
+    /** Returns null (with a log) when the asset is unreadable or invalid. */
+    private inline fun <T> parseSeed(asset: String, parse: (String) -> T): T? = try {
+        parse(readAsset(asset))
+    } catch (e: IOException) {
+        android.util.Log.e(TAG, "Seed skipped (unreadable): $asset", e)
+        null
+    } catch (e: SerializationException) {
+        android.util.Log.e(TAG, "Seed skipped (invalid): $asset", e)
+        null
+    }
+
+    private suspend fun runTransaction(label: String, block: suspend () -> Unit): Boolean = try {
+        db.withTransaction { block() }
+        true
+    } catch (e: SQLiteException) {
+        android.util.Log.e(TAG, "$label apply failed", e)
+        false
+    }
+
+    private fun readAsset(assetPath: String): String =
         context.assets.open(assetPath).bufferedReader().use { it.readText() }
 
     private companion object {
         const val TAG = "KbSeeder"
-        const val SEED_ASSET = "kb_seed.json"
+        const val KB_ASSET = "kb_seed.json"
+        const val QUESTIONNAIRE_ASSET = "questionnaire_seed.json"
     }
 }

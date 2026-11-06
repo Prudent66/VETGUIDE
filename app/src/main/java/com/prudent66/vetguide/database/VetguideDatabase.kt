@@ -23,8 +23,11 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ConditionSymptomJunction::class,
         ConditionReferenceJunction::class,
         AppSettingEntity::class,
+        QuestionEntity::class,
+        QuestionOptionEntity::class,
+        ConditionWeightEntity::class,
     ],
-    version = 2, // literal required by the Room processor
+    version = 3, // literal required by the Room processor
     exportSchema = true,
 )
 abstract class VetguideDatabase : RoomDatabase() {
@@ -32,15 +35,15 @@ abstract class VetguideDatabase : RoomDatabase() {
     abstract fun caseDao(): CaseDao
     abstract fun caseArtifactDao(): CaseArtifactDao
     abstract fun kbDao(): KbDao
+    abstract fun questionnaireDao(): QuestionnaireDao
 
     companion object {
-        const val VETGUIDE_DB_VERSION = 2
+        const val VETGUIDE_DB_VERSION = 3
         const val VETGUIDE_DB_NAME = "vetguide.db"
         const val KB_SEED_VERSION_KEY = "kb_seed_version"
 
         /** v2: knowledge-base tables (§9/§11.1). Additive only — no data touched. */
-        val MIGRATION_1_TO_2: Migration = object : Migration(1, 2) {
-            override fun migrate(db: SupportSQLiteDatabase) {
+        val MIGRATION_1_TO_2: Migration = object : Migration(1, 2) {            override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
                     "CREATE TABLE IF NOT EXISTS `kb_conditions` " +
                         "(`id` TEXT NOT NULL, `name` TEXT NOT NULL, `overview` TEXT NOT NULL, " +
@@ -81,6 +84,31 @@ abstract class VetguideDatabase : RoomDatabase() {
                     "ON `kb_condition_symptoms` (`symptomId`)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS `index_kb_condition_references_referenceId` " +
                     "ON `kb_condition_references` (`referenceId`)")
+            }
+        }
+
+        /** v3: guided questionnaire (§Phase 3) — questions, options, dummy weights. */
+        val MIGRATION_2_TO_3: Migration = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `kb_questions` " +
+                        "(`id` TEXT NOT NULL, `species` TEXT NOT NULL, `text` TEXT NOT NULL, " +
+                        "`orderIndex` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `kb_question_options` " +
+                        "(`id` TEXT NOT NULL, `questionId` TEXT NOT NULL, `label` TEXT NOT NULL, " +
+                        "`symptomId` TEXT, `orderIndex` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `kb_condition_weights` " +
+                        "(`conditionId` TEXT NOT NULL, `symptomId` TEXT NOT NULL, " +
+                        "`weight` REAL NOT NULL, PRIMARY KEY(`conditionId`, `symptomId`))",
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_kb_question_options_questionId` " +
+                    "ON `kb_question_options` (`questionId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_kb_condition_weights_symptomId` " +
+                    "ON `kb_condition_weights` (`symptomId`)")
             }
         }
     }

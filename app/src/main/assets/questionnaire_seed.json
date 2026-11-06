@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "questions": [
+    {
+      "id": "q-dog-vomiting",
+      "species": "DOG",
+      "orderIndex": 0,
+      "text": "Has the animal been vomiting?",
+      "options": [
+        {"id": "opt-dog-vomiting-yes", "label": "Yes", "symptomId": "vomiting", "orderIndex": 0},
+        {"id": "opt-dog-vomiting-no", "label": "No", "symptomId": null, "orderIndex": 1}
+      ]
+    },
+    {
+      "id": "q-dog-stool",
+      "species": "DOG",
+      "orderIndex": 1,
+      "text": "Stool appearance?",
+      "options": [
+        {"id": "opt-dog-stool-bloody", "label": "Bloody / hemorrhagic", "symptomId": "hemorrhagic-diarrhea", "orderIndex": 0},
+        {"id": "opt-dog-stool-watery", "label": "Watery", "symptomId": "diarrhea", "orderIndex": 1},
+        {"id": "opt-dog-stool-normal", "label": "Normal", "symptomId": null, "orderIndex": 2}
+      ]
+    },
+    {
+      "id": "q-dog-energy",
+      "species": "DOG",
+      "orderIndex": 2,
+      "text": "Energy level?",
+      "options": [
+        {"id": "opt-dog-energy-lethargic", "label": "Lethargic", "symptomId": "lethargy", "orderIndex": 0},
+        {"id": "opt-dog-energy-normal", "label": "Normal", "symptomId": null, "orderIndex": 1}
+      ]
+    },
+    {
+      "id": "q-dog-appetite",
+      "species": "DOG",
+      "orderIndex": 3,
+      "text": "Appetite?",
+      "options": [
+        {"id": "opt-dog-appetite-reduced", "label": "Reduced / absent", "symptomId": "anorexia", "orderIndex": 0},
+        {"id": "opt-dog-appetite-normal", "label": "Normal", "symptomId": null, "orderIndex": 1}
+      ]
+    },
+    {
+      "id": "q-pou-respiratory",
+      "species": "POULTRY",
+      "orderIndex": 0,
+      "text": "Breathing appearance?",
+      "options": [
+        {"id": "opt-pou-resp-distress", "label": "Distress / gasping", "symptomId": "respiratory-distress", "orderIndex": 0},
+        {"id": "opt-pou-resp-normal", "label": "Normal", "symptomId": null, "orderIndex": 1}
+      ]
+    },
+    {
+      "id": "q-pou-eggs",
+      "species": "POULTRY",
+      "orderIndex": 1,
+      "text": "Egg production?",
+      "options": [
+        {"id": "opt-pou-eggs-drop", "label": "Notable drop", "symptomId": "reduced-egg-production", "orderIndex": 0},
+        {"id": "opt-pou-eggs-normal", "label": "Normal", "symptomId": null, "orderIndex": 1}
+      ]
+    },
+    {
+      "id": "q-pou-mortality",
+      "species": "POULTRY",
+      "orderIndex": 2,
+      "text": "Any sudden deaths in the flock?",
+      "options": [
+        {"id": "opt-pou-mortality-yes", "label": "Yes", "symptomId": "sudden-death", "orderIndex": 0},
+        {"id": "opt-pou-mortality-no", "label": "No", "symptomId": null, "orderIndex": 1}
+      ]
+    },
+    {
+      "id": "q-pou-demeanor",
+      "species": "POULTRY",
+      "orderIndex": 3,
+      "text": "General demeanor?",
+      "options": [
+        {"id": "opt-pou-demeanor-depressed", "label": "Depressed / lethargic", "symptomId": "lethargy", "orderIndex": 0},
+        {"id": "opt-pou-demeanor-alert", "label": "Alert", "symptomId": null, "orderIndex": 1}
+      ]
+    }
+  ],
+  "weights": [
+    {"conditionId": "canine-parvovirus", "symptomId": "vomiting", "weight": 10.0},
+    {"conditionId": "canine-parvovirus", "symptomId": "hemorrhagic-diarrhea", "weight": 10.0},
+    {"conditionId": "canine-parvovirus", "symptomId": "lethargy", "weight": 6.0},
+    {"conditionId": "canine-parvovirus", "symptomId": "anorexia", "weight": 4.0},
+    {"conditionId": "newcastle-disease", "symptomId": "respiratory-distress", "weight": 10.0},
+    {"conditionId": "newcastle-disease", "symptomId": "reduced-egg-production", "weight": 10.0},
+    {"conditionId": "newcastle-disease", "symptomId": "lethargy", "weight": 6.0},
+    {"conditionId": "newcastle-disease", "symptomId": "sudden-death", "weight": 4.0},
+    {"conditionId": "anthrax-multi-species", "symptomId": "sudden-death", "weight": 10.0},
+    {"conditionId": "anthrax-multi-species", "symptomId": "fever", "weight": 6.0},
+    {"conditionId": "anthrax-multi-species", "symptomId": "lethargy", "weight": 2.0}
+  ]
+}

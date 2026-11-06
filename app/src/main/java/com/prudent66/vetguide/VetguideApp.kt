@@ -50,7 +50,13 @@ fun VetguideApp() {
             modifier = Modifier.padding(innerPadding),
         ) {
             composable(Destinations.HOME) { HomeScreen() }
-            composable(Destinations.DIAGNOSE) { DiagnoseScreen() }
+            composable(Destinations.DIAGNOSE) {
+                DiagnoseScreen(
+                    onOpenCondition = { conditionId ->
+                        navController.navigate(Destinations.knowledgeDetail(conditionId))
+                    },
+                )
+            }
             composable(Destinations.PATIENTS) {
                 PatientListScreen(
                     onPatientClick = { patientId ->

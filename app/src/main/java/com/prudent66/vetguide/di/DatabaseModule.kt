@@ -5,14 +5,17 @@ import androidx.room.Room
 import com.prudent66.vetguide.data.repository.CaseRepositoryImpl
 import com.prudent66.vetguide.data.repository.KnowledgeRepositoryImpl
 import com.prudent66.vetguide.data.repository.PatientRepositoryImpl
+import com.prudent66.vetguide.data.repository.QuestionnaireRepositoryImpl
 import com.prudent66.vetguide.database.CaseArtifactDao
 import com.prudent66.vetguide.database.CaseDao
 import com.prudent66.vetguide.database.KbDao
 import com.prudent66.vetguide.database.PatientDao
+import com.prudent66.vetguide.database.QuestionnaireDao
 import com.prudent66.vetguide.database.VetguideDatabase
 import com.prudent66.vetguide.domain.repository.CaseRepository
 import com.prudent66.vetguide.domain.repository.KnowledgeRepository
 import com.prudent66.vetguide.domain.repository.PatientRepository
+import com.prudent66.vetguide.domain.repository.QuestionnaireRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -33,7 +36,10 @@ object DatabaseModule {
             context = context,
             klass = VetguideDatabase::class.java,
             name = VetguideDatabase.VETGUIDE_DB_NAME,
-        ).addMigrations(VetguideDatabase.MIGRATION_1_TO_2).build()
+        ).addMigrations(
+            VetguideDatabase.MIGRATION_1_TO_2,
+            VetguideDatabase.MIGRATION_2_TO_3,
+        ).build()
 
     @Provides
     fun providePatientDao(db: VetguideDatabase): PatientDao = db.patientDao()
@@ -46,6 +52,9 @@ object DatabaseModule {
 
     @Provides
     fun provideKbDao(db: VetguideDatabase): KbDao = db.kbDao()
+
+    @Provides
+    fun provideQuestionnaireDao(db: VetguideDatabase): QuestionnaireDao = db.questionnaireDao()
 }
 
 /** Binds repository implementations to their domain contracts. */
@@ -64,4 +73,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindKnowledgeRepository(impl: KnowledgeRepositoryImpl): KnowledgeRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindQuestionnaireRepository(impl: QuestionnaireRepositoryImpl): QuestionnaireRepository
 }
