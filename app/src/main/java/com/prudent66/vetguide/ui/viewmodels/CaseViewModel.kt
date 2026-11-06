@@ -42,10 +42,12 @@ class CaseViewModel @Inject constructor(
         patientRepository.observePatient(patientId),
         caseRepository.observeCasesForPatient(patientId),
     ) { patient, cases ->
-        CaseListUiState.Success(
+        // Typed as the base interface so the catch block can emit Error below.
+        val success: CaseListUiState = CaseListUiState.Success(
             patientName = patient?.name ?: "Unknown patient",
             cases = cases,
         )
+        success
     }
         .catch { e ->
             emit(CaseListUiState.Error(message = e.message ?: "Failed to load cases"))

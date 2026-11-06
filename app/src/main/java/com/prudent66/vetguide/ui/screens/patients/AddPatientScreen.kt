@@ -135,7 +135,7 @@ class PatientFormState(
     private val ageYears: Double? get() = ageText.toDoubleOrNull()
 
     private val ageIsValid: Boolean
-        get() = ageText.isBlank() || (ageYears != null && ageYears >= 0.0)
+        get() = ageText.isBlank() || (ageYears?.let { it >= 0.0 } == true)
 
     private val weightIsValid: Boolean
         get() = weightText.isBlank() || weightKg != null
