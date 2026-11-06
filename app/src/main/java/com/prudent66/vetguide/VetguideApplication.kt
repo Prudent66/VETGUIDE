@@ -24,7 +24,7 @@ class VetguideApplication : Application() {
         applicationScope.launch {
             try {
                 kbSeeder.seedIfNeeded()
-            } catch (e: Exception) {
+            } catch (e: IllegalStateException) {
                 android.util.Log.e("VetguideApplication", "Unexpected KB seeding failure", e)
             }
         }

@@ -1,12 +1,15 @@
 package com.prudent66.vetguide.data.kb
 
 import android.content.Context
+import android.database.sqlite.SQLiteException
 import androidx.room.withTransaction
 import com.prudent66.vetguide.database.VetguideDatabase
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.IOException
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerializationException
 
 /**
  * Android-side orchestrator: reads the seed asset and applies it once per
@@ -24,7 +27,10 @@ class KbSeeder @Inject constructor(
     suspend fun seedIfNeeded(): Boolean = withContext(Dispatchers.IO) {
         val payload = try {
             KbSeedParser.parse(readSeedAsset(SEED_ASSET))
-        } catch (e: Exception) {
+        } catch (e: IOException) {
+            android.util.Log.e(TAG, "KB seed skipped: seed asset unreadable", e)
+            return@withContext false
+        } catch (e: SerializationException) {
             android.util.Log.e(TAG, "KB seed skipped: invalid seed asset", e)
             return@withContext false
         }
@@ -34,8 +40,13 @@ class KbSeeder @Inject constructor(
             return@withContext false
         }
 
-        db.withTransaction {
-            KbSeedApplier.apply(payload, dao)
+        try {
+            db.withTransaction {
+                KbSeedApplier.apply(payload, dao)
+            }
+        } catch (e: SQLiteException) {
+            android.util.Log.e(TAG, "KB seed apply failed", e)
+            return@withContext false
         }
         true
     }

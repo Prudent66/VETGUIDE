@@ -27,7 +27,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.prudent66.vetguide.R
 import com.prudent66.vetguide.domain.model.KbConditionDetail
-import com.prudent66.vetguide.domain.model.KbUrgency
+import com.prudent66.vetguide.domain.model.KbReference
+import com.prudent66.vetguide.domain.model.Symptom
 import com.prudent66.vetguide.ui.viewmodels.KbDetailUiState
 import com.prudent66.vetguide.ui.viewmodels.KbDetailViewModel
 
@@ -100,56 +101,13 @@ private fun DetailContent(detail: KbConditionDetail, modifier: Modifier) {
         Text(
             text = labelOf(detail.urgency),
             style = MaterialTheme.typography.labelLarge,
-            color = when (detail.urgency) {
-                KbUrgency.EMERGENCY -> MaterialTheme.colorScheme.error
-                KbUrgency.URGENT -> MaterialTheme.colorScheme.tertiary
-                else -> MaterialTheme.colorScheme.onSurfaceVariant
-            },
+            color = urgencyColor(detail.urgency),
         )
         SectionCard(title = "Overview") {
             Text(detail.overview, style = MaterialTheme.typography.bodyMedium)
         }
-        SectionCard(title = "Signs / symptoms") {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                if (detail.symptoms.isEmpty()) {
-                    Text(
-                        "- None recorded in seed",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                } else {
-                    detail.symptoms.forEach { symptom ->
-                        Text(
-                            text = "• " + symptom.name +
-                                " (" + symptom.bodySystem + ")",
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                    }
-                }
-            }
-        }
-        SectionCard(title = "References") {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (detail.references.isEmpty()) {
-                    Text(
-                        "- Placeholder reference — requires veterinary review",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                } else {
-                    detail.references.forEach { reference ->
-                        Column {
-                            Text(reference.title, style = MaterialTheme.typography.titleSmall)
-                            if (reference.note.isNotBlank()) {
-                                Text(
-                                    reference.note,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        SymptomsSection(detail.symptoms)
+        ReferencesSection(detail.references)
         Text(
             text = "Placeholder content — requires veterinary review before clinical use.",
             style = MaterialTheme.typography.bodySmall,
@@ -161,6 +119,54 @@ private fun DetailContent(detail: KbConditionDetail, modifier: Modifier) {
 private fun speciesLine(detail: KbConditionDetail): String = detail.species
     .joinToString(" · ") { speciesLabel(it) }
     .ifBlank { "Cross-species" }
+
+@Composable
+private fun SymptomsSection(symptoms: List<Symptom>) {
+    SectionCard(title = "Signs / symptoms") {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            if (symptoms.isEmpty()) {
+                Text(
+                    "- None recorded in seed",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            } else {
+                symptoms.forEach { symptom ->
+                    Text(
+                        text = "• " + symptom.name + " (" + symptom.bodySystem + ")",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReferencesSection(references: List<KbReference>) {
+    SectionCard(title = "References") {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (references.isEmpty()) {
+                Text(
+                    "- Placeholder reference — requires veterinary review",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            } else {
+                references.forEach { reference ->
+                    Column {
+                        Text(reference.title, style = MaterialTheme.typography.titleSmall)
+                        if (reference.note.isNotBlank()) {
+                            Text(
+                                reference.note,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 @Composable
 private fun SectionCard(title: String, content: @Composable () -> Unit) {

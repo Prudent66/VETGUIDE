@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.prudent66.vetguide.R
 import com.prudent66.vetguide.domain.model.KbConditionSummary
-import com.prudent66.vetguide.domain.model.KbUrgency
 import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.ui.viewmodels.KnowledgeUiState
 import com.prudent66.vetguide.ui.viewmodels.KnowledgeViewModel
@@ -146,11 +145,6 @@ private fun SpeciesFilter(
     }
 }
 
-internal fun speciesLabel(species: Species?): String = species?.name
-    ?.lowercase()
-    ?.replaceFirstChar { it.uppercase() }
-    ?: "All"
-
 @Composable
 private fun KnowledgeList(
     conditions: List<KbConditionSummary>,
@@ -199,22 +193,10 @@ private fun ConditionCard(
             Text(
                 text = labelOf(condition.urgency),
                 style = MaterialTheme.typography.labelMedium,
-                color = conditionColor(condition.urgency),
+                color = urgencyColor(condition.urgency),
             )
         }
     }
-}
-
-internal fun labelOf(urgency: KbUrgency?): String = when (urgency) {
-    null -> "Urgency: unspecified"
-    else -> "Urgency: ${urgency.name.lowercase().replaceFirstChar { it.uppercase() }}"
-}
-
-@Composable
-private fun conditionColor(urgency: KbUrgency?) = when (urgency) {
-    KbUrgency.EMERGENCY -> MaterialTheme.colorScheme.error
-    KbUrgency.URGENT -> MaterialTheme.colorScheme.tertiary
-    else -> MaterialTheme.colorScheme.onSurfaceVariant
 }
 
 @Composable

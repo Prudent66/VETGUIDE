@@ -31,29 +31,26 @@ class KnowledgeRepositoryImpl @Inject constructor(
         kbDao.observeConditionDetails(conditionId).map { it?.toDetail() }
 }
 
-private fun toSpeciesList(tags: List<String>): List<Species> = tags.mapNotNull { tag ->
-    try {
-        Species.valueOf(tag)
-    } catch (e: IllegalArgumentException) {
-        null
-    }
-}
+private fun speciesFromTag(tag: String): Species? =
+    Species.entries.firstOrNull { species -> species.name == tag }
 
-private fun urgencyOrNull(raw: String?): KbUrgency? =
-    raw?.let { value -> try { KbUrgency.valueOf(value) } catch (e: IllegalArgumentException) { null } }
+private fun toSpeciesList(tags: List<String>): List<Species> = tags.mapNotNull(::speciesFromTag)
+
+private fun urgencyOf(raw: String?): KbUrgency? = raw
+    ?.let { value -> KbUrgency.entries.firstOrNull { urgency -> urgency.name == value } }
 
 private fun ConditionWithSpecies.toSummary(): KbConditionSummary = KbConditionSummary(
     id = condition.id,
     name = condition.name,
     species = toSpeciesList(species.map { it.species }),
-    urgency = urgencyOrNull(condition.urgency),
+    urgency = urgencyOf(condition.urgency),
 )
 
 private fun ConditionWithRelations.toDetail(): KbConditionDetail = KbConditionDetail(
     id = condition.id,
     name = condition.name,
     species = toSpeciesList(species.map { it.species }),
-    urgency = urgencyOrNull(condition.urgency),
+    urgency = urgencyOf(condition.urgency),
     overview = condition.overview,
     symptoms = symptoms
         .map { Symptom(id = it.id, name = it.name, bodySystem = it.bodySystem) }
