@@ -11,6 +11,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Full history: gitleaks needs parent commits to scan multi-commit push ranges.
+          fetch-depth: 0
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
