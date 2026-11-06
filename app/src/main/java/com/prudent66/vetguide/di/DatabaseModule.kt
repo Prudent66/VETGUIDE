@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.prudent66.vetguide.data.repository.CaseRepositoryImpl
 import com.prudent66.vetguide.data.repository.KnowledgeRepositoryImpl
+import com.prudent66.vetguide.data.repository.PatientRepositoryImpl
 import com.prudent66.vetguide.database.CaseArtifactDao
 import com.prudent66.vetguide.database.CaseDao
 import com.prudent66.vetguide.database.KbDao
