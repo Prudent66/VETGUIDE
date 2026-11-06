@@ -37,21 +37,20 @@ object DiagnosticEngine {
     /** Returns null when nothing relevant was selected or weights are unusable. */
     private fun score(condition: DiagnosticCandidate, selected: Set<String>): DiagnosticMatch? {
         val total = condition.symptomWeights.values.sum()
-        if (total <= 0.0) return null
-
         val matchedIds = condition.symptomWeights.keys.filter { it in selected }
-        if (matchedIds.isEmpty()) return null
-
-        val matched = matchedIds.sumOf { condition.symptomWeights.getValue(it) }
-        val percent = (matched / total * 100).roundToInt().coerceIn(0, 100)
-
-        return DiagnosticMatch(
-            conditionId = condition.conditionId,
-            conditionName = condition.conditionName,
-            urgency = condition.urgency,
-            matchStrengthPercent = percent,
-            matchedSigns = matchedIds.size,
-            totalSigns = condition.symptomWeights.size,
-        )
+        return if (matchedIds.isEmpty() || total <= 0.0) {
+            null
+        } else {
+            val matched = matchedIds.sumOf { condition.symptomWeights.getValue(it) }
+            val percent = (matched / total * 100).roundToInt().coerceIn(0, 100)
+            DiagnosticMatch(
+                conditionId = condition.conditionId,
+                conditionName = condition.conditionName,
+                urgency = condition.urgency,
+                matchStrengthPercent = percent,
+                matchedSigns = matchedIds.size,
+                totalSigns = condition.symptomWeights.size,
+            )
+        }
     }
 }

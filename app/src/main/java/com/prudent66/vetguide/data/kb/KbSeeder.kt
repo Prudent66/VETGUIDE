@@ -34,9 +34,10 @@ class KbSeeder @Inject constructor(
         val payload = parseSeed(KB_ASSET) { KbSeedParser.parse(it) } ?: return false
 
         val dao = db.kbDao()
-        if (dao.getSettingValue(KbSeedMarker.SEED_VERSION_KEY) == payload.version.toString()) {
-            return false
-        }
+        val current = dao.getSettingValue(KbSeedMarker.SEED_VERSION_KEY)
+        val incoming = payload.version.toString()
+        if (current == incoming) return false
+
         return runTransaction("KB seed") {
             KbSeedApplier.apply(payload, dao)
         }
@@ -46,9 +47,10 @@ class KbSeeder @Inject constructor(
         val payload = parseSeed(QUESTIONNAIRE_ASSET) { QuestionnaireSeedParser.parse(it) } ?: return false
 
         val dao = db.questionnaireDao()
-        if (dao.getSettingValue(QuestionnaireSeedMarker.SEED_VERSION_KEY) == payload.version.toString()) {
-            return false
-        }
+        val current = dao.getSettingValue(QuestionnaireSeedMarker.SEED_VERSION_KEY)
+        val incoming = payload.version.toString()
+        if (current == incoming) return false
+
         return runTransaction("questionnaire seed", dao) {
             QuestionnaireSeedApplier.apply(payload, dao)
         }

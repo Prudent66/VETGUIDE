@@ -103,12 +103,13 @@ class DiagnosticViewModel @Inject constructor(
     /** @return true when the flow advanced to the results screen. */
     fun nextStep(): Boolean {
         val wizard = mut.value as? DiagnosticUiState.Wizard ?: return false
-        if (wizard.index < wizard.questions.lastIndex) {
+        return if (wizard.index < wizard.questions.lastIndex) {
             mut.value = wizard.copy(index = wizard.index + 1)
-            return false
+            false
+        } else {
+            evaluate(wizard)
+            true
         }
-        evaluate(wizard)
-        return true
     }
 
     fun previousStep() {
