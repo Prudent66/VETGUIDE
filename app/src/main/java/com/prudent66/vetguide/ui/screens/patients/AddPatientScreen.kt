@@ -30,6 +30,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.prudent66.vetguide.R
+import com.prudent66.vetguide.domain.model.PatientDraft
 import com.prudent66.vetguide.domain.model.PatientSex
 import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.ui.viewmodels.PatientViewModel
@@ -83,21 +84,7 @@ fun AddPatientScreen(
                 selectedIndex = form.sex.ordinal,
                 onSelect = { index -> form.sex = PatientSex.entries[index] },
             )
-            Button(
-                onClick = {
-                    viewModel.addPatient(
-                        name = form.name.trim(),
-                        species = form.species,
-                        breed = form.breed.trim().ifBlank { null },
-                        sex = form.sex,
-                        ageMonths = form.ageMonths,
-                        weightKg = form.weightKg,
-                        onSaved = onSaved,
-                    )
-                },
-                enabled = form.valid,
-                modifier = Modifier.fillMaxWidth(),
-            ) { Text("Save patient") }
+            SaveButton(form, viewModel, onSaved)
             Text(
                 text = "Owner details are optional and can be added later.",
                 style = MaterialTheme.typography.bodySmall,
@@ -105,6 +92,31 @@ fun AddPatientScreen(
             )
         }
     }
+}
+
+@Composable
+private fun SaveButton(
+    form: PatientFormState,
+    viewModel: PatientViewModel,
+    onSaved: () -> Unit,
+) {
+    Button(
+        onClick = {
+            viewModel.addPatient(
+                PatientDraft(
+                    name = form.name.trim(),
+                    species = form.species,
+                    breed = form.breed.trim().ifBlank { null },
+                    sex = form.sex,
+                    ageMonths = form.ageMonths,
+                    weightKg = form.weightKg,
+                ),
+                onSaved = onSaved,
+            )
+        },
+        enabled = form.valid,
+        modifier = Modifier.fillMaxWidth(),
+    ) { Text("Save patient") }
 }
 
 /** Screen-scoped form state + validation (kept out of the ViewModel on purpose). */

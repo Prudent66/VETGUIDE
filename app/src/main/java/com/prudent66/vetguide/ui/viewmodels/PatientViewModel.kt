@@ -3,8 +3,7 @@ package com.prudent66.vetguide.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prudent66.vetguide.domain.model.NeuterStatus
-import com.prudent66.vetguide.domain.model.Patient
-import com.prudent66.vetguide.domain.model.PatientSex
+import com.prudent66.vetguide.domain.model.PatientDraft
 import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.domain.repository.PatientRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -42,28 +41,20 @@ class PatientViewModel @Inject constructor(
             initialValue = PatientListUiState.Loading,
         )
 
-    fun addPatient(
-        name: String,
-        species: Species,
-        breed: String?,
-        sex: PatientSex,
-        ageMonths: Int?,
-        weightKg: Double?,
-        onSaved: () -> Unit,
-    ) {
+    fun addPatient(draft: PatientDraft, onSaved: () -> Unit) {
         viewModelScope.launch {
             val now = System.currentTimeMillis()
             val patient = Patient(
                 id = UUID.randomUUID().toString(),
-                name = name,
-                species = species,
-                breed = breed,
-                sex = sex,
+                name = draft.name,
+                species = draft.species,
+                breed = draft.breed,
+                sex = draft.sex,
                 neuterStatus = NeuterStatus.UNKNOWN,
                 dateOfBirthEpochMs = null,
-                estimatedAgeMonths = ageMonths,
-                weightKg = weightKg,
-                weightUpdatedAtEpochMs = weightKg?.let { now },
+                estimatedAgeMonths = draft.ageMonths,
+                weightKg = draft.weightKg,
+                weightUpdatedAtEpochMs = draft.weightKg?.let { now },
                 ownerName = null,
                 ownerPhone = null,
                 ownerNotes = null,
