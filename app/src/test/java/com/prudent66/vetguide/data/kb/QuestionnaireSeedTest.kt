@@ -10,6 +10,7 @@ import com.prudent66.vetguide.database.ConditionWithWeights
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** Pure-JVM tests for the questionnaire seed pipeline (roadmap Phase 3). */
