@@ -6,6 +6,7 @@ import com.prudent66.vetguide.data.repository.CaseRepositoryImpl
 import com.prudent66.vetguide.data.repository.KnowledgeRepositoryImpl
 import com.prudent66.vetguide.data.repository.PatientRepositoryImpl
 import com.prudent66.vetguide.data.repository.QuestionnaireRepositoryImpl
+import com.prudent66.vetguide.data.repository.SettingsRepositoryImpl
 import com.prudent66.vetguide.database.CaseArtifactDao
 import com.prudent66.vetguide.database.CaseDao
 import com.prudent66.vetguide.database.KbDao
@@ -16,6 +17,7 @@ import com.prudent66.vetguide.domain.repository.CaseRepository
 import com.prudent66.vetguide.domain.repository.KnowledgeRepository
 import com.prudent66.vetguide.domain.repository.PatientRepository
 import com.prudent66.vetguide.domain.repository.QuestionnaireRepository
+import com.prudent66.vetguide.domain.repository.SettingsRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -77,4 +79,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindQuestionnaireRepository(impl: QuestionnaireRepositoryImpl): QuestionnaireRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSettingsRepository(impl: SettingsRepositoryImpl): SettingsRepository
 }

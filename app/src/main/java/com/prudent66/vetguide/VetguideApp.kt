@@ -49,7 +49,11 @@ fun VetguideApp() {
             startDestination = Destinations.HOME,
             modifier = Modifier.padding(innerPadding),
         ) {
-            composable(Destinations.HOME) { HomeScreen() }
+            composable(Destinations.HOME) {
+                HomeScreen(
+                    onOpenDestination = { route -> navigateToTopLevel(navController, route) },
+                )
+            }
             composable(Destinations.DIAGNOSE) {
                 DiagnoseScreen(
                     onOpenCondition = { conditionId ->
