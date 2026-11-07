@@ -25,7 +25,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -56,7 +55,6 @@ fun DiagnoseScreen(
                 .fillMaxSize(),
         ) {
             when (val s = state) {
-                DiagnosticUiState.Loading -> LoadingContent()
                 is DiagnosticUiState.Start -> StartPhase(
                     start = s,
                     patients = patients,
@@ -68,22 +66,53 @@ fun DiagnoseScreen(
                     onOpenCondition = onOpenCondition,
                     onRestart = viewModel::reset,
                 )
+                is DiagnosticUiState.FlowError -> ErrorPhase(error = s, viewModel = viewModel)
             }
         }
     }
 }
 
 private fun flowTitle(state: DiagnosticUiState): String = when (state) {
-    DiagnosticUiState.Loading -> "Diagnose"
     is DiagnosticUiState.Start -> "Diagnose"
     is DiagnosticUiState.Wizard -> "Guided assessment"
     is DiagnosticUiState.Results -> "Differential list"
+    is DiagnosticUiState.FlowError -> "Diagnose"
 }
 
+/** Fallback after a hard database failure: message + Retry / Start over. */
 @Composable
-private fun LoadingContent() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Preparing…", style = MaterialTheme.typography.bodyLarge)
+private fun ErrorPhase(
+    error: DiagnosticUiState.FlowError,
+    viewModel: DiagnosticViewModel,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    "Something went wrong",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                Text(error.message, style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+        Button(
+            onClick = viewModel::retryAssessment,
+            modifier = Modifier.fillMaxWidth(),
+        ) { Text("Retry") }
+        OutlinedButton(
+            onClick = viewModel::reset,
+            modifier = Modifier.fillMaxWidth(),
+        ) { Text("Start over") }
     }
 }
 
@@ -166,7 +195,7 @@ private fun PatientSelection(
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             DropdownMenuItem(text = { Text("Not recorded") }, onClick = {
-                viewModel.clearPatient()
+                viewModel.selectPatient(null)
                 expanded = false
             })
             patients.forEach { patient ->
