@@ -43,8 +43,8 @@ class DiagnosticEngineTest {
             listOf(parvovirus),
         )
 
-        assertEquals(50, one[0].matchStrengthPercent)
-        assertEquals(100, two[0].matchStrengthPercent)
+        assertEquals(33, one[0].matchStrengthPercent) // 10 / 30
+        assertEquals(67, two[0].matchStrengthPercent) // 20 / 30
         assertEquals(2, two[0].matchedSigns)
     }
 

@@ -7,8 +7,6 @@ import com.prudent66.vetguide.database.QuestionOptionEntity
 import com.prudent66.vetguide.database.QuestionnaireDao
 import com.prudent66.vetguide.database.QuestionWithOptions
 import com.prudent66.vetguide.database.ConditionWithWeights
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
@@ -115,11 +113,9 @@ private class InMemoryQuestionnaireDao : QuestionnaireDao {
     override suspend fun getSettingValue(seedVersionKey: String): String =
         settings[seedVersionKey] ?: ""
 
-    override fun getQuestions(species: String): Nothing =
-        throw NotImplementedError("query not exercised in seeds test")
+    override suspend fun getQuestions(species: String): List<QuestionWithOptions> = emptyList()
 
-    override fun getConditionsWithWeights(): Nothing =
-        throw NotImplementedError("query not exercised in seeds test")
+    override suspend fun getConditionsWithWeights(): List<ConditionWithWeights> = emptyList()
 
     /** Content fingerprint for idempotency assertions. */
     fun snapshot(): String =

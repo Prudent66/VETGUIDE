@@ -50,7 +50,7 @@ class KbSeeder @Inject constructor(
         val needsImport =
             dao.getSettingValue(QuestionnaireSeedMarker.SEED_VERSION_KEY) != payload.version.toString()
         return if (needsImport) {
-            runTransaction("questionnaire seed", dao) {
+            runTransaction("questionnaire seed") {
                 QuestionnaireSeedApplier.apply(payload, dao)
             }
         } else {
