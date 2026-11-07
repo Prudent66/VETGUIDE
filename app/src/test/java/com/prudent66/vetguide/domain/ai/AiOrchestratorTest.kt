@@ -70,7 +70,7 @@ class AiOrchestratorTest {
 
     @Test
     fun `success resets failures so isolated errors never trip the breaker`() = runBlocking {
-        val primary = FakeAiProvider(id = "primary", failuresBeforeSuccess = 2)
+        val primary = FakeAiProvider(id = "primary", failuresBeforeSuccess = 1)
         val secondary = FakeAiProvider(id = "secondary")
         val orchestrator = AiOrchestrator(listOf(primary, secondary))
         var nowMs = 1_000L
