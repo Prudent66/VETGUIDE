@@ -37,6 +37,8 @@ abstract class VetguideDatabase : RoomDatabase() {
     abstract fun kbDao(): KbDao
     abstract fun questionnaireDao(): QuestionnaireDao
 
+    abstract fun appSettingsDao(): AppSettingsDao
+
     companion object {
         const val VETGUIDE_DB_VERSION = 3
         const val VETGUIDE_DB_NAME = "vetguide.db"

@@ -37,9 +37,6 @@ interface KbDao {
     @Query("SELECT COALESCE((SELECT value FROM app_settings WHERE `key` = :seedVersionKey), '')")
     suspend fun getSettingValue(seedVersionKey: String): String
 
-    @Query("SELECT * FROM app_settings WHERE `key` = :key")
-    fun observeSetting(key: String): Flow<AppSettingEntity?>
-
     @Transaction
     @Query(
         """

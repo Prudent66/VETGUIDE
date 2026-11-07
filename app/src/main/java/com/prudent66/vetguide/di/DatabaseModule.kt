@@ -7,6 +7,7 @@ import com.prudent66.vetguide.data.repository.KnowledgeRepositoryImpl
 import com.prudent66.vetguide.data.repository.PatientRepositoryImpl
 import com.prudent66.vetguide.data.repository.QuestionnaireRepositoryImpl
 import com.prudent66.vetguide.data.repository.SettingsRepositoryImpl
+import com.prudent66.vetguide.database.AppSettingsDao
 import com.prudent66.vetguide.database.CaseArtifactDao
 import com.prudent66.vetguide.database.CaseDao
 import com.prudent66.vetguide.database.KbDao
@@ -57,6 +58,9 @@ object DatabaseModule {
 
     @Provides
     fun provideQuestionnaireDao(db: VetguideDatabase): QuestionnaireDao = db.questionnaireDao()
+
+    @Provides
+    fun provideAppSettingsDao(db: VetguideDatabase): AppSettingsDao = db.appSettingsDao()
 }
 
 /** Binds repository implementations to their domain contracts. */
