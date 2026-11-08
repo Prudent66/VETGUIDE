@@ -81,7 +81,11 @@ class AiOrchestratorTest {
 
         assertEquals("secondary", step().providerId) // fail #1 → ladder to secondary
         assertEquals("primary", step().providerId) // success resets the breaker
-        assertEquals("secondary", step().providerId) // a single later failure is not enough
+
+        // Script one isolated later failure: a single error is not enough to bench.
+        primary.failuresBeforeSuccess = 1
+
+        assertEquals("secondary", step().providerId)
         assertEquals("primary", step().providerId) // provider stays in the ladder
 
         assertEquals(4, primary.callCount)

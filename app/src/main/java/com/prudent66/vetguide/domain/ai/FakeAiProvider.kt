@@ -2,12 +2,15 @@ package com.prudent66.vetguide.domain.ai
 
 /**
  * Scriptable provider for development and fault-injection tests (roadmap §5
- * acceptance): fails its first [failuresBeforeSuccess] calls, then succeeds.
- * Never ships wired into production DI — production uses real providers only.
+ * acceptance): fails while [failuresBeforeSuccess] > 0 — each failure consumes
+ * one from the counter, so tests can script isolated failures by flipping the
+ * var between calls. Never ships wired into production DI — production uses
+ * real providers only.
  */
 class FakeAiProvider(
     override val id: String,
-    private val failuresBeforeSuccess: Int = 0,
+    /** Number of upcoming analyzed calls that fail; mutable for re-scripting. */
+    var failuresBeforeSuccess: Int = 0,
     private val successText: String = "[$id] scripted analysis",
 ) : AiProvider {
 
@@ -16,7 +19,8 @@ class FakeAiProvider(
 
     override suspend fun analyze(request: AiRequest): AiAttempt {
         callCount += 1
-        return if (callCount <= failuresBeforeSuccess) {
+        return if (failuresBeforeSuccess > 0) {
+            failuresBeforeSuccess -= 1
             AiAttempt.Failure("[$id] simulated failure #$callCount")
         } else {
             AiAttempt.Success(successText)
