@@ -39,6 +39,84 @@ class AiOrchestratorTest {
     }
 
     @Test
+    fun `chained ladder primary fails to secondary then secondary fails to offline fallback`() =
+        runBlocking {
+            val primary = FakeAiProvider(id = "primary", failuresBeforeSuccess = 99)
+            val secondary = FakeAiProvider(id = "secondary")
+            val orchestrator = AiOrchestrator(listOf(primary, secondary))
+
+            // Call 1: primary fails, the ladder yields a secondary success.
+            val first = orchestrator.analyze(request, nowMs = 1_000) as AiResult.ProviderSuccess
+            assertEquals("secondary", first.providerId)
+
+            // Call 2: the ladder's last provider also fails — mode-4 fallback,
+            // with no AI provenance and no extra provider attempts.
+            secondary.failuresBeforeSuccess = 99
+            val second = orchestrator.analyze(request, nowMs = 2_000) as AiResult.DeterministicFallback
+
+            assertEquals(OFFLINE_PROVIDER_ID, second.providerId)
+            assertTrue(second.text.contains("requires veterinary review"))
+            assertFalse(second.text.contains(secondary.id))
+            assertEquals(2, primary.callCount)
+            assertEquals(2, secondary.callCount)
+        }
+
+    @Test
+    fun `all providers benched lands straight on deterministic offline fallback`() = runBlocking {
+        val primary = FakeAiProvider(id = "primary", failuresBeforeSuccess = 99)
+        val secondary = FakeAiProvider(id = "secondary", failuresBeforeSuccess = 99)
+        val orchestrator = AiOrchestrator(listOf(primary, secondary))
+
+        // Trip both breakers: three consecutive failures benched each for 5 min.
+        repeat(3) { orchestrator.analyze(request, nowMs = 1_000) }
+        assertTrue(orchestrator.isBenched("primary", nowMs = 2_000))
+        assertTrue(orchestrator.isBenched("secondary", nowMs = 2_000))
+
+        val result = orchestrator.analyze(request, nowMs = 2_000) as AiResult.DeterministicFallback
+
+        assertEquals(3, primary.callCount)
+        assertEquals(3, secondary.callCount)
+        assertEquals(OFFLINE_PROVIDER_ID, result.providerId)
+        assertTrue(result.text.contains("requires veterinary review"))
+    }
+
+    @Test
+    fun `cloud AI toggle off skips the ladder and returns the rule-based fallback`() = runBlocking {
+        val primary = FakeAiProvider(id = "primary", failuresBeforeSuccess = 99)
+        val secondary = FakeAiProvider(id = "secondary", failuresBeforeSuccess = 99)
+        val orchestrator = AiOrchestrator(
+            providers = listOf(primary, secondary),
+            cloudAiEnabled = { false },
+        )
+
+        val result = orchestrator.analyze(request, nowMs = 1_000) as AiResult.DeterministicFallback
+
+        // No provider is consulted and no breaker state is touched (§5).
+        assertEquals(0, primary.callCount)
+        assertEquals(0, secondary.callCount)
+        assertFalse(orchestrator.isBenched("primary", nowMs = 1_000))
+        assertFalse(orchestrator.isBenched("secondary", nowMs = 1_000))
+        assertEquals(OFFLINE_PROVIDER_ID, result.providerId)
+        assertTrue(result.text.contains("requires veterinary review"))
+    }
+
+    @Test
+    fun `cloud AI toggle on runs the full failover ladder`() = runBlocking {
+        val primary = FakeAiProvider(id = "primary")
+        val secondary = FakeAiProvider(id = "secondary")
+        val orchestrator = AiOrchestrator(
+            providers = listOf(primary, secondary),
+            cloudAiEnabled = { true },
+        )
+
+        val result = orchestrator.analyze(request, nowMs = 1_000) as AiResult.ProviderSuccess
+
+        assertEquals("primary", result.providerId)
+        assertEquals(1, primary.callCount)
+        assertEquals(0, secondary.callCount)
+    }
+
+    @Test
     fun `circuit breaker benches provider after three consecutive failures`() = runBlocking {
         val primary = FakeAiProvider(id = "primary", failuresBeforeSuccess = 99)
         val secondary = FakeAiProvider(id = "secondary")
