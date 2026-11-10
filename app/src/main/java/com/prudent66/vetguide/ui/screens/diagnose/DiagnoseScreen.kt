@@ -65,7 +65,6 @@ fun DiagnoseScreen(
                 ImageFlowPhase(
                     imageState = imageState,
                     imageViewModel = imageViewModel,
-                    onOpenCondition = onOpenCondition,
                 )
             } else {
                 QuestionnairePhase(
@@ -109,7 +108,6 @@ private fun QuestionnairePhase(
 private fun ImageFlowPhase(
     imageState: ImageAnalysisUiState,
     imageViewModel: ImageAnalysisViewModel,
-    onOpenCondition: (String) -> Unit,
 ) {
     when (val s = imageState) {
         is ImageAnalysisUiState.Idle -> {}

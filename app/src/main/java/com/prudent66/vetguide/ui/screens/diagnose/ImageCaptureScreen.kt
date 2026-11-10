@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -60,31 +61,13 @@ fun ImageCaptureScreen(
     onImageCaptured: (String) -> Unit,
     onCancel: () -> Unit,
 ) {
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var hasCameraPermission by remember {
-        mutableStateOf(
-            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
-                PackageManager.PERMISSION_GRANTED,
-        )
-    }
-    var captureError by remember { mutableStateOf<String?>(null) }
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { granted -> hasCameraPermission = granted }
-    val galleryLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.PickVisualMedia(),
-    ) { uri ->
-        if (uri != null) {
-            handleGalleryPick(context, uri, scope, onImageCaptured) { captureError = it }
-        }
-    }
-
-    LaunchedEffect(hasCameraPermission) {
-        if (!hasCameraPermission) {
-            permissionLauncher.launch(Manifest.permission.CAMERA)
-        }
-    }
+    val capture = rememberCaptureState()
+    val galleryLauncher = rememberGalleryLauncher(
+        scope = scope,
+        onImageCaptured = onImageCaptured,
+        onError = { capture.captureError = it },
+    )
 
     Column(
         modifier = Modifier
@@ -96,17 +79,17 @@ fun ImageCaptureScreen(
             text = "Photograph the presenting condition",
             style = MaterialTheme.typography.labelLarge,
         )
-        if (hasCameraPermission) {
+        if (capture.hasCameraPermission) {
             CameraReadyContent(
                 onImageCaptured = onImageCaptured,
-                onError = { captureError = it },
+                onError = { capture.captureError = it },
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
             )
         } else {
             CameraRationale(
-                onGrant = { permissionLauncher.launch(Manifest.permission.CAMERA) },
+                onGrant = capture.requestPermission,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
@@ -118,9 +101,51 @@ fun ImageCaptureScreen(
                     PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
                 )
             },
-            error = captureError,
+            error = capture.captureError,
             onCancel = onCancel,
         )
+    }
+}
+
+/** Permission + error state for the capture phase. */
+private class CaptureState(initialGranted: Boolean) {
+    var hasCameraPermission by mutableStateOf(initialGranted)
+    var captureError by mutableStateOf<String?>(null)
+    var requestPermission: () -> Unit = {}
+}
+
+@Composable
+private fun rememberCaptureState(): CaptureState {
+    val context = LocalContext.current
+    val state = remember {
+        CaptureState(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+                PackageManager.PERMISSION_GRANTED,
+        )
+    }
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted -> state.hasCameraPermission = granted }
+    state.requestPermission = { permissionLauncher.launch(Manifest.permission.CAMERA) }
+    LaunchedEffect(state.hasCameraPermission) {
+        if (!state.hasCameraPermission) {
+            state.requestPermission()
+        }
+    }
+    return state
+}
+
+@Composable
+private fun rememberGalleryLauncher(
+    scope: CoroutineScope,
+    onImageCaptured: (String) -> Unit,
+    onError: (String) -> Unit,
+): ManagedActivityResultLauncher<PickVisualMediaRequest, Uri?> {
+    val context = LocalContext.current
+    return rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) {
+            handleGalleryPick(context, uri, scope, onImageCaptured, onError)
+        }
     }
 }
 

@@ -85,16 +85,7 @@ fun ImageReviewScreen(
                 )
             }
         }
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    text = "AI analysis is decision support — not a diagnosis. " +
-                        "The veterinarian remains responsible for all clinical decisions.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
+        ReviewDisclaimer()
         CropToggle(squareCrop = squareCrop, onToggle = { squareCrop = it })
         ReviewActions(
             onAnalyze = { showConsent = true },
@@ -111,6 +102,23 @@ fun ImageReviewScreen(
             },
             onDecline = { showConsent = false },
         )
+    }
+}
+
+@Composable
+private fun ReviewDisclaimer() {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                text = "AI analysis is decision support — not a diagnosis. " +
+                    "The veterinarian remains responsible for all clinical decisions.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
