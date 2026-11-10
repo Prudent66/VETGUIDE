@@ -5,9 +5,9 @@ import com.prudent66.vetguide.domain.ai.AiCatalog
 import com.prudent66.vetguide.domain.ai.AiRequest
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
-import io.ktor.client.engine.mock.MockHttpRequest
 import io.ktor.client.engine.mock.MockRequestHandler
 import io.ktor.client.engine.mock.respond
+import io.ktor.client.request.HttpRequestData
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
@@ -36,8 +36,8 @@ class CloudAiProviderTest {
     private fun mockClient(handler: MockRequestHandler): HttpClient =
         HttpClient(MockEngine) { engine { addHandler(handler) } }
 
-    private fun jsonHandler(body: String, status: HttpStatusCode): Pair<HttpClient, MutableList<MockHttpRequest>> {
-        val seen = mutableListOf<MockHttpRequest>()
+    private fun jsonHandler(body: String, status: HttpStatusCode): Pair<HttpClient, MutableList<HttpRequestData>> {
+        val seen = mutableListOf<HttpRequestData>()
         val client = mockClient { request ->
             seen += request
             respond(body, status, headersOf("Content-Type" to listOf("application/json")))
