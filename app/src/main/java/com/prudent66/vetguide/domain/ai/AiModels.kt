@@ -1,5 +1,8 @@
 package com.prudent66.vetguide.domain.ai
 
+import kotlin.math.roundToInt
+import kotlinx.serialization.Serializable
+
 /**
  * Abstract request into the AI layer (roadmap §5–§6): providers receive a
  * normalized prompt; provider-specific quirks are handled inside each
@@ -56,4 +59,58 @@ interface AiProvider {
     val id: String
 
     suspend fun analyze(request: AiRequest): AiAttempt
+}
+
+/** Body accepted by the secure backend's /analyze endpoint (§8). */
+@Serializable
+data class AiAnalysisRequest(
+    /** Base64 image payload; null for questionnaire-only requests. */
+    val imageBase64: String? = null,
+    /** Structured findings text from the questionnaire and/or case notes. */
+    val prompt: String,
+)
+
+/** One suspected condition with the model's confidence estimate (§10). */
+@Serializable
+data class SuspectedCondition(
+    val name: String,
+    val confidence: Double,
+)
+
+/**
+ * Structured analysis contract shared by the secure backend
+ * (backend/src/index.ts) and cloud providers. Parsed defensively
+ * (unknown keys ignored); empty/invalid results map to AiAttempt.Failure
+ * (§10: "insufficient information", never a guess).
+ */
+@Serializable
+data class AiAnalysisData(
+    val provider: String,
+    val model: String,
+    val findings: List<String>,
+    val suspectedConditions: List<SuspectedCondition>,
+    val recommendedNextSteps: List<String> = emptyList(),
+)
+
+/**
+ * Human-readable narrative for an AiAttempt.Success (§10): always carries
+ * provider/model provenance and the standing "not a diagnosis" framing.
+ */
+fun AiAnalysisData.toNarrativeText(): String = buildString {
+    append("[AI prediction — $provider/$model] ")
+    append("Findings: ").append(findings.joinToString("; ")).append(". ")
+    append("Suspected conditions (decision support, not a diagnosis): ")
+    append(
+        suspectedConditions.joinToString("; ") { condition ->
+            "${condition.name} (confidence ${(condition.confidence * 100).roundToInt()}%)"
+        },
+    ).append(". ")
+    if (recommendedNextSteps.isNotEmpty()) {
+        append("Recommended next steps: ")
+        append(recommendedNextSteps.joinToString("; ")).append(". ")
+    }
+    append(
+        "Confidence values are model estimates, not validated diagnostic " +
+            "probabilities — requires veterinary review.",
+    )
 }

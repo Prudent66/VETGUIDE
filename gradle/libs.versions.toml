@@ -24,6 +24,9 @@ lifecycleRuntimeKtx = "2.10.0"
 coreKtx = "1.15.0"
 # Persistence (Room) — 2.8.5 verified minCompileSdk=34 (AGP-8-compatible), supports KSP2.
 room = "2.8.5"
+# AI networking (Phase 5): Ktor client to the secure backend (§8). Manual JSON
+# decode via kotlinx-serialization-json above — no ContentNegotiation module needed.
+ktor = "3.2.3"
 # AndroidX instrumented-test tooling
 androidxTestJunit = "1.2.1"
 androidxTestRunner = "1.6.2"
@@ -50,6 +53,8 @@ androidx-room-runtime = { group = "androidx.room", name = "room-runtime", versio
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
+ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
+ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestJunit" }
 androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }

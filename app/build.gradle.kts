@@ -87,6 +87,10 @@ dependencies {
     // KB seed parsing (pure-JVM, unit-testable)
     implementation(libs.kotlinx.serialization.json)
 
+    // AI networking (Phase 5): Ktor client for the secure backend (§8)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.okhttp)
+
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.junit)
