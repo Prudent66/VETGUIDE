@@ -40,7 +40,14 @@ class CloudAiProvider(
     override suspend fun analyze(request: AiRequest): AiAttempt = try {
         val response = client.post("$baseUrl/analyze") {
             contentType(ContentType.Application.Json)
-            setBody(json.encodeToString(AiAnalysisRequest(prompt = request.findings)))
+            setBody(
+                json.encodeToString(
+                    AiAnalysisRequest(
+                        imageBase64 = request.imageBase64,
+                        prompt = request.findings,
+                    ),
+                ),
+            )
         }
         val body = response.bodyAsText()
         if (response.status == HttpStatusCode.OK) {

@@ -13,6 +13,8 @@ data class AiRequest(
     val headline: String,
     /** Structured findings text from the questionnaire and/or case notes. */
     val findings: String,
+    /** Base64 image payload (§4.2); null for questionnaire-only requests. */
+    val imageBase64: String? = null,
 )
 
 /** Outcome of ONE provider attempt — providers report failure explicitly. */
