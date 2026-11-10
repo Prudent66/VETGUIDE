@@ -96,16 +96,11 @@ fun ImageReviewScreen(
             }
         }
         CropToggle(squareCrop = squareCrop, onToggle = { squareCrop = it })
-        Button(
-            onClick = { showConsent = true },
-            modifier = Modifier.fillMaxWidth(),
-        ) { Text("Analyze with Cloud AI") }
-        OutlinedButton(onClick = onRetake, modifier = Modifier.fillMaxWidth()) {
-            Text("Retake")
-        }
-        TextButton(onClick = onCancel, modifier = Modifier.fillMaxWidth()) {
-            Text("Cancel")
-        }
+        ReviewActions(
+            onAnalyze = { showConsent = true },
+            onRetake = onRetake,
+            onCancel = onCancel,
+        )
     }
 
     if (showConsent) {
@@ -116,6 +111,19 @@ fun ImageReviewScreen(
             },
             onDecline = { showConsent = false },
         )
+    }
+}
+
+@Composable
+private fun ReviewActions(onAnalyze: () -> Unit, onRetake: () -> Unit, onCancel: () -> Unit) {
+    Button(onClick = onAnalyze, modifier = Modifier.fillMaxWidth()) {
+        Text("Analyze with Cloud AI")
+    }
+    OutlinedButton(onClick = onRetake, modifier = Modifier.fillMaxWidth()) {
+        Text("Retake")
+    }
+    TextButton(onClick = onCancel, modifier = Modifier.fillMaxWidth()) {
+        Text("Cancel")
     }
 }
 

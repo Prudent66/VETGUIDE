@@ -34,71 +34,126 @@ import com.prudent66.vetguide.ui.components.SpeciesField
 import com.prudent66.vetguide.ui.screens.knowledge.speciesLabel
 import com.prudent66.vetguide.ui.viewmodels.DiagnosticUiState
 import com.prudent66.vetguide.ui.viewmodels.DiagnosticViewModel
+import com.prudent66.vetguide.ui.viewmodels.ImageAnalysisUiState
+import com.prudent66.vetguide.ui.viewmodels.ImageAnalysisViewModel
 
 /**
- * Guided diagnostic questionnaire flow (Phase 3): Start → Wizard → Results.
- * Placeholder scoring only — every phase shows the veterinary-review notice.
+ * Guided diagnostic questionnaire flow (Phase 3) + image-analysis flow
+ * (Phase 6 §4.2). The questionnaire state machine lives in
+ * [DiagnosticViewModel]; the image flow in [ImageAnalysisViewModel] (kept
+ * separate for function-count hygiene). When the image flow is active its
+ * phases take over the screen; Cancel returns to the questionnaire Start.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiagnoseScreen(
     onOpenCondition: (String) -> Unit,
     viewModel: DiagnosticViewModel = hiltViewModel(),
+    imageViewModel: ImageAnalysisViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
+    val imageState by imageViewModel.uiState.collectAsState()
     val patients by viewModel.patients.collectAsState()
 
-    Scaffold(topBar = { TopAppBar(title = { Text(flowTitle(state)) }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text(title(state, imageState)) }) }) { padding ->
         Box(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize(),
         ) {
-            when (val s = state) {
-                is DiagnosticUiState.Start -> StartPhase(
-                    start = s,
+            if (imageState !is ImageAnalysisUiState.Idle) {
+                ImageFlowPhase(
+                    imageState = imageState,
+                    imageViewModel = imageViewModel,
+                    onOpenCondition = onOpenCondition,
+                )
+            } else {
+                QuestionnairePhase(
+                    state = state,
                     patients = patients,
                     viewModel = viewModel,
-                )
-                is DiagnosticUiState.Wizard -> WizardPhase(wizard = s, viewModel = viewModel)
-                is DiagnosticUiState.Results -> ResultsPhase(
-                    results = s,
+                    imageViewModel = imageViewModel,
                     onOpenCondition = onOpenCondition,
-                    onRestart = viewModel::reset,
-                )
-                is DiagnosticUiState.FlowError -> ErrorPhase(error = s, viewModel = viewModel)
-                is DiagnosticUiState.ImageCapture -> ImageCaptureScreen(
-                    onImageCaptured = viewModel::onImageCaptured,
-                    onCancel = viewModel::cancelImageFlow,
-                )
-                is DiagnosticUiState.ImageReview -> ImageReviewScreen(
-                    imageBase64 = s.imageBase64,
-                    onSend = { squareCrop ->
-                        viewModel.sendForAnalysis(s.imageBase64, squareCrop)
-                    },
-                    onRetake = viewModel::retakeImage,
-                    onCancel = viewModel::cancelImageFlow,
-                )
-                is DiagnosticUiState.ImageAnalyzing -> ImageAnalyzingPhase(analysis = s)
-                is DiagnosticUiState.ImageAiResult -> ImageResultPhase(
-                    result = s,
-                    onRestart = viewModel::reset,
                 )
             }
         }
     }
 }
 
-private fun flowTitle(state: DiagnosticUiState): String = when (state) {
-    is DiagnosticUiState.Start -> "Diagnose"
-    is DiagnosticUiState.Wizard -> "Guided assessment"
-    is DiagnosticUiState.Results -> "Differential list"
-    is DiagnosticUiState.FlowError -> "Diagnose"
-    is DiagnosticUiState.ImageCapture -> "Photo analysis"
-    is DiagnosticUiState.ImageReview -> "Confirm image"
-    is DiagnosticUiState.ImageAnalyzing -> "Analyzing"
-    is DiagnosticUiState.ImageAiResult -> "AI analysis"
+@Composable
+private fun QuestionnairePhase(
+    state: DiagnosticUiState,
+    patients: List<Patient>,
+    viewModel: DiagnosticViewModel,
+    imageViewModel: ImageAnalysisViewModel,
+    onOpenCondition: (String) -> Unit,
+) {
+    when (val s = state) {
+        is DiagnosticUiState.Start -> StartPhase(
+            start = s,
+            patients = patients,
+            viewModel = viewModel,
+            onOpenImageFlow = { imageViewModel.start(s.species) },
+        )
+        is DiagnosticUiState.Wizard -> WizardPhase(wizard = s, viewModel = viewModel)
+        is DiagnosticUiState.Results -> ResultsPhase(
+            results = s,
+            onOpenCondition = onOpenCondition,
+            onRestart = viewModel::reset,
+        )
+        is DiagnosticUiState.FlowError -> ErrorPhase(error = s, viewModel = viewModel)
+    }
 }
+
+@Composable
+private fun ImageFlowPhase(
+    imageState: ImageAnalysisUiState,
+    imageViewModel: ImageAnalysisViewModel,
+    onOpenCondition: (String) -> Unit,
+) {
+    when (val s = imageState) {
+        is ImageAnalysisUiState.Idle -> {}
+        is ImageAnalysisUiState.Capture -> ImageCaptureScreen(
+            onImageCaptured = imageViewModel::onImageCaptured,
+            onCancel = imageViewModel::reset,
+        )
+        is ImageAnalysisUiState.Review -> ImageReviewScreen(
+            imageBase64 = s.imageBase64,
+            onSend = { squareCrop -> imageViewModel.sendForAnalysis(s.imageBase64, squareCrop) },
+            onRetake = imageViewModel::retakeImage,
+            onCancel = imageViewModel::reset,
+        )
+        is ImageAnalysisUiState.Analyzing -> ImageAnalyzingPhase(analysis = s)
+        is ImageAnalysisUiState.Result -> ImageResultPhase(
+            result = s,
+            onRestart = imageViewModel::reset,
+        )
+        is ImageAnalysisUiState.ImageError -> ImageErrorPhase(
+            error = s,
+            onRetake = imageViewModel::retryFromError,
+            onCancel = imageViewModel::reset,
+        )
+    }
+}
+
+private fun title(state: DiagnosticUiState, imageState: ImageAnalysisUiState): String =
+    if (imageState !is ImageAnalysisUiState.Idle) {
+        when (imageState) {
+            is ImageAnalysisUiState.Capture -> "Photo analysis"
+            is ImageAnalysisUiState.Review -> "Confirm image"
+            is ImageAnalysisUiState.Analyzing -> "Analyzing"
+            is ImageAnalysisUiState.Result -> "AI analysis"
+            is ImageAnalysisUiState.ImageError -> "Photo analysis"
+            ImageAnalysisUiState.Idle -> "Diagnose"
+        }
+    } else {
+        when (state) {
+            is DiagnosticUiState.Start -> "Diagnose"
+            is DiagnosticUiState.Wizard -> "Guided assessment"
+            is DiagnosticUiState.Results -> "Differential list"
+            is DiagnosticUiState.FlowError -> "Diagnose"
+        }
+    }
 
 /** Fallback after a hard database failure: message + Retry / Start over. */
 @Composable
@@ -142,6 +197,7 @@ private fun StartPhase(
     start: DiagnosticUiState.Start,
     patients: List<Patient>,
     viewModel: DiagnosticViewModel,
+    onOpenImageFlow: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -163,7 +219,7 @@ private fun StartPhase(
             modifier = Modifier.fillMaxWidth(),
         ) { Text("Begin assessment") }
         OutlinedButton(
-            onClick = viewModel::startImageAnalysis,
+            onClick = onOpenImageFlow,
             modifier = Modifier.fillMaxWidth(),
         ) { Text("Analyze a photo (Cloud AI)") }
         start.error?.let { error ->

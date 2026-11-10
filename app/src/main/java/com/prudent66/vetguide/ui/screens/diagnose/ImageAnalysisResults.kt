@@ -12,6 +12,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.prudent66.vetguide.domain.ai.OFFLINE_PROVIDER_ID
 import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.ui.screens.knowledge.speciesLabel
-import com.prudent66.vetguide.ui.viewmodels.DiagnosticUiState
+import com.prudent66.vetguide.ui.viewmodels.ImageAnalysisUiState
 
 /**
  * Phase 6 (§4.2) analyzing + result phases. Provenance is always surfaced
@@ -29,7 +30,7 @@ import com.prudent66.vetguide.ui.viewmodels.DiagnosticUiState
  * visually distinguished (§10) — it is never presented as AI.
  */
 @Composable
-fun ImageAnalyzingPhase(analysis: DiagnosticUiState.ImageAnalyzing) {
+fun ImageAnalyzingPhase(analysis: ImageAnalysisUiState.Analyzing) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -55,7 +56,7 @@ fun ImageAnalyzingPhase(analysis: DiagnosticUiState.ImageAnalyzing) {
 
 @Composable
 fun ImageResultPhase(
-    result: DiagnosticUiState.ImageAiResult,
+    result: ImageAnalysisUiState.Result,
     onRestart: () -> Unit,
 ) {
     Column(
@@ -86,7 +87,7 @@ fun ImageResultPhase(
 }
 
 @Composable
-private fun ProvenanceBanner(result: DiagnosticUiState.ImageAiResult) {
+private fun ProvenanceBanner(result: ImageAnalysisUiState.Result) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -128,4 +129,36 @@ private fun ProvenanceBanner(result: DiagnosticUiState.ImageAiResult) {
 private fun speciesLine(species: Species?): String = when (species) {
     null -> "Species: unspecified"
     else -> "Species: ${speciesLabel(species)}"
+}
+
+/** Corrupt/unsupported payload: explicit error + Retake / Cancel (§13). */
+@Composable
+fun ImageErrorPhase(
+    error: ImageAnalysisUiState.ImageError,
+    onRetake: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = "Image analysis failed",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                Text(error.message, style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+        Button(onClick = onRetake, modifier = Modifier.fillMaxWidth()) {
+            Text("Retake")
+        }
+        OutlinedButton(onClick = onCancel, modifier = Modifier.fillMaxWidth()) {
+            Text("Cancel")
+        }
+    }
 }

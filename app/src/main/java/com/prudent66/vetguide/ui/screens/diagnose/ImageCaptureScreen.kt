@@ -86,12 +86,6 @@ fun ImageCaptureScreen(
         }
     }
 
-    val imageCapture = remember {
-        ImageCapture.Builder()
-            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-            .build()
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -103,61 +97,79 @@ fun ImageCaptureScreen(
             style = MaterialTheme.typography.labelLarge,
         )
         if (hasCameraPermission) {
-            Box(
+            CameraReadyContent(
+                onImageCaptured = onImageCaptured,
+                onError = { captureError = it },
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
-            ) {
-                CameraPreviewArea(
-                    imageCapture = imageCapture,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }
-            Button(
-                onClick = {
-                    captureImage(
-                        context = context,
-                        imageCapture = imageCapture,
-                        scope = scope,
-                        onImageCaptured = onImageCaptured,
-                        onError = { captureError = it },
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-            ) { Text("Capture") }
+            )
         } else {
             CameraRationale(
                 onGrant = { permissionLauncher.launch(Manifest.permission.CAMERA) },
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
             )
         }
-        OutlinedButton(
-            onClick = {
+        CaptureControls(
+            onGallery = {
                 galleryLauncher.launch(
                     PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
                 )
             },
-            modifier = Modifier.fillMaxWidth(),
-        ) { Text("Pick from gallery") }
-        captureError?.let { error ->
-            Text(
-                text = error,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
+            error = captureError,
+            onCancel = onCancel,
+        )
+    }
+}
+
+/** Live preview + capture button (permission already granted). */
+@Composable
+private fun CameraReadyContent(
+    onImageCaptured: (String) -> Unit,
+    onError: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val imageCapture = remember {
+        ImageCapture.Builder()
+            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+            .build()
+    }
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+        ) {
+            CameraPreviewArea(
+                imageCapture = imageCapture,
+                modifier = Modifier.fillMaxSize(),
             )
         }
-        TextButton(onClick = onCancel, modifier = Modifier.fillMaxWidth()) {
-            Text("Cancel")
-        }
+        Button(
+            onClick = {
+                captureImage(
+                    context = context,
+                    imageCapture = imageCapture,
+                    scope = scope,
+                    onImageCaptured = onImageCaptured,
+                    onError = onError,
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+        ) { Text("Capture") }
     }
 }
 
 @Composable
-private fun CameraRationale(onGrant: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .weight(1f)
-            .fillMaxWidth(),
-    ) {
+private fun CameraRationale(onGrant: () -> Unit, modifier: Modifier = Modifier) {
+    Card(modifier = modifier) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -170,6 +182,27 @@ private fun CameraRationale(onGrant: () -> Unit) {
             )
             Button(onClick = onGrant) { Text("Grant camera access") }
         }
+    }
+}
+
+@Composable
+private fun CaptureControls(
+    onGallery: () -> Unit,
+    error: String?,
+    onCancel: () -> Unit,
+) {
+    OutlinedButton(onClick = onGallery, modifier = Modifier.fillMaxWidth()) {
+        Text("Pick from gallery")
+    }
+    error?.let { message ->
+        Text(
+            text = message,
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodySmall,
+        )
+    }
+    TextButton(onClick = onCancel, modifier = Modifier.fillMaxWidth()) {
+        Text("Cancel")
     }
 }
 
@@ -225,7 +258,7 @@ private fun handleGalleryPick(
         } catch (e: IOException) {
             onError("Could not read the selected image: ${e.message}")
         } catch (e: IllegalArgumentException) {
-            onError("Unsupported image format")
+            onError("Unsupported image format: ${e.message}")
         }
     }
 }
@@ -257,7 +290,7 @@ private fun captureImage(
                         }
                         onImageCaptured(base64)
                     } catch (e: IllegalArgumentException) {
-                        onError("Unsupported camera frame")
+                        onError("Unsupported camera frame: ${e.message}")
                     }
                 }
             }
