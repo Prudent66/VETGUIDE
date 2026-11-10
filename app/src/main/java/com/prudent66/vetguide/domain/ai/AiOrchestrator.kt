@@ -30,10 +30,15 @@ class AiOrchestrator(
 
     private val breakers = ConcurrentHashMap<String, BreakerState>()
 
-    suspend fun analyze(request: AiRequest, nowMs: Long = System.currentTimeMillis()): AiResult {
+    suspend fun analyze(request: AiRequest, nowMs: Long = System.currentTimeMillis()): AiResult =
         if (!cloudAiEnabled()) {
-            return AiResult.DeterministicFallback(text = DeterministicFallbackBuilder.build(request))
+            AiResult.DeterministicFallback(text = DeterministicFallbackBuilder.build(request))
+        } else {
+            runLadder(request, nowMs)
         }
+
+    /** Provider ladder — only reached while the Settings cloud-AI gate is on. */
+    private suspend fun runLadder(request: AiRequest, nowMs: Long): AiResult {
         providers.forEach { provider ->
             val breaker = breakers.getOrPut(provider.id) { BreakerState() }
             if (nowMs < breaker.openUntilMs) {
