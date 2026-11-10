@@ -21,12 +21,15 @@ activityCompose = "1.13.0"
 navigationCompose = "2.9.8"
 # NOTE: lifecycle 2.11.0 requires compileSdk 37; 2.10.0 is the last AGP-8-compatible release.
 lifecycleRuntimeKtx = "2.10.0"
+lifecycleRuntimeCompose = "2.10.0"
 coreKtx = "1.15.0"
 # Persistence (Room) — 2.8.5 verified minCompileSdk=34 (AGP-8-compatible), supports KSP2.
 room = "2.8.5"
 # AI networking (Phase 5): Ktor client to the secure backend (§8). Manual JSON
 # decode via kotlinx-serialization-json above — no ContentNegotiation module needed.
 ktor = "3.2.3"
+# Image capture (Phase 6): CameraX live preview + still capture.
+camerax = "1.5.1"
 # AndroidX instrumented-test tooling
 androidxTestJunit = "1.2.1"
 androidxTestRunner = "1.6.2"
@@ -38,6 +41,7 @@ junit = "4.13.2"
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleRuntimeCompose" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
@@ -56,6 +60,11 @@ androidx-room-testing = { group = "androidx.room", name = "room-testing", versio
 ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
 ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
 ktor-client-mock = { group = "io.ktor", name = "ktor-client-mock", version.ref = "ktor" }
+androidx-camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "camerax" }
+androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
+androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
+androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version = "1.10.2" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestJunit" }
 androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }

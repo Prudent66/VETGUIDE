@@ -63,6 +63,7 @@ dependencies {
     // AndroidX core
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.activity.compose)
 
     // Compose (versions managed by the BOM)
@@ -91,9 +92,16 @@ dependencies {
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
 
+    // Image capture (Phase 6): CameraX preview + still capture
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+
     // Testing
     testImplementation(libs.junit)
     testImplementation(libs.ktor.client.mock)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.junit)
     androidTestImplementation(libs.androidx.room.testing)
     androidTestImplementation(libs.androidx.test.ext.junit)
