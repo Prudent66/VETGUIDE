@@ -67,6 +67,23 @@ fun DiagnoseScreen(
                     onRestart = viewModel::reset,
                 )
                 is DiagnosticUiState.FlowError -> ErrorPhase(error = s, viewModel = viewModel)
+                is DiagnosticUiState.ImageCapture -> ImageCaptureScreen(
+                    onImageCaptured = viewModel::onImageCaptured,
+                    onCancel = viewModel::cancelImageFlow,
+                )
+                is DiagnosticUiState.ImageReview -> ImageReviewScreen(
+                    imageBase64 = s.imageBase64,
+                    onSend = { squareCrop ->
+                        viewModel.sendForAnalysis(s.imageBase64, squareCrop)
+                    },
+                    onRetake = viewModel::retakeImage,
+                    onCancel = viewModel::cancelImageFlow,
+                )
+                is DiagnosticUiState.ImageAnalyzing -> ImageAnalyzingPhase(analysis = s)
+                is DiagnosticUiState.ImageAiResult -> ImageResultPhase(
+                    result = s,
+                    onRestart = viewModel::reset,
+                )
             }
         }
     }
@@ -77,6 +94,10 @@ private fun flowTitle(state: DiagnosticUiState): String = when (state) {
     is DiagnosticUiState.Wizard -> "Guided assessment"
     is DiagnosticUiState.Results -> "Differential list"
     is DiagnosticUiState.FlowError -> "Diagnose"
+    is DiagnosticUiState.ImageCapture -> "Photo analysis"
+    is DiagnosticUiState.ImageReview -> "Confirm image"
+    is DiagnosticUiState.ImageAnalyzing -> "Analyzing"
+    is DiagnosticUiState.ImageAiResult -> "AI analysis"
 }
 
 /** Fallback after a hard database failure: message + Retry / Start over. */
@@ -141,6 +162,10 @@ private fun StartPhase(
             enabled = start.species != null,
             modifier = Modifier.fillMaxWidth(),
         ) { Text("Begin assessment") }
+        OutlinedButton(
+            onClick = viewModel::startImageAnalysis,
+            modifier = Modifier.fillMaxWidth(),
+        ) { Text("Analyze a photo (Cloud AI)") }
         start.error?.let { error ->
             Text(error, color = MaterialTheme.colorScheme.error)
         }
