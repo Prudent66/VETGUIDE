@@ -8,7 +8,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.test.TestWatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -19,20 +18,25 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestWatcher
+import org.junit.rules.TestRule
 import org.junit.runner.Description
+import org.junit.runners.model.Statement
 
 /** Replaces Dispatchers.Main for ViewModel unit tests (JVM has no Android main). */
 class MainDispatcherRule(
     private val dispatcher: CoroutineDispatcher = UnconfinedTestDispatcher(),
-) : TestWatcher() {
-    override fun starting(description: Description) {
-        Dispatchers.setMain(dispatcher)
-    }
-
-    override fun finished(description: Description) {
-        Dispatchers.resetMain()
-    }
+) : TestRule {
+    override fun apply(base: Statement, description: Description): Statement =
+        object : Statement() {
+            override fun evaluate() {
+                Dispatchers.setMain(dispatcher)
+                try {
+                    base.evaluate()
+                } finally {
+                    Dispatchers.resetMain()
+                }
+            }
+        }
 }
 
 /**
