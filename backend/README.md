@@ -9,21 +9,26 @@ Android APK → this Worker → AI providers
 This Worker is the **single outbound caller** to AI providers and the only
 place provider credentials exist. The APK never contains keys.
 
-## Current state: MOCK mode (Phase 5 skeleton)
+## Current state: Gemini routing with mock fallback (Phase 6)
 
-`POST /analyze` validates the request shape and returns a **mocked** response
-that mirrors the app's `AiAnalysisData` schema
-(`app/src/main/java/com/prudent66/vetguide/domain/ai/AiModels.kt`):
+`POST /analyze` validates the request shape and routes to **Gemini**
+(`gemini-1.5-flash`) when the `GEMINI_API_KEY` secret is configured, enforcing
+the `AiAnalysisData` JSON schema in the prompt and normalizing the model
+output defensively. Without the secret the Worker answers with a **mocked**
+response that mirrors the same schema — useful for `npx wrangler dev` and CI:
 
 ```json
 {
-  "provider": "mock",
-  "model": "mock-v1",
-  "findings": ["Received prompt: ..."],
+  "provider": "gemini",
+  "model": "gemini-1.5-flash",
+  "findings": ["..."],
   "suspectedConditions": [{ "name": "...", "confidence": 0.42 }],
   "recommendedNextSteps": ["..."]
 }
 ```
+(mock mode uses `"provider": "mock"` / `"model": "mock-v1"`; upstream Gemini
+failures return explicit error JSON with the upstream status — never a
+silent mock — so the app's failover ladder can react per roadmap §5.2.)
 
 Request body:
 
