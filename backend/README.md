@@ -12,7 +12,9 @@ place provider credentials exist. The APK never contains keys.
 ## Current state: Gemini routing with mock fallback (Phase 6)
 
 `POST /analyze` validates the request shape and routes to **Gemini**
-(`gemini-1.5-flash`) when the `GEMINI_API_KEY` secret is configured, enforcing
+(`gemini-2.0-flash`, falling back to `gemini-2.5-flash` on a 404 — the 1.5
+series is retired for newer API keys) when the `GEMINI_API_KEY` secret is
+configured, enforcing
 the `AiAnalysisData` JSON schema in the prompt and normalizing the model
 output defensively. Without the secret the Worker answers with a **mocked**
 response that mirrors the same schema — useful for `npx wrangler dev` and CI:
@@ -20,7 +22,7 @@ response that mirrors the same schema — useful for `npx wrangler dev` and CI:
 ```json
 {
   "provider": "gemini",
-  "model": "gemini-1.5-flash",
+  "model": "gemini-2.0-flash",
   "findings": ["..."],
   "suspectedConditions": [{ "name": "...", "confidence": 0.42 }],
   "recommendedNextSteps": ["..."]

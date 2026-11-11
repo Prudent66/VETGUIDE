@@ -21,9 +21,17 @@
 export interface Env {
   /** Set via `wrangler secret put GEMINI_API_KEY` — never in wrangler.toml/repo (§8). */
   GEMINI_API_KEY?: string;
+  /** Optional model override (non-secret var); defaults to the candidate list. */
+  GEMINI_MODEL?: string;
 }
 
-const GEMINI_MODEL = "gemini-1.5-flash";
+/**
+ * Gemini model candidates, tried in order per request. The 1.5 series is
+ * retired for newer API keys (upstream HTTP 404), so the 2.x flash
+ * generation is primary. A key-scoped `GEMINI_MODEL` var (wrangler.toml
+ * [vars] — non-secret, §8) overrides the whole list.
+ */
+const DEFAULT_GEMINI_MODELS = ["gemini-2.0-flash", "gemini-2.5-flash"];
 const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 
 interface GeminiInlinePart {
@@ -163,27 +171,44 @@ async function handleAnalyze(request: Request, env: Env): Promise<Response> {
   }
   parts.push({ text: buildPrompt(prompt) });
 
-  let upstream: Response;
+  // Model ladder mirrors the app's §5.2 philosophy: a 404 means this key
+  // cannot use the candidate model (e.g. the retired 1.5 series) — try the
+  // next candidate. Any other upstream status (429/5xx/401) is NOT a
+  // model-availability problem: surface it immediately so the app's ladder
+  // can react (never a silent fallback).
+  const modelCandidates = env.GEMINI_MODEL ? [env.GEMINI_MODEL] : DEFAULT_GEMINI_MODELS;
+  let upstream: Response | null = null;
+  let activeModel = "";
+  let lastStatus = 0;
   try {
-    upstream = await fetch(`${GEMINI_BASE_URL}/${GEMINI_MODEL}:generateContent`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": apiKey,
-      },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts }],
-        generationConfig: { responseMimeType: "application/json", temperature: 0.2 },
-      }),
-    });
+    for (const model of modelCandidates) {
+      const response = await fetch(`${GEMINI_BASE_URL}/${model}:generateContent`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey,
+        },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts }],
+          generationConfig: { responseMimeType: "application/json", temperature: 0.2 },
+        }),
+      });
+      lastStatus = response.status;
+      if (response.ok) {
+        upstream = response;
+        activeModel = model;
+        break;
+      }
+      if (response.status !== 404) {
+        return json({ error: `gemini upstream HTTP ${response.status}` }, response.status);
+      }
+    }
   } catch {
     return json({ error: "gemini upstream unreachable" }, 502);
   }
 
-  if (!upstream.ok) {
-    // Surface the upstream failure (429/5xx are mapped app-side so the
-    // orchestrator ladder can fail over per §5.2). Never fall back silently.
-    return json({ error: `gemini upstream HTTP ${upstream.status}` }, upstream.status);
+  if (!upstream) {
+    return json({ error: `no gemini model available for this key (last HTTP ${lastStatus})` }, 502);
   }
 
   const data = (await upstream.json()) as GeminiResponse;
@@ -196,7 +221,7 @@ async function handleAnalyze(request: Request, env: Env): Promise<Response> {
   } catch {
     return json({ error: "gemini returned non-JSON output" }, 502);
   }
-  const normalized = normalizeGeminiOutput(rawOutput, GEMINI_MODEL);
+  const normalized = normalizeGeminiOutput(rawOutput, activeModel);
   if (!normalized) {
     return json({ error: "gemini output failed schema validation" }, 502);
   }
