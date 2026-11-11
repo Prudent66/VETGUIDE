@@ -113,8 +113,8 @@ private fun ReviewDisclaimer() {
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
-                text = "AI analysis is decision support — not a diagnosis. " +
-                    "The veterinarian remains responsible for all clinical decisions.",
+                text = "Decision support — not a diagnosis. The veterinarian " +
+                    "remains responsible for all clinical decisions.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -125,7 +125,7 @@ private fun ReviewDisclaimer() {
 @Composable
 private fun ReviewActions(onAnalyze: () -> Unit, onRetake: () -> Unit, onCancel: () -> Unit) {
     Button(onClick = onAnalyze, modifier = Modifier.fillMaxWidth()) {
-        Text("Analyze with Cloud AI")
+        Text("Analyze")
     }
     OutlinedButton(onClick = onRetake, modifier = Modifier.fillMaxWidth()) {
         Text("Retake")
@@ -159,17 +159,14 @@ private fun CropToggle(squareCrop: Boolean, onToggle: (Boolean) -> Unit) {
 private fun ConsentModal(onAllow: () -> Unit, onDecline: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDecline,
-        title = { Text("Send image to Cloud AI?") },
+        title = { Text("Send image for analysis?") },
         text = {
             Text(
-                text = "The image will be compressed and sent through the secure " +
-                    "VETGUIDE backend to a cloud AI provider. On-device mode keeps " +
-                    "images local, and turning off \"Cloud AI Analysis\" in Settings " +
-                    "disables cloud dispatch. Results are decision support only — " +
-                    "the attending veterinarian remains responsible.",
+                text = "The image will be securely processed. Results are decision " +
+                    "support only — the attending veterinarian remains responsible.",
             )
         },
-        confirmButton = { TextButton(onClick = onAllow) { Text("Allow and analyze") } },
+        confirmButton = { TextButton(onClick = onAllow) { Text("Analyze") } },
         dismissButton = { TextButton(onClick = onDecline) { Text("Cancel") } },
     )
 }

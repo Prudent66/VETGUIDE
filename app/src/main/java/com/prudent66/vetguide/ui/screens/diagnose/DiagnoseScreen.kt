@@ -211,15 +211,15 @@ private fun StartPhase(
         )
         SpeciesSelection(start, viewModel)
         PatientSelection(start, patients, viewModel)
+        OutlinedButton(
+            onClick = onOpenImageFlow,
+            modifier = Modifier.fillMaxWidth(),
+        ) { Text("Analyze a photo") }
         Button(
             onClick = viewModel::startAssessment,
             enabled = start.species != null,
             modifier = Modifier.fillMaxWidth(),
         ) { Text("Begin assessment") }
-        OutlinedButton(
-            onClick = onOpenImageFlow,
-            modifier = Modifier.fillMaxWidth(),
-        ) { Text("Analyze a photo (Cloud AI)") }
         start.error?.let { error ->
             Text(error, color = MaterialTheme.colorScheme.error)
         }
