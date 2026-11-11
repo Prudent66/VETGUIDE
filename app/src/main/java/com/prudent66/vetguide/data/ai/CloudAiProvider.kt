@@ -57,7 +57,13 @@ class CloudAiProvider(
         }
     } catch (e: CancellationException) {
         throw e
+    } catch (e: SecurityException) {
+        // Defense in depth: e.g. a build without the INTERNET permission must
+        // degrade to the failover ladder, never crash the app (§5.2).
+        AiAttempt.Failure("[$id] network access unavailable: ${e.message}")
     } catch (e: IOException) {
+        // UnknownHostException / timeouts / connection resets all surface here
+        // as failures so the orchestrator ladder can proceed (§5.2).
         AiAttempt.Failure("[$id] network failure reaching the backend: ${e.message}")
     } catch (e: SerializationException) {
         AiAttempt.Failure("[$id] backend response failed schema validation: ${e.message}")

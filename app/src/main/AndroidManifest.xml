@@ -4,6 +4,8 @@
     <!-- Phase 6 (§4.2): camera capture + gallery image pick for AI analysis. -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <!-- AI provider calls route through the secure backend (§8) — requires network. -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <!-- Camera is optional: the questionnaire + knowledge base work without it. -->
     <uses-feature
         android:name="android.hardware.camera"
