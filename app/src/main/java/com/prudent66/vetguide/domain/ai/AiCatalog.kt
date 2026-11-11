@@ -16,10 +16,10 @@ object AiCatalog {
     const val ON_DEVICE_PROVIDER_ID = "on-device"
 
     /**
-     * Placeholder secure-backend origin — replace with the deployed
-     * Cloudflare Workers URL when the backend goes live (backend/README.md).
+     * Live secure-backend origin (Cloudflare Workers). The GEMINI_API_KEY
+     * lives server-side as an encrypted Workers secret — never here (§8).
      */
-    const val BACKEND_BASE_URL = "https://vetguide-backend.example.workers.dev"
+    const val BACKEND_BASE_URL = "https://vetguide-api.pman6665.workers.dev"
 
     /** Roadmap §5.2: configurable provider timeout, default 20 s. */
     const val BACKEND_TIMEOUT_MS = 20_000L
