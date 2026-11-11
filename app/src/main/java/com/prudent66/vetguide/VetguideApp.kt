@@ -50,9 +50,7 @@ fun VetguideApp() {
             modifier = Modifier.padding(innerPadding),
         ) {
             composable(Destinations.HOME) {
-                HomeScreen(
-                    onOpenDestination = { route -> navigateToTopLevel(navController, route) },
-                )
+                HomeScreen()
             }
             composable(Destinations.DIAGNOSE) {
                 DiagnoseScreen(

@@ -59,6 +59,23 @@ class HomeViewModel @Inject constructor(
             initialValue = null,
         )
 
+    /** Most recently registered patient for the Home dashboard. */
+    val recentPatient: StateFlow<Patient?> = patientRepository.observePatients()
+        .catch { throwable ->
+            if (throwable is SQLiteException || throwable is IllegalStateException) {
+                android.util.Log.e(TAG, "Recent patient unavailable", throwable)
+                emit(emptyList<Patient>())
+            } else {
+                throw throwable
+            }
+        }
+        .map { patients -> patients.maxByOrNull { it.createdAtEpochMs } }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = null,
+        )
+
     private companion object {
         const val TAG = "HomeViewModel"
     }

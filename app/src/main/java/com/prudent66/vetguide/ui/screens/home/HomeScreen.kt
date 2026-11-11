@@ -1,6 +1,5 @@
 package com.prudent66.vetguide.ui.screens.home
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,19 +18,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.prudent66.vetguide.R
-import com.prudent66.vetguide.ui.navigation.Destinations
+import com.prudent66.vetguide.domain.model.Patient
 import com.prudent66.vetguide.ui.viewmodels.HomeViewModel
 
 /**
- * Home: VETGUIDE hub. Cards carry live data (patient / condition counts) and
- * act as shortcuts into the corresponding top-level tabs. The diary note is a
- * clinical-safety reminder per roadmap §10.
+ * Home: VETGUIDE hub. Navigation lives in the bottom bar, so the screen is a
+ * clean dashboard: a welcome message, live practice stats, and the most
+ * recently registered patient. The diary note is a clinical-safety reminder
+ * per roadmap §10.
  */
 @Composable
 fun HomeScreen(
-    onOpenDestination: (String) -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
+    val recentPatient by viewModel.recentPatient.collectAsState()
     val patientCount by viewModel.patientCount.collectAsState()
     val conditionCount by viewModel.conditionCount.collectAsState()
     Column(
@@ -50,21 +50,8 @@ fun HomeScreen(
             text = stringResource(R.string.home_subtitle),
             style = MaterialTheme.typography.bodyLarge,
         )
-        FeatureCard(
-            title = "Diagnose",
-            subtitle = "Start a new guided investigation",
-            onClick = { onOpenDestination(Destinations.DIAGNOSE) },
-        )
-        FeatureCard(
-            title = "Cases",
-            subtitle = formatCasesSubtitle(patientCount),
-            onClick = { onOpenDestination(Destinations.PATIENTS) },
-        )
-        FeatureCard(
-            title = "Knowledge Base",
-            subtitle = formatKbSubtitle(conditionCount),
-            onClick = { onOpenDestination(Destinations.KNOWLEDGE) },
-        )
+        WelcomeCard(patientCount = patientCount, conditionCount = conditionCount)
+        RecentPatientCard(patient = recentPatient)
         Text(
             text = stringResource(R.string.disclaimer),
             style = MaterialTheme.typography.bodySmall,
@@ -73,36 +60,63 @@ fun HomeScreen(
     }
 }
 
-private fun formatCasesSubtitle(count: Int?): String = when {
-    count == null -> "Loading patients…"
-    count == 0 -> "No patients yet"
-    else -> "$count Patients Registered"
-}
-
-private fun formatKbSubtitle(count: Int?): String = when {
-    count == null -> "Loading references…"
-    count == 0 -> "No clinical references yet"
-    else -> "Search $count Clinical References"
-}
-
 @Composable
-private fun FeatureCard(
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit,
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
+private fun WelcomeCard(patientCount: Int?, conditionCount: Int?) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text("Welcome", style = MaterialTheme.typography.titleMedium)
             Text(
-                subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                text = "Offline-first decision support for dogs, cats, and Nigerian " +
+                    "livestock — questionnaires, a cited knowledge base, and clinical " +
+                    "records for your practice.",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Text(
+                text = statsLine(patientCount, conditionCount),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
             )
         }
     }
+}
+
+@Composable
+private fun RecentPatientCard(patient: Patient?) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text("Most recent patient", style = MaterialTheme.typography.titleSmall)
+            if (patient == null) {
+                Text(
+                    text = "No patients yet — add your first from the Patients tab.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                Text(patient.name, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = patientSubtitle(patient),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+private fun patientSubtitle(patient: Patient): String {
+    val species = patient.species.name.lowercase().replaceFirstChar { it.uppercase() }
+    val breed = patient.breed?.takeIf { it.isNotBlank() } ?: "Breed unknown"
+    return "$species · $breed"
+}
+
+private fun statsLine(patientCount: Int?, conditionCount: Int?): String {
+    val patients = patientCount?.let { "$it patient${if (it == 1) "" else "s"}" } ?: "—"
+    val references = conditionCount?.let { "$it condition${if (it == 1) "" else "s"}" } ?: "—"
+    return "$patients registered · $references in the knowledge base"
 }
