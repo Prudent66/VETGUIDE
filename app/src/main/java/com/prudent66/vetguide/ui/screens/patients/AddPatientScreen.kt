@@ -5,10 +5,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,12 +27,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.prudent66.vetguide.R
+import com.prudent66.vetguide.domain.model.BreedCatalog
 import com.prudent66.vetguide.domain.model.PatientDraft
 import com.prudent66.vetguide.domain.model.PatientSex
 import com.prudent66.vetguide.domain.model.Species
@@ -72,10 +77,23 @@ fun AddPatientScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-             PatientTextFields(form)
+            Text("Species", style = MaterialTheme.typography.labelLarge)
             SpeciesField(
                 selected = form.species,
-                onSelect = { form.species = it },
+                onSelect = { species ->
+                    val changed = species != form.species
+                    form.species = species
+                    if (changed) {
+                        form.breed = ""
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            PatientTextFields(form)
+            BreedField(
+                selected = form.breed,
+                breeds = BreedCatalog.forSpecies(form.species),
+                onSelect = { form.breed = it },
                 modifier = Modifier.fillMaxWidth(),
             )
             ChoiceRow(
@@ -160,13 +178,6 @@ private fun PatientTextFields(form: PatientFormState) {
         modifier = Modifier.fillMaxWidth(),
     )
     OutlinedTextField(
-        value = form.breed,
-        onValueChange = { form.breed = it },
-        label = { Text("Breed") },
-        singleLine = true,
-        modifier = Modifier.fillMaxWidth(),
-    )
-    OutlinedTextField(
         value = form.ageText,
         onValueChange = { form.ageText = it },
         label = { Text("Age (years)") },
@@ -182,6 +193,44 @@ private fun PatientTextFields(form: PatientFormState) {
         singleLine = true,
         modifier = Modifier.fillMaxWidth(),
     )
+}
+
+/** Breed picker scoped to the selected species (BreedCatalog-driven). */
+@Composable
+private fun BreedField(
+    selected: String,
+    breeds: List<String>,
+    onSelect: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    OutlinedButton(onClick = { expanded = true }, modifier = modifier) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = selected.ifBlank { "Select breed" },
+                modifier = Modifier.weight(1f),
+            )
+            Icon(
+                painter = painterResource(R.drawable.nav_chevron_down),
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+    }
+    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        breeds.forEach { breed ->
+            DropdownMenuItem(
+                text = { Text(breed) },
+                onClick = {
+                    onSelect(breed)
+                    expanded = false
+                },
+            )
+        }
+    }
 }
 
 /** Species selector now shared via ui.components.SpeciesField. */
