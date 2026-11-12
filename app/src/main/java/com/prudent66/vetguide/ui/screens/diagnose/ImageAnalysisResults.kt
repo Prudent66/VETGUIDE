@@ -65,10 +65,20 @@ fun ImageResultPhase(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        ProvenanceBanner(result)
         if (result.analysisData != null) {
+            // Cloud results start directly with the report (§10 provenance is
+            // in the consent flow and the model itself, per product decision).
+            if (result.degraded) {
+                Text(
+                    text = "Reduced reliability: this result came from a degraded tier.",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
             StructuredReport(result.analysisData)
         } else {
+            // Offline/rule-based output keeps its §10 "never AI" labeling.
+            ProvenanceBanner(result)
             Card(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = result.narrative,
@@ -77,7 +87,6 @@ fun ImageResultPhase(
                 )
             }
         }
-        DiagnosticsCard(result.diagnostics)
         Text(
             text = "This output is decision support only — not a diagnosis. The " +
                 "attending veterinarian remains responsible for all clinical decisions.",
@@ -86,31 +95,6 @@ fun ImageResultPhase(
         )
         Button(onClick = onRestart, modifier = Modifier.fillMaxWidth()) {
             Text("New assessment")
-        }
-    }
-}
-
-/** Raw failure reasons for support/debugging (empty on a provider success). */
-@Composable
-private fun DiagnosticsCard(diagnostics: List<String>) {
-    if (diagnostics.isEmpty()) return
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text(
-                text = "Diagnostics",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            diagnostics.forEach { line ->
-                Text(
-                    text = line,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
         }
     }
 }

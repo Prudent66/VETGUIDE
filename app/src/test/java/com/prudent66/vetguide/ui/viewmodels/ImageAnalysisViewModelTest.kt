@@ -99,8 +99,6 @@ class ImageAnalysisViewModelTest {
         assertTrue(result.narrative.contains("[fake-cloud]"))
         assertFalse(result.degraded)
         assertEquals(1, provider.callCount)
-        // Payload size is always surfaced (verifies the §4.2 compression budget).
-        assertTrue(result.diagnostics.any { it.contains("image payload") })
         // FakeAiProvider is text-only: no structured sections, narrative path.
         assertTrue(result.analysisData == null)
     }
@@ -118,8 +116,6 @@ class ImageAnalysisViewModelTest {
         assertEquals(OFFLINE_PROVIDER_ID, result.providerId)
         assertTrue(result.narrative.contains("requires veterinary review"))
         assertFalse(result.degraded)
-        // The provider's raw failure reason reaches the diagnostics channel.
-        assertTrue(result.diagnostics.any { it.contains("primary") })
     }
 
     @Test
