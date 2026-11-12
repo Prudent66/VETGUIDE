@@ -76,8 +76,8 @@ object AiModule {
             requestTimeoutMillis = AiCatalog.BACKEND_TIMEOUT_MS
         }
         install(Logging) {
-            // SIMPLE writes via println → visible in Logcat (System.out tag).
-            logger = Logger.SIMPLE
+            // DEFAULT writes via println → visible in Logcat (System.out tag).
+            logger = Logger.DEFAULT
             // HEADERS shows the exact request line + headers sent to the
             // Worker (no body — never dump the base64 image to the log).
             level = LogLevel.HEADERS
