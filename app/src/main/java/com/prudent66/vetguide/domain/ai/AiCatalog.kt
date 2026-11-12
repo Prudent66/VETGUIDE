@@ -22,11 +22,10 @@ object AiCatalog {
     const val BACKEND_BASE_URL = "https://vetguide-api.pman6665.workers.dev"
 
     /**
-     * Roadmap §5.2: configurable provider timeout. Raised from the 20 s
-     * questionnaire default to 45 s for image analysis — an upload through
-     * the Worker plus a Gemini vision round-trip needs headroom on rural
-     * mobile networks; a spurious timeout would masquerade as "AI providers
-     * unavailable" (offline fallback) even when connectivity is fine.
+     * Roadmap §5.2: configurable provider timeout. 90 s — an image upload
+     * through the Worker plus a Gemini vision round-trip on rural mobile
+     * networks routinely exceeds 45 s (the live Worker logged 499
+     * Client-Closed-Request at 45 s: the app hung up before Gemini finished).
      */
-    const val BACKEND_TIMEOUT_MS = 45_000L
+    const val BACKEND_TIMEOUT_MS = 90_000L
 }

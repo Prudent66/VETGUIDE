@@ -41,8 +41,7 @@ fun ImageAnalyzingPhase(analysis: ImageAnalysisUiState.Analyzing) {
         CircularProgressIndicator()
         Text("Analyzing image…", style = MaterialTheme.typography.titleMedium)
         Text(
-            text = "Routing through the provider failover ladder. This can take up " +
-                "to 20 seconds per provider.",
+            text = "This may take up to 60 seconds depending on network speed.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
