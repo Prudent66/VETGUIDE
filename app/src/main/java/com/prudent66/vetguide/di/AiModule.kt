@@ -41,6 +41,13 @@ private val StripAcceptCharset = createClientPlugin("StripAcceptCharset") {
     }
 }
 
+/** Routes Ktor network logging to Logcat under a dedicated filterable tag. */
+private object KtorLogcatLogger : Logger {
+    override fun log(message: String) {
+        android.util.Log.d("VETGUIDE-HTTP", message)
+    }
+}
+
 /**
  * AI-layer DI (roadmap Phase 5). Real providers now sit behind the §5.1
  * ladder — cloud tier (mode 1, routed through the secure Workers backend,
@@ -76,8 +83,8 @@ object AiModule {
             requestTimeoutMillis = AiCatalog.BACKEND_TIMEOUT_MS
         }
         install(Logging) {
-            // DEFAULT writes via println → visible in Logcat (System.out tag).
-            logger = Logger.DEFAULT
+            // Logcat under the "VETGUIDE-HTTP" tag (adb logcat -s VETGUIDE-HTTP).
+            logger = KtorLogcatLogger
             // HEADERS shows the exact request line + headers sent to the
             // Worker (no body — never dump the base64 image to the log).
             level = LogLevel.HEADERS
