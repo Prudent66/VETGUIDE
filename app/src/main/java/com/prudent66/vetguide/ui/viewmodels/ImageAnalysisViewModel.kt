@@ -48,6 +48,8 @@ sealed interface ImageAnalysisUiState {
         val providerId: String,
         val narrative: String,
         val degraded: Boolean,
+        /** Raw provider-failure reasons (HTTP statuses, exceptions) when offline. */
+        val diagnostics: List<String> = emptyList(),
     ) : ImageAnalysisUiState
 
     /** Corrupt/unsupported image payload; retake restarts the capture phase. */
@@ -112,11 +114,13 @@ class ImageAnalysisViewModel @Inject constructor(
                     imageBase64
                 }
                 val result = orchestrator.analyze(imageRequest(review.species, payloadBase64))
+                val fallback = result as? AiResult.DeterministicFallback
                 mut.value = ImageAnalysisUiState.Result(
                     species = review.species,
                     providerId = result.providerId,
                     narrative = resultNarrative(result),
                     degraded = result is AiResult.ProviderSuccess && result.degraded,
+                    diagnostics = listOf(payloadSizeLine(payloadBase64)) + fallback?.diagnostics.orEmpty(),
                 )
             } catch (e: CancellationException) {
                 throw e
@@ -144,6 +148,12 @@ class ImageAnalysisViewModel @Inject constructor(
     private fun resultNarrative(result: AiResult): String = when (result) {
         is AiResult.ProviderSuccess -> result.text
         is AiResult.DeterministicFallback -> result.text
+    }
+
+    /** Approximate decoded size of the outbound payload, for diagnostics. */
+    private fun payloadSizeLine(payloadBase64: String): String {
+        val bytes = payloadBase64.length.toLong() * 3L / 4L
+        return "image payload ≈ ${bytes / 1024} KB"
     }
 
     private companion object {

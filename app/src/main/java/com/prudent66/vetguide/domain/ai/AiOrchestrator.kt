@@ -32,16 +32,23 @@ class AiOrchestrator(
 
     suspend fun analyze(request: AiRequest, nowMs: Long = System.currentTimeMillis()): AiResult =
         if (!cloudAiEnabled()) {
-            AiResult.DeterministicFallback(text = DeterministicFallbackBuilder.build(request))
+            AiResult.DeterministicFallback(
+                text = DeterministicFallbackBuilder.build(request),
+                diagnostics = listOf(
+                    "Cloud AI Analysis is OFF in Settings — providers were not consulted",
+                ),
+            )
         } else {
             runLadder(request, nowMs)
         }
 
     /** Provider ladder — only reached while the Settings cloud-AI gate is on. */
     private suspend fun runLadder(request: AiRequest, nowMs: Long): AiResult {
+        val diagnostics = mutableListOf<String>()
         providers.forEach { provider ->
             val breaker = breakers.getOrPut(provider.id) { BreakerState() }
             if (nowMs < breaker.openUntilMs) {
+                diagnostics += "[${provider.id}] skipped — cooling down after repeated failures"
                 return@forEach
             }
             when (val attempt = provider.analyze(request)) {
@@ -54,15 +61,21 @@ class AiOrchestrator(
                     )
                 }
                 is AiAttempt.Failure -> {
+                    diagnostics += attempt.message
                     breaker.consecutiveFailures += 1
                     if (breaker.consecutiveFailures >= failureThreshold) {
                         breaker.openUntilMs = nowMs + benchMs
                         breaker.consecutiveFailures = 0
+                        diagnostics += "[$provider.id] benched for ${benchMs / 1000}s " +
+                            "after $failureThreshold consecutive failures"
                     }
                 }
             }
         }
-        return AiResult.DeterministicFallback(text = DeterministicFallbackBuilder.build(request))
+        return AiResult.DeterministicFallback(
+            text = DeterministicFallbackBuilder.build(request),
+            diagnostics = diagnostics,
+        )
     }
 
     /** True while the provider's breaker is open (status banner surface later). */

@@ -36,6 +36,10 @@ class AiOrchestratorTest {
         assertTrue(result.text.contains("requires veterinary review"))
         assertTrue(result.text.contains(request.findings))
         assertFalse(result.text.contains(primary.id))
+        // Raw failure reasons surface via the separate diagnostics channel (§10:
+        // the rule-based narrative itself stays clean of provider provenance).
+        assertTrue(result.diagnostics.any { it.contains(primary.id) })
+        assertTrue(result.diagnostics.any { it.contains("simulated failure") })
     }
 
     @Test
@@ -78,6 +82,9 @@ class AiOrchestratorTest {
         assertEquals(3, secondary.callCount)
         assertEquals(OFFLINE_PROVIDER_ID, result.providerId)
         assertTrue(result.text.contains("requires veterinary review"))
+        // Benched providers are skipped with an explicit diagnostic line.
+        assertTrue(result.diagnostics.any { it.contains("primary") && it.contains("skipped") })
+        assertTrue(result.diagnostics.any { it.contains("secondary") && it.contains("skipped") })
     }
 
     @Test
@@ -98,6 +105,8 @@ class AiOrchestratorTest {
         assertFalse(orchestrator.isBenched("secondary", nowMs = 1_000))
         assertEquals(OFFLINE_PROVIDER_ID, result.providerId)
         assertTrue(result.text.contains("requires veterinary review"))
+        // The gate state is visible in diagnostics for support/debugging.
+        assertTrue(result.diagnostics.any { it.contains("OFF in Settings") })
     }
 
     @Test

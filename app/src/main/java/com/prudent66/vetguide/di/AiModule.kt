@@ -13,6 +13,7 @@ import dagger.hilt.components.SingletonComponent
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.first
 
@@ -32,6 +33,19 @@ object AiModule {
     @Provides
     @Singleton
     fun provideAiHttpClient(): HttpClient = HttpClient(OkHttp) {
+        // HttpTimeout.requestTimeoutMillis maps to OkHttp's call timeout, but
+        // OkHttp's OWN read/write timeouts default to 10 s — a Gemini vision
+        // round-trip that streams no bytes for >10 s was killed mid-flight
+        // (SocketTimeoutException) even with the generous request budget,
+        // while curl from a PC (no read timeout) succeeded. Set them all
+        // explicitly so the 90 s budget is real end to end.
+        engine {
+            config {
+                connectTimeout(30, TimeUnit.SECONDS)
+                readTimeout(AiCatalog.BACKEND_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                writeTimeout(AiCatalog.BACKEND_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+            }
+        }
         install(HttpTimeout) {
             requestTimeoutMillis = AiCatalog.BACKEND_TIMEOUT_MS
         }

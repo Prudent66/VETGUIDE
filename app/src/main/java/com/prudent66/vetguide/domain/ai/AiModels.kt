@@ -42,6 +42,13 @@ sealed interface AiResult {
     /** Deterministic questionnaire + offline-Knowledge Base fallback output. */
     data class DeterministicFallback(
         val text: String,
+        /**
+         * Raw provider-failure reasons (exception types, HTTP statuses,
+         * bench states) for support/debugging surfaces. Deliberately NOT
+         * part of [text]: the §10 rule-based narrative stays clean of any
+         * provider provenance.
+         */
+        val diagnostics: List<String> = emptyList(),
     ) : AiResult {
         override val providerId: String = OFFLINE_PROVIDER_ID
     }

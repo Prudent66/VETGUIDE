@@ -73,6 +73,7 @@ fun ImageResultPhase(
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
+        DiagnosticsCard(result.diagnostics)
         Text(
             text = "This output is decision support only — not a diagnosis. The " +
                 "attending veterinarian remains responsible for all clinical decisions.",
@@ -81,6 +82,31 @@ fun ImageResultPhase(
         )
         Button(onClick = onRestart, modifier = Modifier.fillMaxWidth()) {
             Text("New assessment")
+        }
+    }
+}
+
+/** Raw failure reasons for support/debugging (empty on a provider success). */
+@Composable
+private fun DiagnosticsCard(diagnostics: List<String>) {
+    if (diagnostics.isEmpty()) return
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                text = "Diagnostics",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            diagnostics.forEach { line ->
+                Text(
+                    text = line,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }
