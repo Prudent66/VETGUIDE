@@ -31,7 +31,7 @@ export interface Env {
  * generation is primary. A key-scoped `GEMINI_MODEL` var (wrangler.toml
  * [vars] — non-secret, §8) overrides the whole list.
  */
-const DEFAULT_GEMINI_MODELS = ["gemini-2.0-flash", "gemini-2.5-flash"];
+const DEFAULT_GEMINI_MODELS = ["gemini-3.5-flash"];
 const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 
 interface GeminiInlinePart {
