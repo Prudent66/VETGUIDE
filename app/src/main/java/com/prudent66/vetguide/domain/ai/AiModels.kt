@@ -19,7 +19,15 @@ data class AiRequest(
 
 /** Outcome of ONE provider attempt — providers report failure explicitly. */
 sealed interface AiAttempt {
-    data class Success(val text: String) : AiAttempt
+    data class Success(
+        val text: String,
+        /**
+         * Structured analysis (findings / conditions / next steps) when the
+         * provider decoded a full AiAnalysisData payload; null for providers
+         * that only produce text (on-device tier, fakes).
+         */
+        val analysisData: AiAnalysisData? = null,
+    ) : AiAttempt
 
     data class Failure(val message: String) : AiAttempt
 }
@@ -37,6 +45,8 @@ sealed interface AiResult {
         val text: String,
         /** True for degraded tiers (e.g. on-device models, §5.1 mode 3). */
         val degraded: Boolean = false,
+        /** Structured analysis for a fully decoded cloud payload (§10 UI). */
+        val analysisData: AiAnalysisData? = null,
     ) : AiResult
 
     /** Deterministic questionnaire + offline-Knowledge Base fallback output. */

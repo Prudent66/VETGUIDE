@@ -53,10 +53,20 @@ class CloudAiProviderTest {
         val attempt = provider.analyze(request)
 
         assertTrue(attempt is AiAttempt.Success)
-        val text = (attempt as AiAttempt.Success).text
-        assertTrue(text.contains("gemini/gemini-flash"))
-        assertTrue(text.contains("Canine Parvovirus"))
-        assertTrue(text.contains("requires veterinary review"))
+        val success = attempt as AiAttempt.Success
+        assertTrue(success.text.contains("gemini/gemini-flash"))
+        assertTrue(success.text.contains("Canine Parvovirus"))
+        assertTrue(success.text.contains("requires veterinary review"))
+        // The structured object is carried through for sectioned UI rendering.
+        val data = success.analysisData
+        assertTrue(data != null)
+        assertEquals("gemini-flash", data!!.model)
+        assertEquals(listOf("vomiting"), data.findings)
+        assertEquals("Canine Parvovirus", data.suspectedConditions.single().name)
+        assertEquals(
+            listOf("Isolate; contact the attending veterinarian"),
+            data.recommendedNextSteps,
+        )
     }
 
     @Test

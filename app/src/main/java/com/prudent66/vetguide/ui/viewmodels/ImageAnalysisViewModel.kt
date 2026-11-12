@@ -3,6 +3,7 @@ package com.prudent66.vetguide.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prudent66.vetguide.data.ai.ImageEncoder
+import com.prudent66.vetguide.domain.ai.AiAnalysisData
 import com.prudent66.vetguide.domain.ai.AiOrchestrator
 import com.prudent66.vetguide.domain.ai.AiRequest
 import com.prudent66.vetguide.domain.ai.AiResult
@@ -48,6 +49,8 @@ sealed interface ImageAnalysisUiState {
         val providerId: String,
         val narrative: String,
         val degraded: Boolean,
+        /** Structured cloud analysis — null for the rule-based fallback. */
+        val analysisData: AiAnalysisData? = null,
         /** Raw provider-failure reasons (HTTP statuses, exceptions) when offline. */
         val diagnostics: List<String> = emptyList(),
     ) : ImageAnalysisUiState
@@ -115,11 +118,13 @@ class ImageAnalysisViewModel @Inject constructor(
                 }
                 val result = orchestrator.analyze(imageRequest(review.species, payloadBase64))
                 val fallback = result as? AiResult.DeterministicFallback
+                val success = result as? AiResult.ProviderSuccess
                 mut.value = ImageAnalysisUiState.Result(
                     species = review.species,
                     providerId = result.providerId,
                     narrative = resultNarrative(result),
                     degraded = result is AiResult.ProviderSuccess && result.degraded,
+                    analysisData = success?.analysisData,
                     diagnostics = listOf(payloadSizeLine(payloadBase64)) + fallback?.diagnostics.orEmpty(),
                 )
             } catch (e: CancellationException) {

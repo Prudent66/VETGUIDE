@@ -58,6 +58,7 @@ class AiOrchestrator(
                     return AiResult.ProviderSuccess(
                         providerId = provider.id,
                         text = attempt.text,
+                        analysisData = attempt.analysisData,
                     )
                 }
                 is AiAttempt.Failure -> {

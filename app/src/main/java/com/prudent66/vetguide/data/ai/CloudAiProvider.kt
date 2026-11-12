@@ -75,7 +75,7 @@ class CloudAiProvider(
             // §10: insufficient information is an explicit failure, not a guess.
             AiAttempt.Failure("[$id] insufficient information — no suspected conditions returned")
         } else {
-            AiAttempt.Success(text = data.toNarrativeText())
+            AiAttempt.Success(text = data.toNarrativeText(), analysisData = data)
         }
     }
 }

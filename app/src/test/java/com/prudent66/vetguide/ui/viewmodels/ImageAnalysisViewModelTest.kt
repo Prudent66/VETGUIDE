@@ -101,6 +101,8 @@ class ImageAnalysisViewModelTest {
         assertEquals(1, provider.callCount)
         // Payload size is always surfaced (verifies the §4.2 compression budget).
         assertTrue(result.diagnostics.any { it.contains("image payload") })
+        // FakeAiProvider is text-only: no structured sections, narrative path.
+        assertTrue(result.analysisData == null)
     }
 
     @Test
