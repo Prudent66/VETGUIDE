@@ -91,6 +91,7 @@ dependencies {
     // AI networking (Phase 5): Ktor client for the secure backend (§8)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.logging)
 
     // Image capture (Phase 6): CameraX preview + still capture
     implementation(libs.androidx.camera.core)
