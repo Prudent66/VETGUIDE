@@ -11,7 +11,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -19,13 +18,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.prudent66.vetguide.domain.ai.AiAnalysisData
 import com.prudent66.vetguide.domain.ai.OFFLINE_PROVIDER_ID
-import com.prudent66.vetguide.domain.ai.SuspectedCondition
 import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.ui.screens.knowledge.speciesLabel
 import com.prudent66.vetguide.ui.viewmodels.ImageAnalysisUiState
-import kotlin.math.roundToInt
 
 /**
  * Phase 6 (§4.2) analyzing + result phases. Provenance is always surfaced
@@ -170,92 +166,6 @@ private fun provenanceLine(result: ImageAnalysisUiState.Result): String {
         "provider: ${result.providerId}"
     } else {
         "provider: ${result.providerId} · model: $model"
-    }
-}
-
-// ---- Structured medical report (§10): sections replace the text dump ----
-
-@Composable
-private fun StructuredReport(data: AiAnalysisData) {
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        FindingsSection(data.findings)
-        DifferentialSection(data.suspectedConditions)
-        NextStepsSection(data.recommendedNextSteps)
-    }
-}
-
-@Composable
-private fun SectionHeader(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleLarge,
-    )
-}
-
-@Composable
-private fun FindingsSection(findings: List<String>) {
-    if (findings.isEmpty()) return
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SectionHeader("Visual Findings")
-        findings.forEach { finding ->
-            Text(
-                text = "• $finding",
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
-    }
-}
-
-@Composable
-private fun DifferentialSection(conditions: List<SuspectedCondition>) {
-    if (conditions.isEmpty()) return
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SectionHeader("Differential Diagnoses")
-        conditions.forEach { condition ->
-            ConditionCard(condition)
-        }
-    }
-}
-
-@Composable
-private fun ConditionCard(condition: SuspectedCondition) {
-    val percent = (condition.confidence * 100).roundToInt()
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = condition.name,
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.titleSmall,
-                )
-                Text(
-                    text = "$percent%",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
-            LinearProgressIndicator(
-                progress = { condition.confidence.toFloat().coerceIn(0f, 1f) },
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-    }
-}
-
-@Composable
-private fun NextStepsSection(steps: List<String>) {
-    if (steps.isEmpty()) return
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SectionHeader("Recommended Next Steps")
-        steps.forEachIndexed { index, step ->
-            Text(
-                text = "${index + 1}. $step",
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
     }
 }
 
