@@ -10,6 +10,7 @@ import io.ktor.client.engine.mock.respond
 import io.ktor.client.request.HttpRequestData
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.TextContent
 import io.ktor.http.headersOf
 import java.io.IOException
 import kotlinx.coroutines.runBlocking
@@ -79,6 +80,22 @@ class CloudAiProviderTest {
         assertEquals(1, seen.size)
         assertEquals(HttpMethod.Post, seen[0].method)
         assertTrue(seen[0].url.encodedPath.endsWith("/analyze"))
+    }
+
+    @Test
+    fun `clinical context is forwarded in the analyze request body`() = runBlocking {
+        val bodies = mutableListOf<String>()
+        val client = mockClient { request ->
+            bodies += (request.body as? TextContent)?.text.orEmpty()
+            respond(validBody, HttpStatusCode.OK, headersOf("Content-Type" to listOf("application/json")))
+        }
+        val provider = CloudAiProvider(baseUrl = "https://backend.test", client = client)
+
+        val attempt = provider.analyze(request.copy(clinicalContext = "Vomiting for 2 days"))
+
+        assertTrue(attempt is AiAttempt.Success)
+        assertEquals(1, bodies.size)
+        assertTrue(bodies.single().contains("\"clinicalContext\":\"Vomiting for 2 days\""))
     }
 
     @Test

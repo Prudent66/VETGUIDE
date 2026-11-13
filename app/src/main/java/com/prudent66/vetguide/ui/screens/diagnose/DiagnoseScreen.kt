@@ -117,7 +117,9 @@ private fun ImageFlowPhase(
         )
         is ImageAnalysisUiState.Review -> ImageReviewScreen(
             imageBase64 = s.imageBase64,
-            onSend = { squareCrop -> imageViewModel.sendForAnalysis(s.imageBase64, squareCrop) },
+            onSend = { squareCrop, context ->
+                imageViewModel.sendForAnalysis(s.imageBase64, squareCrop, context)
+            },
             onRetake = imageViewModel::retakeImage,
             onCancel = imageViewModel::reset,
         )

@@ -17,8 +17,13 @@ class FakeAiProvider(
     var callCount: Int = 0
         private set
 
+    /** Last request seen — lets tests assert exactly what reached the provider. */
+    var lastRequest: AiRequest? = null
+        private set
+
     override suspend fun analyze(request: AiRequest): AiAttempt {
         callCount += 1
+        lastRequest = request
         return if (failuresBeforeSuccess > 0) {
             failuresBeforeSuccess -= 1
             AiAttempt.Failure("[$id] simulated failure #$callCount")

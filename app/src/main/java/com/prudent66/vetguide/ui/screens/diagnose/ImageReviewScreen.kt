@@ -19,6 +19,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -48,11 +49,12 @@ import kotlinx.coroutines.withContext
 @Composable
 fun ImageReviewScreen(
     imageBase64: String,
-    onSend: (squareCrop: Boolean) -> Unit,
+    onSend: (squareCrop: Boolean, clinicalContext: String?) -> Unit,
     onRetake: () -> Unit,
     onCancel: () -> Unit,
 ) {
     var squareCrop by rememberSaveable { mutableStateOf(true) }
+    var clinicalContext by rememberSaveable { mutableStateOf("") }
     var showConsent by remember { mutableStateOf(false) }
     val preview by produceState<ImageBitmap?>(initialValue = null, imageBase64, squareCrop) {
         value = withContext(Dispatchers.Default) {
@@ -86,6 +88,10 @@ fun ImageReviewScreen(
             }
         }
         ReviewDisclaimer()
+        ContextInput(
+            value = clinicalContext,
+            onValueChange = { clinicalContext = it },
+        )
         CropToggle(squareCrop = squareCrop, onToggle = { squareCrop = it })
         ReviewActions(
             onAnalyze = { showConsent = true },
@@ -98,11 +104,40 @@ fun ImageReviewScreen(
         ConsentModal(
             onAllow = {
                 showConsent = false
-                onSend(squareCrop)
+                onSend(squareCrop, clinicalContext.trim().takeIf { it.isNotEmpty() })
             },
             onDecline = { showConsent = false },
         )
     }
+}
+
+/**
+ * Optional vet-supplied clinical context (§10 framing): free text that steers
+ * the model's attention without replacing its own visual judgment.
+ */
+@Composable
+private fun ContextInput(value: String, onValueChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text("Add Clinical Context (Optional)") },
+        placeholder = {
+            Text(
+                "e.g. Suspected bottle jaw · Vomiting for 2 days · Sudden death in herd",
+                style = MaterialTheme.typography.bodySmall,
+            )
+        },
+        supportingText = {
+            Text(
+                "Helps the AI prioritize findings aligned with your observation.",
+                style = MaterialTheme.typography.bodySmall,
+            )
+        },
+        singleLine = false,
+        maxLines = 3,
+        minLines = 1,
+    )
 }
 
 @Composable

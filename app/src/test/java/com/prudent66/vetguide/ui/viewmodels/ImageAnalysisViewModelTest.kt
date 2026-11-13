@@ -138,6 +138,33 @@ class ImageAnalysisViewModelTest {
     }
 
     @Test
+    fun `clinical context is trimmed and blank context is treated as absent`() = runTest {
+        val provider = FakeAiProvider(id = "fake-cloud")
+        val viewModel = viewModel(AiOrchestrator(listOf(provider)))
+
+        viewModel.start(Species.DOG)
+        viewModel.onImageCaptured("cGF5bG9hZA==")
+        viewModel.sendForAnalysis(
+            imageBase64 = "cGF5bG9hZA==",
+            squareCrop = false,
+            clinicalContext = "  Vomiting for 2 days  ",
+        )
+        viewModel.awaitResult()
+        assertEquals("Vomiting for 2 days", provider.lastRequest?.clinicalContext)
+
+        viewModel.reset()
+        viewModel.start(Species.DOG)
+        viewModel.onImageCaptured("cGF5bG9hZA==")
+        viewModel.sendForAnalysis(
+            imageBase64 = "cGF5bG9hZA==",
+            squareCrop = false,
+            clinicalContext = "   ",
+        )
+        viewModel.awaitResult()
+        assertEquals(null, provider.lastRequest?.clinicalContext)
+    }
+
+    @Test
     fun `reset is idempotent and ignores dispatch from idle`() = runTest {
         val provider = FakeAiProvider(id = "fake-cloud")
         val viewModel = viewModel(AiOrchestrator(listOf(provider)))

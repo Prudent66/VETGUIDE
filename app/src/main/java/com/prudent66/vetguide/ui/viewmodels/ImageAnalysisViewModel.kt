@@ -102,7 +102,7 @@ class ImageAnalysisViewModel @Inject constructor(
      * gate in front of this call (per-artifact persistence lands with the
      * case-artifact work). Optional square crop runs off the main thread.
      */
-    fun sendForAnalysis(imageBase64: String, squareCrop: Boolean) {
+    fun sendForAnalysis(imageBase64: String, squareCrop: Boolean, clinicalContext: String? = null) {
         val review = mut.value as? ImageAnalysisUiState.Review ?: return
         mut.value = ImageAnalysisUiState.Analyzing(species = review.species)
         viewModelScope.launch {
@@ -114,7 +114,9 @@ class ImageAnalysisViewModel @Inject constructor(
                 } else {
                     imageBase64
                 }
-                val result = orchestrator.analyze(imageRequest(review.species, payloadBase64))
+                val result = orchestrator.analyze(
+                    imageRequest(review.species, payloadBase64, clinicalContext),
+                )
                 val success = result as? AiResult.ProviderSuccess
                 mut.value = ImageAnalysisUiState.Result(
                     species = review.species,
@@ -139,11 +141,17 @@ class ImageAnalysisViewModel @Inject constructor(
         }
     }
 
-    private fun imageRequest(species: Species?, payloadBase64: String) = AiRequest(
+    private fun imageRequest(
+        species: Species?,
+        payloadBase64: String,
+        clinicalContext: String?,
+    ) = AiRequest(
         headline = species?.name?.lowercase()?.replaceFirstChar { it.uppercase() }
             ?: "Unspecified species",
         findings = IMAGE_FINDINGS,
         imageBase64 = payloadBase64,
+        // Blank context must not ship as whitespace — treat it as absent.
+        clinicalContext = clinicalContext?.trim()?.takeIf { it.isNotEmpty() },
     )
 
     private fun resultNarrative(result: AiResult): String = when (result) {

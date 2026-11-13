@@ -15,6 +15,12 @@ data class AiRequest(
     val findings: String,
     /** Base64 image payload (§4.2); null for questionnaire-only requests. */
     val imageBase64: String? = null,
+    /**
+     * Optional vet-provided clinical context (e.g. "Vomiting for 2 days").
+     * Injected into the backend prompt so the model prioritizes findings
+     * aligned with the vet's own observation — while remaining objective.
+     */
+    val clinicalContext: String? = null,
 )
 
 /** Outcome of ONE provider attempt — providers report failure explicitly. */
@@ -87,6 +93,8 @@ data class AiAnalysisRequest(
     val imageBase64: String? = null,
     /** Structured findings text from the questionnaire and/or case notes. */
     val prompt: String,
+    /** Optional vet-provided clinical context forwarded to the backend prompt. */
+    val clinicalContext: String? = null,
 )
 
 /** One suspected condition with the model's confidence estimate (§10). */

@@ -45,6 +45,7 @@ class CloudAiProvider(
                     AiAnalysisRequest(
                         imageBase64 = request.imageBase64,
                         prompt = request.findings,
+                        clinicalContext = request.clinicalContext,
                     ),
                 ),
             )
