@@ -69,6 +69,8 @@ interface AiAnalysisData {
 interface AnalyzeRequestBody {
   imageBase64?: string;
   prompt: string;
+  /** Optional vet-provided context, e.g. "Vomiting for 2 days". */
+  clinicalContext?: string;
 }
 
 const JSON_HEADERS: HeadersInit = {
@@ -80,7 +82,15 @@ function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), { status, headers: JSON_HEADERS });
 }
 
-function buildPrompt(findings: string): string {
+function buildPrompt(findings: string, clinicalContext?: string): string {
+  const contextBlock: string[] = [];
+  if (clinicalContext && clinicalContext.trim().length > 0) {
+    contextBlock.push(
+      "User Clinical Context: " + clinicalContext.trim(),
+      "- If the user provides clinical context, prioritize visual findings " +
+        "that align with that context, but remain objective.",
+    );
+  }
   return [
     "You are decision support for a licensed veterinarian — never a diagnosis.",
     "Analyze the attached animal photo and the structured findings below.",
@@ -92,6 +102,8 @@ function buildPrompt(findings: string): string {
     "- confidence: a 0..1 estimate; it is NOT a validated diagnostic probability.",
     "- suspectedConditions: ranked, max 5, keep names general (e.g. species-level).",
     "- If the image/findings are insufficient, return an EMPTY suspectedConditions list.",
+    "",
+    ...contextBlock,
     "",
     "Structured findings: " + findings,
   ].join("\n");
@@ -149,12 +161,15 @@ async function handleAnalyze(request: Request, env: Env): Promise<Response> {
     return json({ error: "request body must be valid JSON" }, 400);
   }
 
-  const { prompt, imageBase64 } = (parsed ?? {}) as AnalyzeRequestBody;
+  const { prompt, imageBase64, clinicalContext } = (parsed ?? {}) as AnalyzeRequestBody;
   if (typeof prompt !== "string" || prompt.trim().length === 0) {
     return json({ error: "'prompt' (non-empty string) is required" }, 400);
   }
   if (imageBase64 !== undefined && typeof imageBase64 !== "string") {
     return json({ error: "'imageBase64' must be a string when present" }, 400);
+  }
+  if (clinicalContext !== undefined && typeof clinicalContext !== "string") {
+    return json({ error: "'clinicalContext' must be a string when present" }, 400);
   }
 
   const apiKey = env.GEMINI_API_KEY;
@@ -169,7 +184,7 @@ async function handleAnalyze(request: Request, env: Env): Promise<Response> {
   if (imageBase64) {
     parts.push({ inline_data: { mime_type: "image/jpeg", data: imageBase64 } });
   }
-  parts.push({ text: buildPrompt(prompt) });
+  parts.push({ text: buildPrompt(prompt, clinicalContext) });
 
   // Model ladder mirrors the app's §5.2 philosophy: a 404 means this key
   // cannot use the candidate model (e.g. the retired 1.5 series) — try the
@@ -190,7 +205,7 @@ async function handleAnalyze(request: Request, env: Env): Promise<Response> {
         },
         body: JSON.stringify({
           contents: [{ role: "user", parts }],
-          generationConfig: { responseMimeType: "application/json", temperature: 0.2 },
+          generationConfig: { responseMimeType: "application/json", temperature: 0.0 },
         }),
       });
       lastStatus = response.status;
