@@ -4,6 +4,7 @@ import android.database.sqlite.SQLiteException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prudent66.vetguide.domain.engine.DiagnosticEngine
+import com.prudent66.vetguide.domain.model.AnsweredQuestionPayload
 import com.prudent66.vetguide.domain.model.DiagnosticMatch
 import com.prudent66.vetguide.domain.model.Patient
 import com.prudent66.vetguide.domain.model.QuestionnaireQuestion
@@ -42,11 +43,16 @@ sealed interface DiagnosticUiState {
         val index: Int,
         /** questionId → selected option ids. */
         val selections: Map<String, Set<String>>,
+        val patientId: String? = null,
     ) : DiagnosticUiState
 
     data class Results(
         val matches: List<DiagnosticMatch>,
         val species: Species?,
+        /** Patient selected at Start (Save-to-Case pre-selection). */
+        val patientId: String? = null,
+        /** Answered steps in display order (QUESTIONNAIRE artifact content). */
+        val answers: List<AnsweredQuestionPayload> = emptyList(),
     ) : DiagnosticUiState
 
     /** Hard database failure; retryWizard != null re-runs scoring only. */
@@ -114,6 +120,7 @@ class DiagnosticViewModel @Inject constructor(
                         questions = questions,
                         index = 0,
                         selections = emptyMap(),
+                        patientId = start.patientId,
                     )
                 }
             } catch (e: SQLiteException) {
@@ -176,7 +183,12 @@ class DiagnosticViewModel @Inject constructor(
                     selectedSignIds = selectedSignIds,
                     candidates = questionnaireRepository.loadCandidates(),
                 )
-                mut.value = DiagnosticUiState.Results(matches = matches, species = wizard.species)
+                mut.value = DiagnosticUiState.Results(
+                    matches = matches,
+                    species = wizard.species,
+                    patientId = wizard.patientId,
+                    answers = answeredQuestions(wizard),
+                )
             } catch (e: SQLiteException) {
                 failToError("Database unavailable while scoring the assessment", wizard.species, wizard, e)
             } catch (e: IllegalStateException) {
@@ -184,6 +196,16 @@ class DiagnosticViewModel @Inject constructor(
             }
         }
     }
+
+    private fun answeredQuestions(wizard: DiagnosticUiState.Wizard): List<AnsweredQuestionPayload> =
+        wizard.questions.map { question ->
+            AnsweredQuestionPayload(
+                question = question.text,
+                answers = question.options
+                    .filter { it.id in wizard.selections[question.id].orEmpty() }
+                    .map { it.label },
+            )
+        }
 
     private fun failToError(
         message: String,

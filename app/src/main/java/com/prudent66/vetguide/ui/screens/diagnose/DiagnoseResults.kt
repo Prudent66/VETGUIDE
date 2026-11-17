@@ -29,6 +29,7 @@ fun ResultsPhase(
     results: DiagnosticUiState.Results,
     onOpenCondition: (String) -> Unit,
     onRestart: () -> Unit,
+    onSaveToCase: () -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -45,6 +46,12 @@ fun ResultsPhase(
                     onOpenCondition = { onOpenCondition(match.conditionId) },
                 )
             }
+        }
+        item {
+            Button(
+                onClick = onSaveToCase,
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text("Save to Case") }
         }
         item {
             Button(

@@ -57,6 +57,7 @@ fun ImageAnalyzingPhase(analysis: ImageAnalysisUiState.Analyzing) {
 fun ImageResultPhase(
     result: ImageAnalysisUiState.Result,
     onRestart: () -> Unit,
+    onSaveToCase: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -93,7 +94,10 @@ fun ImageResultPhase(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Button(onClick = onRestart, modifier = Modifier.fillMaxWidth()) {
+        Button(onClick = onSaveToCase, modifier = Modifier.fillMaxWidth()) {
+            Text("Save to Case")
+        }
+        OutlinedButton(onClick = onRestart, modifier = Modifier.fillMaxWidth()) {
             Text("New assessment")
         }
     }

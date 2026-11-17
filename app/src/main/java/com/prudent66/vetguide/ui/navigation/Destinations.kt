@@ -32,6 +32,13 @@ object Destinations {
     /** Route for the case timeline of a concrete patient. */
     fun casesForPatient(patientId: String): String = "patients/$patientId"
 
+    /** Drill-in route for one case's SOAP record (Phase 7). */
+    const val ARG_CASE_ID = "caseId"
+    const val CASE_DETAIL = "cases/{$ARG_CASE_ID}"
+
+    /** Route for a single case's detail (SOAP editor + PDF export). */
+    fun caseDetail(caseId: String): String = "cases/$caseId"
+
     /** Route for a KB condition's detail view. */
     fun knowledgeDetail(conditionId: String): String = "knowledge/$conditionId"
 

@@ -51,6 +51,10 @@ sealed interface ImageAnalysisUiState {
         val degraded: Boolean,
         /** Structured cloud analysis — null for the rule-based fallback. */
         val analysisData: AiAnalysisData? = null,
+        /** Analyzed image payload, retained for Save-to-Case (Phase 7). */
+        val imageBase64: String? = null,
+        /** Optional vet clinical context, retained for the Subjective prefill. */
+        val clinicalContext: String? = null,
     ) : ImageAnalysisUiState
 
     /** Corrupt/unsupported image payload; retake restarts the capture phase. */
@@ -124,6 +128,8 @@ class ImageAnalysisViewModel @Inject constructor(
                     narrative = resultNarrative(result),
                     degraded = result is AiResult.ProviderSuccess && result.degraded,
                     analysisData = success?.analysisData,
+                    imageBase64 = review.imageBase64,
+                    clinicalContext = clinicalContext,
                 )
             } catch (e: CancellationException) {
                 throw e

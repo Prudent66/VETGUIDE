@@ -4,6 +4,10 @@
     <!-- Phase 6 (§4.2): camera capture + gallery image pick for AI analysis. -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <!-- Phase 7: legacy direct writes to the public Downloads folder for PDF export. -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
     <!-- AI provider calls route through the secure backend (§8) — requires network. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Camera is optional: the questionnaire + knowledge base work without it. -->

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>VETGUIDE House — 25x50 Single-Storey + Rooftop Terrace (3D Concept)</title>
+<style>
+  body { margin: 0; overflow: hidden; font-family: system-ui, sans-serif; }
+  #ui { position: fixed; top: 12px; left: 12px; z-index: 10; background: rgba(255,255,255,.92);
+        border-radius: 10px; padding: 10px 14px; box-shadow: 0 2px 10px rgba(0,0,0,.25);
+        font-size: 13px; max-width: 260px; }
+  #ui b { display: block; margin-bottom: 6px; font-size: 14px; }
+  #ui button { margin: 2px 2px; padding: 4px 10px; border: 1px solid #bbb; border-radius: 6px;
+               background: #fff; cursor: pointer; font-size: 12px; }
+  #ui button:hover { background: #eef3ff; }
+  #ui .hint { color: #666; font-size: 11px; margin-top: 6px; }
+</style>
+</head>
+<body>
+<div id="ui">
+  <b>VETGUIDE House — 25' x 50'</b>
+  <div>
+    <button onclick="setView('front')">Front (street)</button>
+    <button onclick="setView('rear')">Rear</button>
+    <button onclick="setView('roof')">Rooftop</button>
+    <button onclick="setView('iso')">Isometric</button>
+  </div>
+  <div class="hint">Drag to orbit · scroll to zoom · right-drag to pan.</div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/* ============================================================
+   VETGUIDE House — 3D concept model
+   Plot  : 25 ft (7.62 m) wide x 50 ft (15.24 m) deep
+   House : 25 x 35 ft footprint at plot depth 15–50 ft
+   Levels: parking ±0.00 | house FFL +0.45 | roof slab +3.60
+           parapet top +4.80 (1.2 m parapet on terrace)
+   Scene axes: X = plan width (0..7.62), Z = plan depth (front 0 .. rear 15.24),
+               Y = height (up)
+   ============================================================ */
+const FT   = 0.3048;
+const WALL = 0.15;                 // 150 mm sandcrete block + render
+const FFL  = 0.45;                 // house finished floor level
+const ROOF = 3.60;                 // roof slab top
+const PARAPET_TOP = 4.80;          // 1.2 m parapet
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xcfe4f7);
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 300);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.target.set(3.8, 2.0, 9.5);
+
+/* ---------- lights ---------- */
+scene.add(new THREE.HemisphereLight(0xffffff, 0xcfe0b8, 0.65));
+scene.add(new THREE.AmbientLight(0xffffff, 0.25));
+const sun = new THREE.DirectionalLight(0xfff1dc, 2.0);
+sun.position.set(18, 24, -8);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.left = -25; sun.shadow.camera.right = 25;
+sun.shadow.camera.top = 25;  sun.shadow.camera.bottom = -25;
+scene.add(sun);
+
+/* ---------- materials ---------- */
+const matPlaster  = new THREE.MeshStandardMaterial({ color: 0xe9e6df, roughness: 0.92 });
+const matParapet  = new THREE.MeshStandardMaterial({ color: 0xd8d5ce, roughness: 0.9 });
+const matRoof     = new THREE.MeshStandardMaterial({ color: 0xbcbec3, roughness: 0.85 });
+const matGlass    = new THREE.MeshStandardMaterial({ color: 0x9fc7e0, roughness: 0.1, metalness: 0.05, transparent: true, opacity: 0.55 });
+const matFrame    = new THREE.MeshStandardMaterial({ color: 0x7a7d82, roughness: 0.6 });
+const matSlab     = new THREE.MeshStandardMaterial({ color: 0xd9d4cc, roughness: 0.7 });
+const matParking  = new THREE.MeshStandardMaterial({ color: 0x8f8d89, roughness: 0.95 });
+const matGate     = new THREE.MeshStandardMaterial({ color: 0x8a7a5f, roughness: 0.8 });
+const matTank     = new THREE.MeshStandardMaterial({ color: 0xe0e0e0, roughness: 0.4, metalness: 0.2 });
+const matDrain    = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.8 });
+const matGrass    = new THREE.MeshStandardMaterial({ color: 0x7ca65a, roughness: 1 });
+const matStreet   = new THREE.MeshStandardMaterial({ color: 0x6d6d6d, roughness: 1 });
+const matWood     = new THREE.MeshStandardMaterial({ color: 0xa38555, roughness: 0.7 });
+
+/* ---------- helpers ---------- */
+function addBox(x, y, z, w, h, d, mat) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  m.position.set(x, y, z);
+  m.castShadow = true; m.receiveShadow = true;
+  scene.add(m);
+  return m;
+}
+/* Wall running parallel to X (constant z), with openings.
+   openings: [{ z0, z1, sill, head }]  (z0..z1 = opening extent along wall) */
+function wallAlongX(x, z0, z1, y0, y1, mat, openings = []) {
+  const cuts = [z0, ...openings.flatMap(o => [o.z0, o.z1]), z1].sort((a, b) => a - b);
+  for (let i = 0; i < cuts.length - 1; i++) {
+    const a = cuts[i], b = cuts[i + 1];
+    if (b - a < 0.005) continue;
+    const op = openings.find(o => Math.abs(o.z0 - a) < 0.01 && Math.abs(o.z1 - b) < 0.01);
+    if (!op) { addBox(x, (y0 + y1) / 2, (a + b) / 2, WALL, y1 - y0, b - a, mat); }
+    else {
+      if (op.sill > y0) addBox(x, (y0 + op.sill) / 2, (a + b) / 2, WALL, op.sill - y0, b - a, mat);
+      if (op.head < y1) addBox(x, (op.head + y1) / 2, (a + b) / 2, WALL, y1 - op.head, b - a, mat);
+      // glazing
+      addBox(x, (op.sill + op.head) / 2, (a + b) / 2, WALL + 0.03, op.head - op.sill, b - a, matGlass);
+      // frame band
+      addBox(x, (op.sill + op.head) / 2, (a + b) / 2, WALL + 0.06, 0.05, b - a, matFrame);
+    }
+  }
+}
+/* Wall running parallel to Z (constant x). openings: [{ x0, x1, sill, head }] */
+function wallAlongZ(x, z0, z1, y0, y1, mat, openings = []) {
+  const cuts = [z0, ...openings.flatMap(o => [o.z0, o.z1]), z1].sort((a, b) => a - b);
+  for (let i = 0; i < cuts.length - 1; i++) {
+    const a = cuts[i], b = cuts[i + 1];
+    if (b - a < 0.005) continue;
+    const op = openings.find(o => Math.abs(o.z0 - a) < 0.01 && Math.abs(o.z1 - b) < 0.01);
+    if (!op) { addBox(x, (y0 + y1) / 2, (a + b) / 2, WALL, y1 - y0, b - a, mat); }
+    else {
+      if (op.sill > y0) addBox(x, (y0 + op.sill) / 2, (a + b) / 2, WALL, op.sill - y0, b - a, mat);
+      if (op.head < y1) addBox(x, (op.head + y1) / 2, (a + b) / 2, WALL, y1 - op.head, b - a, mat);
+      addBox(x, (op.sill + op.head) / 2, (a + b) / 2, WALL + 0.03, op.head - op.sill, b - a, matGlass);
+      addBox(x, (op.sill + op.head) / 2, (a + b) / 2, WALL + 0.06, 0.05, b - a, matFrame);
+    }
+  }
+}
+
+/* ============================================================
+   SITE CONTEXT
+   ============================================================ */
+// ground (plot + surrounds) and street strip
+addBox(4, -0.03, 8, 60, 0.06, 70, matGrass);
+addBox(4, 0.0, -5, 60, 0.04, 12, matStreet);
+// parking slab 25' x 15' (y 0..0.10)
+addBox(3.81, 0.05, 2.29, 7.62, 0.10, 4.57, matParking);
+// drain channel across front of parking
+addBox(3.81, 0.08, -0.15, 7.62, 0.05, 0.15, matDrain);
+// gate posts + leaves (12 ft driveway gate + wicket)
+const gz = 0.02;
+addBox(1.9, 0.9, gz, 0.2, 1.8, 0.2, matGate);
+addBox(5.75, 0.9, gz, 0.2, 1.8, 0.2, matGate);
+addBox(6.9, 0.9, gz, 0.2, 1.8, 0.2, matGate);
+addBox(3.8, 0.9, gz, 1.8, 1.8, 0.12, matGate);  // driveway gate leaf
+addBox(6.32, 0.9, gz, 1.1, 1.8, 0.1, matWood);  // wicket gate
+// context trees
+function addTree(x, z) {
+  addBox(x, 1.6, z, 0.18, 3.2, 0.18, matWood);
+  addBox(x, 3.9, z, 2.6, 2.6, 2.6, new THREE.MeshStandardMaterial({ color: 0x4e8a3d, roughness: 1 }));
+}
+addTree(8.6, 2.5); addTree(-1.0, 4.0); addTree(8.4, 12.5);
+
+/* ============================================================
+   HOUSE  (plan depth z = 4.57 m .. 15.24 m  =  15 ft .. 50 ft)
+   ============================================================ */
+const HZ0 = 15 * FT;          // 4.57 house start
+const HZ1 = 50 * FT;          // 15.24 rear boundary
+
+// floor slab
+addBox(3.81, FFL - 0.06, (HZ0 + HZ1) / 2, 7.62, 0.12, HZ1 - HZ0, matSlab);
+
+/* Exterior walls (height 0..ROOF) */
+// FRONT (street side, z = HZ0): parlour windows W1 W2 + main door D1
+wallAlongX(0, HZ0, 7.62, 0, ROOF, matPlaster, [
+  { z0: 0.6,  z1: 2.2,  sill: 1.2, head: 2.4 },   // W1
+  { z0: 2.6,  z1: 4.0,  sill: 1.2, head: 2.4 },   // W2
+  { z0: 5.0,  z1: 6.0,  sill: 0.0, head: 2.1 }    // D1
+]);
+// REAR (z = HZ1): bedrooms + ensuite vents + soil stacks zone
+wallAlongX(0, HZ1, 7.62, 0, ROOF, matPlaster, [
+  { z0: 0.9,  z1: 2.7,  sill: 1.2, head: 2.4 },   // W8  bedroom 1
+  { z0: 0.12, z1: 0.6,  sill: 2.2, head: 2.8 },   // W12 ensuite1 louvre
+  { z0: 4.2,  z1: 6.0,  sill: 1.2, head: 2.4 },   // W10 bedroom 2
+  { z0: 6.95, z1: 7.45, sill: 2.2, head: 2.8 }    // W13 ensuite2 louvre
+]);
+// WEST (x = 0): parlour W3, kitchen W6+W5, bedroom1 W9
+wallAlongZ(0, HZ0, HZ1, 0, ROOF, matPlaster, [
+  { z0: 5.4,  z1: 6.9,  sill: 1.2, head: 2.4 },   // W3 parlour
+  { z0: 9.7,  z1: 10.7, sill: 1.2, head: 2.2 },   // W6 kitchen
+  { z0: 10.9, z1: 11.7, sill: 1.9, head: 2.5 },   // W5 kitchen high
+  { z0: 12.6, z1: 13.8, sill: 1.2, head: 2.4 }    // W9 bedroom 1
+]);
+// EAST (x = 7.62): hall vent W4, corridor vent W7, bedroom2 W11
+wallAlongZ(7.62, HZ0, HZ1, 0, ROOF, matPlaster, [
+  { z0: 5.4,  z1: 6.3,  sill: 2.2, head: 3.2 },   // W4 hall high vent
+  { z0: 9.6,  z1: 10.2, sill: 2.2, head: 2.8 },   // W7 corridor vent
+  { z0: 12.6, z1: 13.8, sill: 1.2, head: 2.4 }    // W11 bedroom 2
+]);
+
+/* Internal partitions */
+// parlour / entry hall  (x = 13.5 ft = 4.115 m), door D2
+wallAlongZ(4.115, HZ0, 28 * FT, 0, ROOF, matPlaster, [
+  { z0: 6.2, z1: 7.1, sill: 0, head: 2.1 }        // D2
+]);
+// entry hall / corridor  (z = 28 ft), door D3
+wallAlongX(0, 28 * FT, 7.62, 0, ROOF, matPlaster, [
+  { x0: 5.2, x1: 6.1, sill: 0, head: 2.1 }        // D3
+]);
+// kitchen / store+corridor  (x = 8 ft = 2.44 m), door D4
+wallAlongZ(2.44, 28 * FT, 38 * FT, 0, ROOF, matPlaster, [
+  { z0: 10.6, z1: 11.5, sill: 0, head: 2.1 }      // D4
+]);
+// store / corridor  (x = 13.5 ft = 4.115 m), door D5
+wallAlongZ(4.115, 28 * FT, 33 * FT, 0, ROOF, matPlaster, [
+  { z0: 9.1, z1: 9.9, sill: 0, head: 2.0 }        // D5
+]);
+// store rear  (z = 33 ft)
+wallAlongX(0, 33 * FT, 4.115, 0, ROOF, matPlaster, []);
+// corridor / bedrooms  (z = 38 ft = 11.59 m), doors D6 D7
+wallAlongX(0, 38 * FT, 7.62, 0, ROOF, matPlaster, [
+  { z0: 2.9, z1: 3.8, sill: 0, head: 2.1 },       // D6 bedroom 1
+  { z0: 5.4, z1: 6.3, sill: 0, head: 2.1 }        // D7 bedroom 2
+]);
+// bedroom 1 / bedroom 2 partition (x = 12.5 ft = 3.81 m)
+wallAlongZ(3.81, 38 * FT, 50 * FT, 0, ROOF, matPlaster, []);
+// ensuite 1 (x 0..1.52, z 13.11..15.24)
+wallAlongZ(1.52, 13.11, 15.24, 0, ROOF, matPlaster, []);
+wallAlongX(0, 13.11, 1.52, 0, ROOF, matPlaster, [
+  { z0: 0.4, z1: 1.2, sill: 0, head: 2.0 }        // D8
+]);
+// ensuite 2 (x 6.10..7.62, z 13.11..15.24)
+wallAlongZ(6.10, 13.11, 15.24, 0, ROOF, matPlaster, []);
+wallAlongX(0, 13.11, 6.10, 7.62, ROOF, matPlaster, [
+  { z0: 6.4, z1: 7.2, sill: 0, head: 2.0 }        // D9
+]);
+// stair well walls  (stair x 6.10..7.62, z HZ0..28 ft)
+wallAlongZ(6.10, HZ0, 28 * FT, 0, ROOF, matPlaster, []);
+wallAlongX(0, 28 * FT, 6.10, 7.62, 0, ROOF, matPlaster, []); // stair rear (top landing)
+
+/* Porch (8'x4' at x 10–18 ft) — open canopy + columns */
+addBox(4.575, 2.45, HZ0 + 0.61, 3.05, 0.16, 1.22, matSlab);   // canopy
+addBox(3.08, 1.2, HZ0 + 0.2, 0.15, 2.4, 0.15, matPlaster);     // column
+addBox(5.49, 1.2, HZ0 + 0.2, 0.15, 2.4, 0.15, matPlaster);
+// entrance steps / ramp (parking +0.10 -> porch +0.45)
+for (let i = 0; i < 3; i++) {
+  addBox(4.3, 0.22 + i * 0.12, HZ0 - 0.35 - i * 0.25, 3.4, 0.12, 0.5, matSlab);
+}
+
+/* ============================================================
+   STAIR to roof  (straight flight, 17 risers @185 mm)
+   ============================================================ */
+const N = 17, RISE = (ROOF - FFL) / N, TREAD = 0.23;
+const sx0 = 6.36, sx1 = 7.27;   // stair width 0.91 m
+for (let i = 0; i < N; i++) {
+  const y = FFL + i * RISE + RISE / 2;
+  const z = 4.75 + i * TREAD + TREAD / 2;
+  addBox((sx0 + sx1) / 2, y, z, sx1 - sx0, RISE, TREAD, matSlab);
+}
+// handrail along stair west side
+addBox(6.02, 1.05, (4.57 + 8.84) / 2, 0.06, 1.1, 4.2, matFrame);
+
+/* ============================================================
+   ROOF + TERRACE
+   ============================================================ */
+// roof slab
+addBox(3.81, ROOF - 0.075, (HZ0 + HZ1) / 2, 7.62, 0.15, HZ1 - HZ0, matRoof);
+// parapet (1.2 m above roof) around perimeter
+wallAlongX(0, HZ0, 7.62, ROOF, PARAPET_TOP, matParapet, []);
+wallAlongX(0, HZ1, 7.62, ROOF, PARAPET_TOP, matParapet, []);
+wallAlongZ(0, HZ0, HZ1, ROOF, PARAPET_TOP, matParapet, []);
+wallAlongZ(7.62, HZ0, HZ1, ROOF, PARAPET_TOP, matParapet, []);
+// parapet coping
+addBox(3.81, PARAPET_TOP + 0.05, (HZ0 + HZ1) / 2, 7.62 + 0.2, 0.1, HZ1 - HZ0 + 0.2, matPlaster);
+addBox(3.81, PARAPET_TOP + 0.05, (HZ0 + HZ1) / 2, 7.62, 0.1, HZ1 - HZ0, matPlaster);
+// roof drains (4 internal rainwater outlets) + scuppers
+const drains = [[1.8, 5.5], [6.0, 5.5], [1.8, 14.6], [6.0, 14.6]];
+for (const [x, z] of drains) {
+  addBox(x, ROOF + 0.02, z, 0.35, 0.04, 0.35, matDrain);
+}
+// downpipes 100 mm (visible on west & east faces)
+for (const z of [5.5, 14.6]) {
+  addBox(0.04, ROOF / 2, z, 0.08, ROOF, 0.08, matDrain);
+  addBox(7.58, ROOF / 2, z, 0.08, ROOF, 0.08, matDrain);
+}
+// roof access kiosk (bulkhead over stair top) + roof door RD
+addBox(6.86, (ROOF + 4.5) / 2, 8.85, 1.6, 0.9, 0.9, matParapet);        // kiosk box
+addBox(6.86, ROOF + 0.02, 8.85, 0.9, 0.04, 0.9, matDrain);              // RD roof door
+// water tank 750 L on stand
+addBox(6.4, 4.15, 7.6, 0.9, 1.2, 0.9, matTank);
+addBox(6.4, 3.75, 7.6, 0.7, 0.1, 0.7, matTank);                          // stand
+// terrace anti-skid screed visual layer (thin)
+addBox(3.81, ROOF + 0.025, (HZ0 + HZ1) / 2, 7.62, 0.05, HZ1 - HZ0, new THREE.MeshStandardMaterial({ color: 0xc9c4bb, roughness: 0.95 }));
+
+/* ============================================================
+   CAMERA VIEWS
+   ============================================================ */
+const views = {
+  front: { pos: new THREE.Vector3(9.5, 3.2, -2.0), tgt: new THREE.Vector3(3.8, 2.0, 8.5) },
+  rear:  { pos: new THREE.Vector3(2.0, 3.4, 20.0), tgt: new THREE.Vector3(3.8, 2.0, 13.0) },
+  roof:  { pos: new THREE.Vector3(9.0, 9.5, 9.0),  tgt: new THREE.Vector3(3.8, 3.9, 9.5) },
+  iso:   { pos: new THREE.Vector3(11, 7.5, 3.0),   tgt: new THREE.Vector3(3.8, 2.5, 9.5) }
+};
+window.setView = (name) => {
+  const v = views[name];
+  if (!v) return;
+  camera.position.copy(v.pos);
+  controls.target.copy(v.tgt);
+};
+setView('iso');
+
+/* ---------- animate ---------- */
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>

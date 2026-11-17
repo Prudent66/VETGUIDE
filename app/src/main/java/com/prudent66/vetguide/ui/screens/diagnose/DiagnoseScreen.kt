@@ -20,6 +20,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,11 +32,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.prudent66.vetguide.domain.model.Patient
 import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.ui.components.SpeciesField
+import com.prudent66.vetguide.ui.screens.cases.SaveToCaseSheet
 import com.prudent66.vetguide.ui.screens.knowledge.speciesLabel
 import com.prudent66.vetguide.ui.viewmodels.DiagnosticUiState
 import com.prudent66.vetguide.ui.viewmodels.DiagnosticViewModel
 import com.prudent66.vetguide.ui.viewmodels.ImageAnalysisUiState
 import com.prudent66.vetguide.ui.viewmodels.ImageAnalysisViewModel
+import com.prudent66.vetguide.ui.viewmodels.SaveToCaseUiState
+import com.prudent66.vetguide.ui.viewmodels.SaveToCaseViewModel
 
 /**
  * Guided diagnostic questionnaire flow (Phase 3) + image-analysis flow
@@ -48,12 +52,19 @@ import com.prudent66.vetguide.ui.viewmodels.ImageAnalysisViewModel
 @Composable
 fun DiagnoseScreen(
     onOpenCondition: (String) -> Unit,
+    onCaseSaved: (String) -> Unit,
     viewModel: DiagnosticViewModel = hiltViewModel(),
     imageViewModel: ImageAnalysisViewModel = hiltViewModel(),
+    saveToCaseViewModel: SaveToCaseViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
     val imageState by imageViewModel.uiState.collectAsState()
     val patients by viewModel.patients.collectAsState()
+    val saveState by saveToCaseViewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        saveToCaseViewModel.savedCase.collect { caseId -> onCaseSaved(caseId) }
+    }
 
     Scaffold(topBar = { TopAppBar(title = { Text(title(state, imageState)) }) }) { padding ->
         Box(
@@ -65,6 +76,7 @@ fun DiagnoseScreen(
                 ImageFlowPhase(
                     imageState = imageState,
                     imageViewModel = imageViewModel,
+                    saveToCaseViewModel = saveToCaseViewModel,
                 )
             } else {
                 QuestionnairePhase(
@@ -72,10 +84,22 @@ fun DiagnoseScreen(
                     patients = patients,
                     viewModel = viewModel,
                     imageViewModel = imageViewModel,
+                    saveToCaseViewModel = saveToCaseViewModel,
                     onOpenCondition = onOpenCondition,
                 )
             }
         }
+    }
+
+    (saveState as? SaveToCaseUiState.Visible)?.let { visible ->
+        SaveToCaseSheet(
+            state = visible,
+            onSelectPatient = saveToCaseViewModel::selectPatient,
+            onQuickAddName = saveToCaseViewModel::setQuickAddName,
+            onQuickAddSpecies = saveToCaseViewModel::setQuickAddSpecies,
+            onSave = saveToCaseViewModel::save,
+            onDismiss = { saveToCaseViewModel.cancel() },
+        )
     }
 }
 
@@ -85,6 +109,7 @@ private fun QuestionnairePhase(
     patients: List<Patient>,
     viewModel: DiagnosticViewModel,
     imageViewModel: ImageAnalysisViewModel,
+    saveToCaseViewModel: SaveToCaseViewModel,
     onOpenCondition: (String) -> Unit,
 ) {
     when (val s = state) {
@@ -99,6 +124,7 @@ private fun QuestionnairePhase(
             results = s,
             onOpenCondition = onOpenCondition,
             onRestart = viewModel::reset,
+            onSaveToCase = { saveToCaseViewModel.openForQuestionnaire(s) },
         )
         is DiagnosticUiState.FlowError -> ErrorPhase(error = s, viewModel = viewModel)
     }
@@ -108,6 +134,7 @@ private fun QuestionnairePhase(
 private fun ImageFlowPhase(
     imageState: ImageAnalysisUiState,
     imageViewModel: ImageAnalysisViewModel,
+    saveToCaseViewModel: SaveToCaseViewModel,
 ) {
     when (val s = imageState) {
         is ImageAnalysisUiState.Idle -> {}
@@ -127,6 +154,7 @@ private fun ImageFlowPhase(
         is ImageAnalysisUiState.Result -> ImageResultPhase(
             result = s,
             onRestart = imageViewModel::reset,
+            onSaveToCase = { saveToCaseViewModel.openForImage(s) },
         )
         is ImageAnalysisUiState.ImageError -> ImageErrorPhase(
             error = s,

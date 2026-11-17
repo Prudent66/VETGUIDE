@@ -18,6 +18,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.prudent66.vetguide.ui.navigation.Destinations
+import com.prudent66.vetguide.ui.screens.cases.CaseDetailScreen
 import com.prudent66.vetguide.ui.screens.cases.CaseListScreen
 import com.prudent66.vetguide.ui.screens.diagnose.DiagnoseScreen
 import com.prudent66.vetguide.ui.screens.home.HomeScreen
@@ -57,6 +58,9 @@ fun VetguideApp() {
                     onOpenCondition = { conditionId ->
                         navController.navigate(Destinations.knowledgeDetail(conditionId))
                     },
+                    onCaseSaved = { caseId ->
+                        navController.navigate(Destinations.caseDetail(caseId))
+                    },
                 )
             }
             composable(Destinations.PATIENTS) {
@@ -82,7 +86,15 @@ fun VetguideApp() {
                 )
             }
             composable(Destinations.CASES_FOR_PATIENT) {
-                CaseListScreen(onBack = navController::popBackStack)
+                CaseListScreen(
+                    onBack = navController::popBackStack,
+                    onCaseClick = { caseId ->
+                        navController.navigate(Destinations.caseDetail(caseId))
+                    },
+                )
+            }
+            composable(Destinations.CASE_DETAIL) {
+                CaseDetailScreen(onBack = navController::popBackStack)
             }
             composable(Destinations.KB_CONDITION_DETAIL) {
                 KnowledgeDetailScreen(onBack = navController::popBackStack)

@@ -1,5 +1,6 @@
 package com.prudent66.vetguide.ui.screens.cases
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,6 +50,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun CaseListScreen(
     onBack: () -> Unit,
+    onCaseClick: (String) -> Unit = {},
     viewModel: CaseViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -98,6 +100,7 @@ fun CaseListScreen(
                     } else {
                         CaseList(
                             cases = s.cases,
+                            onCaseClick = onCaseClick,
                             modifier = Modifier.fillMaxSize(),
                         )
                     }
@@ -115,6 +118,7 @@ private fun titleFor(state: CaseListUiState): String = when (state) {
 @Composable
 private fun CaseList(
     cases: List<Case>,
+    onCaseClick: (String) -> Unit,
     modifier: Modifier,
 ) {
     LazyColumn(
@@ -123,16 +127,23 @@ private fun CaseList(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(cases, key = { it.id }) { item ->
-            CaseRow(item)
+            CaseRow(item, onCaseClick = onCaseClick)
         }
     }
 }
 
 @Composable
-private fun CaseRow(item: Case) {
+private fun CaseRow(
+    item: Case,
+    onCaseClick: (String) -> Unit,
+) {
     val dateFormat = remember { SimpleDateFormat("MMM d, yyyy", Locale.getDefault()) }
 
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCaseClick(item.id) },
+    ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(item.presentingComplaint, style = MaterialTheme.typography.titleMedium)
             Text(
