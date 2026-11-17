@@ -187,7 +187,7 @@ class DiagnosticViewModel @Inject constructor(
                     matches = matches,
                     species = wizard.species,
                     patientId = wizard.patientId,
-                    answers = answeredQuestions(wizard),
+                    answers = wizard.answeredQuestions(),
                 )
             } catch (e: SQLiteException) {
                 failToError("Database unavailable while scoring the assessment", wizard.species, wizard, e)
@@ -196,16 +196,6 @@ class DiagnosticViewModel @Inject constructor(
             }
         }
     }
-
-    private fun answeredQuestions(wizard: DiagnosticUiState.Wizard): List<AnsweredQuestionPayload> =
-        wizard.questions.map { question ->
-            AnsweredQuestionPayload(
-                question = question.text,
-                answers = question.options
-                    .filter { it.id in wizard.selections[question.id].orEmpty() }
-                    .map { it.label },
-            )
-        }
 
     private fun failToError(
         message: String,

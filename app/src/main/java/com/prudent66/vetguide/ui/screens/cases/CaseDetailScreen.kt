@@ -6,7 +6,6 @@ import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -50,43 +49,10 @@ fun CaseDetailScreen(
     val state by viewModel.uiState.collectAsState()
     val pdfState by viewModel.pdfState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val context = LocalContext.current
+    val onExportPdf = rememberExportAction(viewModel)
 
-    val storagePermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { granted ->
-        if (granted) {
-            viewModel.exportPdf()
-        } else {
-            Toast.makeText(
-                context,
-                "Storage permission is needed to save the PDF to Downloads",
-                Toast.LENGTH_LONG,
-            ).show()
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        viewModel.soapSaved.collect {
-            snackbarHostState.showSnackbar("SOAP note saved")
-        }
-    }
-    LaunchedEffect(Unit) {
-        viewModel.saveError.collect { message ->
-            snackbarHostState.showSnackbar(message)
-        }
-    }
-    LaunchedEffect(pdfState) {
-        when (val pdf = pdfState) {
-            is PdfState.Done -> Toast.makeText(
-                context,
-                "PDF saved to Downloads — ${pdf.fileName}",
-                Toast.LENGTH_LONG,
-            ).show()
-            is PdfState.Failed -> Toast.makeText(context, pdf.message, Toast.LENGTH_LONG).show()
-            else -> {}
-        }
-    }
+    PdfToasts(pdfState)
+    SoapSnackbarEffects(viewModel, snackbarHostState)
 
     Scaffold(
         topBar = {
@@ -122,31 +88,78 @@ fun CaseDetailScreen(
                     state = s,
                     pdfWorking = pdfState == PdfState.Working,
                     viewModel = viewModel,
-                    onExportPdf = {
-                        startPdfExport(viewModel, context, storagePermissionLauncher::launch)
-                    },
+                    onExportPdf = onExportPdf,
                 )
             }
         }
     }
 }
 
-/** Runtime storage permission only applies to the legacy (API < 29) path. */
-private fun startPdfExport(
-    viewModel: CaseDetailViewModel,
-    context: android.content.Context,
-    requestPermission: (String) -> Unit,
-) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        viewModel.exportPdf()
-    } else {
-        val permission = Manifest.permission.WRITE_EXTERNAL_STORAGE
-        val granted = ContextCompat.checkSelfPermission(context, permission) ==
-            PackageManager.PERMISSION_GRANTED
+/** Export click handler: MediaStore path needs no permission; legacy does. */
+@Composable
+private fun rememberExportAction(viewModel: CaseDetailViewModel): () -> Unit {
+    val context = LocalContext.current
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
         if (granted) {
             viewModel.exportPdf()
         } else {
-            requestPermission(permission)
+            Toast.makeText(
+                context,
+                "Storage permission is needed to save the PDF to Downloads",
+                Toast.LENGTH_LONG,
+            ).show()
+        }
+    }
+    return remember(viewModel, permissionLauncher) {
+        {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                viewModel.exportPdf()
+            } else {
+                val permission = Manifest.permission.WRITE_EXTERNAL_STORAGE
+                val granted = ContextCompat.checkSelfPermission(context, permission) ==
+                    PackageManager.PERMISSION_GRANTED
+                if (granted) {
+                    viewModel.exportPdf()
+                } else {
+                    permissionLauncher.launch(permission)
+                }
+            }
+        }
+    }
+}
+
+/** PDF export progress surfaced as toasts (§13: honest, visible outcomes). */
+@Composable
+private fun PdfToasts(pdfState: PdfState) {
+    val context = LocalContext.current
+    LaunchedEffect(pdfState) {
+        when (val pdf = pdfState) {
+            is PdfState.Done -> Toast.makeText(
+                context,
+                "PDF saved to Downloads — ${pdf.fileName}",
+                Toast.LENGTH_LONG,
+            ).show()
+            is PdfState.Failed -> Toast.makeText(context, pdf.message, Toast.LENGTH_LONG).show()
+            else -> {}
+        }
+    }
+}
+
+@Composable
+private fun SoapSnackbarEffects(
+    viewModel: CaseDetailViewModel,
+    snackbarHostState: SnackbarHostState,
+) {
+    LaunchedEffect(Unit) {
+        viewModel.soapSaved.collect {
+            snackbarHostState.showSnackbar("SOAP note saved")
+        }
+    }
+    LaunchedEffect(Unit) {
+        viewModel.saveError.collect { message ->
+            snackbarHostState.showSnackbar(message)
         }
     }
 }

@@ -120,6 +120,7 @@ object SoapPdfDocument {
         val bytes = ImageEncoder.fromBase64(imageBase64)
         BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
     } catch (e: IllegalArgumentException) {
+        android.util.Log.w("SoapPdfDocument", "Case image could not be decoded for the PDF", e)
         null
     }
 

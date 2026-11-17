@@ -25,10 +25,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.prudent66.vetguide.domain.model.Patient
-import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.ui.components.SpeciesField
 import com.prudent66.vetguide.ui.screens.knowledge.speciesLabel
 import com.prudent66.vetguide.ui.viewmodels.SaveToCaseUiState
+import com.prudent66.vetguide.ui.viewmodels.SaveToCaseViewModel
 
 /**
  * Phase 7 "Save to Case" sheet: pick an existing patient or quickly add one
@@ -38,10 +38,7 @@ import com.prudent66.vetguide.ui.viewmodels.SaveToCaseUiState
 @Composable
 fun SaveToCaseSheet(
     state: SaveToCaseUiState.Visible,
-    onSelectPatient: (String?) -> Unit,
-    onQuickAddName: (String) -> Unit,
-    onQuickAddSpecies: (Species) -> Unit,
-    onSave: () -> Unit,
+    viewModel: SaveToCaseViewModel,
     onDismiss: () -> Unit,
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
@@ -58,27 +55,27 @@ fun SaveToCaseSheet(
             PatientPicker(
                 patients = state.patients,
                 selectedPatientId = state.selectedPatientId,
-                onSelect = onSelectPatient,
+                onSelect = viewModel::selectPatient,
             )
             HorizontalDivider()
             Text("Add new patient", style = MaterialTheme.typography.titleSmall)
             OutlinedTextField(
                 value = state.quickAddName,
-                onValueChange = onQuickAddName,
+                onValueChange = viewModel::setQuickAddName,
                 label = { Text("Patient name") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
             )
             SpeciesField(
                 selected = state.quickAddSpecies,
-                onSelect = onQuickAddSpecies,
+                onSelect = viewModel::setQuickAddSpecies,
                 modifier = Modifier.fillMaxWidth(),
             )
             state.error?.let { error ->
                 Text(error, color = MaterialTheme.colorScheme.error)
             }
             Button(
-                onClick = onSave,
+                onClick = viewModel::save,
                 enabled = !state.saving &&
                     (state.selectedPatientId != null || state.quickAddName.isNotBlank()),
                 modifier = Modifier.fillMaxWidth(),

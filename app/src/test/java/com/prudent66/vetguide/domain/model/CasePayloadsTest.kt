@@ -23,7 +23,11 @@ class CasePayloadsTest {
     fun `malformed artifact content decodes to null instead of crashing`() {
         assertNull(CasePayloadCodec.decodeOrNull<SoapPayload>("not json"))
         assertNull(CasePayloadCodec.decodeOrNull<SoapPayload>(null))
-        assertNull(CasePayloadCodec.decodeOrNull<SoapPayload>("{\"unknown\": true}"))
+        // Unknown keys are ignored: extra fields decode to a default payload.
+        assertEquals(
+            SoapPayload(),
+            CasePayloadCodec.decodeOrNull<SoapPayload>("{\"unknown\": true}"),
+        )
     }
 
     @Test

@@ -59,7 +59,6 @@ fun DiagnoseScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val imageState by imageViewModel.uiState.collectAsState()
-    val patients by viewModel.patients.collectAsState()
     val saveState by saveToCaseViewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -81,7 +80,6 @@ fun DiagnoseScreen(
             } else {
                 QuestionnairePhase(
                     state = state,
-                    patients = patients,
                     viewModel = viewModel,
                     imageViewModel = imageViewModel,
                     saveToCaseViewModel = saveToCaseViewModel,
@@ -94,10 +92,7 @@ fun DiagnoseScreen(
     (saveState as? SaveToCaseUiState.Visible)?.let { visible ->
         SaveToCaseSheet(
             state = visible,
-            onSelectPatient = saveToCaseViewModel::selectPatient,
-            onQuickAddName = saveToCaseViewModel::setQuickAddName,
-            onQuickAddSpecies = saveToCaseViewModel::setQuickAddSpecies,
-            onSave = saveToCaseViewModel::save,
+            viewModel = saveToCaseViewModel,
             onDismiss = { saveToCaseViewModel.cancel() },
         )
     }
@@ -106,7 +101,6 @@ fun DiagnoseScreen(
 @Composable
 private fun QuestionnairePhase(
     state: DiagnosticUiState,
-    patients: List<Patient>,
     viewModel: DiagnosticViewModel,
     imageViewModel: ImageAnalysisViewModel,
     saveToCaseViewModel: SaveToCaseViewModel,
@@ -115,7 +109,6 @@ private fun QuestionnairePhase(
     when (val s = state) {
         is DiagnosticUiState.Start -> StartPhase(
             start = s,
-            patients = patients,
             viewModel = viewModel,
             onOpenImageFlow = { imageViewModel.start(s.species) },
         )
@@ -223,10 +216,10 @@ private fun ErrorPhase(
 @Composable
 private fun StartPhase(
     start: DiagnosticUiState.Start,
-    patients: List<Patient>,
     viewModel: DiagnosticViewModel,
     onOpenImageFlow: () -> Unit,
 ) {
+    val patients by viewModel.patients.collectAsState()
     Column(
         modifier = Modifier
             .fillMaxSize()

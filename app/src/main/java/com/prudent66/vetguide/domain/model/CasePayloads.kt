@@ -3,7 +3,6 @@ package com.prudent66.vetguide.domain.model
 import com.prudent66.vetguide.domain.ai.AiAnalysisData
 import kotlin.math.roundToInt
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -53,13 +52,8 @@ object CasePayloadCodec {
 
     inline fun <reified T> encode(value: T): String = json.encodeToString(value)
 
-    inline fun <reified T> decodeOrNull(raw: String?): T? = try {
-        raw?.let { json.decodeFromString<T>(it) }
-    } catch (e: SerializationException) {
-        null
-    } catch (e: IllegalArgumentException) {
-        null
-    }
+    inline fun <reified T> decodeOrNull(raw: String?): T? =
+        raw?.let { content -> runCatching { json.decodeFromString<T>(content) }.getOrNull() }
 }
 
 /** Subjective (history) seed: the vet's context and/or questionnaire answers. */

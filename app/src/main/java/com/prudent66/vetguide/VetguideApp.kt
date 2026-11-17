@@ -30,7 +30,8 @@ import com.prudent66.vetguide.ui.screens.settings.SettingsScreen
 
 /**
  * App scaffold: bottom navigation bar (top-level tabs) + NavHost.
- * Drill-in routes (add patient, case timeline) hide the bottom bar.
+ * Drill-in routes (patient add, case timeline, case record, KB detail) hide
+ * the bottom bar.
  */
 @Composable
 fun VetguideApp() {
@@ -45,60 +46,56 @@ fun VetguideApp() {
             }
         },
     ) { innerPadding ->
-        NavHost(
+        VetguideNavHost(
             navController = navController,
-            startDestination = Destinations.HOME,
             modifier = Modifier.padding(innerPadding),
-        ) {
-            composable(Destinations.HOME) {
-                HomeScreen()
-            }
-            composable(Destinations.DIAGNOSE) {
-                DiagnoseScreen(
-                    onOpenCondition = { conditionId ->
-                        navController.navigate(Destinations.knowledgeDetail(conditionId))
-                    },
-                    onCaseSaved = { caseId ->
-                        navController.navigate(Destinations.caseDetail(caseId))
-                    },
-                )
-            }
-            composable(Destinations.PATIENTS) {
-                PatientListScreen(
-                    onPatientClick = { patientId ->
-                        navController.navigate(Destinations.casesForPatient(patientId))
-                    },
-                    onAddPatientClick = { navController.navigate(Destinations.PATIENTS_ADD) },
-                )
-            }
-            composable(Destinations.KNOWLEDGE) {
-                KnowledgeScreen(
-                    onConditionClick = { id ->
-                        navController.navigate(Destinations.knowledgeDetail(id))
-                    },
-                )
-            }
-            composable(Destinations.SETTINGS) { SettingsScreen() }
-            composable(Destinations.PATIENTS_ADD) {
-                AddPatientScreen(
-                    onSaved = navController::popBackStack,
-                    onDismiss = navController::popBackStack,
-                )
-            }
-            composable(Destinations.CASES_FOR_PATIENT) {
-                CaseListScreen(
-                    onBack = navController::popBackStack,
-                    onCaseClick = { caseId ->
-                        navController.navigate(Destinations.caseDetail(caseId))
-                    },
-                )
-            }
-            composable(Destinations.CASE_DETAIL) {
-                CaseDetailScreen(onBack = navController::popBackStack)
-            }
-            composable(Destinations.KB_CONDITION_DETAIL) {
-                KnowledgeDetailScreen(onBack = navController::popBackStack)
-            }
+        )
+    }
+}
+
+@Composable
+private fun VetguideNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
+    NavHost(
+        navController = navController,
+        startDestination = Destinations.HOME,
+        modifier = modifier,
+    ) {
+        composable(Destinations.HOME) { HomeScreen() }
+        composable(Destinations.DIAGNOSE) {
+            DiagnoseScreen(
+                onOpenCondition = { navController.navigate(Destinations.knowledgeDetail(it)) },
+                onCaseSaved = { navController.navigate(Destinations.caseDetail(it)) },
+            )
+        }
+        composable(Destinations.PATIENTS) {
+            PatientListScreen(
+                onPatientClick = { navController.navigate(Destinations.casesForPatient(it)) },
+                onAddPatientClick = { navController.navigate(Destinations.PATIENTS_ADD) },
+            )
+        }
+        composable(Destinations.KNOWLEDGE) {
+            KnowledgeScreen(
+                onConditionClick = { navController.navigate(Destinations.knowledgeDetail(it)) },
+            )
+        }
+        composable(Destinations.SETTINGS) { SettingsScreen() }
+        composable(Destinations.PATIENTS_ADD) {
+            AddPatientScreen(
+                onSaved = navController::popBackStack,
+                onDismiss = navController::popBackStack,
+            )
+        }
+        composable(Destinations.CASES_FOR_PATIENT) {
+            CaseListScreen(
+                onBack = navController::popBackStack,
+                onCaseClick = { navController.navigate(Destinations.caseDetail(it)) },
+            )
+        }
+        composable(Destinations.CASE_DETAIL) {
+            CaseDetailScreen(onBack = navController::popBackStack)
+        }
+        composable(Destinations.KB_CONDITION_DETAIL) {
+            KnowledgeDetailScreen(onBack = navController::popBackStack)
         }
     }
 }
