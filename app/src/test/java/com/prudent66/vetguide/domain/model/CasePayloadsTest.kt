@@ -85,6 +85,6 @@ class CasePayloadsTest {
                 suspectedConditions = listOf(SuspectedCondition(name = "Dermatophytosis", confidence = 0.7)),
             ),
         )
-        assertTrue(seed!!.contains("Dermatophytosis (70%)"))
+        assertTrue(seed!!.contains("Dermatophytosis (confidence 70%)"))
     }
 }
