@@ -29,7 +29,7 @@ class ImageEncoderTest {
 
     @Test
     fun `upload budget constants are present`() {
-        assertEquals(1024, ImageEncoder.DEFAULT_MAX_DIMENSION)
-        assertEquals(65, ImageEncoder.DEFAULT_JPEG_QUALITY)
+        assertEquals(800, ImageEncoder.DEFAULT_MAX_DIMENSION)
+        assertEquals(50, ImageEncoder.DEFAULT_JPEG_QUALITY)
     }
 }
