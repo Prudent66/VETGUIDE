@@ -24,8 +24,8 @@ data class SoapReportData(
 
 /**
  * Builds the Phase 7 clinical-report PDF with Android's PdfDocument API:
- * VETGUIDE branding, patient info, the four SOAP sections, the AI analysis
- * (labeled decision support), the case image, and the standing disclaimers.
+ * VETGUIDE branding, patient info, the four SOAP sections, the analysis
+ * finding, the case image, and the standing disclaimers.
  * A4 @ 72dpi; content paginates automatically.
  */
 object SoapPdfDocument {
@@ -49,7 +49,7 @@ object SoapPdfDocument {
         drawSection(cursor, "Subjective (history / anamnesis)", data.soap.subjective)
         drawSection(cursor, "Objective (findings)", data.soap.objective)
         if (!data.aiNarrative.isNullOrBlank()) {
-            drawSection(cursor, "AI analysis (decision support — not a diagnosis)", data.aiNarrative)
+            drawSection(cursor, "Analysis Finding:", data.aiNarrative)
         }
         drawSection(cursor, "Assessment", data.soap.assessment)
         drawSection(cursor, "Plan (treatment & follow-up)", data.soap.plan)
@@ -74,7 +74,7 @@ object SoapPdfDocument {
             },
         )
         cursor.y += 24f
-        cursor.line("AI-powered veterinary clinical assistant — clinical report", cursor.smallPaint)
+        cursor.line("Veterinary clinical assistant — clinical report", cursor.smallPaint)
         cursor.y += 14f
     }
 

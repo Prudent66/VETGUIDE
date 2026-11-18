@@ -89,6 +89,17 @@ fun renderDifferentialsSeed(matches: List<DiagnosticMatch>): String = if (matche
     }
 }
 
+/** Strips the "[AI prediction — provider/model]" provenance tag for clinical views. */
+private val AI_TAG_REGEX = Regex("""^\[AI prediction[^\]]*\]\s*""")
+
+/**
+ * Narrative text for the case record and PDF: the vet-facing clinical finding
+ * report carries no provider/model banner, so legacy payloads that were saved
+ * with the tag are cleaned on read as well.
+ */
+fun clinicalAnalysisText(narrative: String): String =
+    narrative.replace(AI_TAG_REGEX, "").trim()
+
 /** Human-readable species name for complaint/report lines ("Dog", "Goat", …). */
 fun Species?.displayName(): String =
     this?.name?.lowercase()?.replaceFirstChar { it.uppercase() } ?: "unspecified species"

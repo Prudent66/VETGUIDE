@@ -114,6 +114,12 @@ function buildPrompt(findings: string, clinicalContext?: string): string {
       "drug names (if applicable), and management advice, rather than advanced " +
       "diagnostic tests.",
     "",
+    "Dosage rules (strict):",
+    "1. If a treatment requires oral/systemic medication, provide standard veterinary " +
+      "dosage ranges (e.g., mg/kg) for common drugs.",
+    "2. CRITICAL SAFETY: Always remind the vet to verify the dosage based on the exact " +
+      "animal weight, species, and current medical condition.",
+    "",
     ...contextBlock,
     "",
     "Structured findings: " + findings,

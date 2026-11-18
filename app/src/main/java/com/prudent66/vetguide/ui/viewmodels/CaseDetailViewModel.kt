@@ -16,6 +16,7 @@ import com.prudent66.vetguide.domain.model.CasePayloadCodec
 import com.prudent66.vetguide.domain.model.Patient
 import com.prudent66.vetguide.domain.model.QuestionnaireArtifactPayload
 import com.prudent66.vetguide.domain.model.SoapPayload
+import com.prudent66.vetguide.domain.model.clinicalAnalysisText
 import com.prudent66.vetguide.domain.repository.CaseRepository
 import com.prudent66.vetguide.domain.repository.PatientRepository
 import com.prudent66.vetguide.ui.navigation.Destinations
@@ -193,7 +194,7 @@ class CaseDetailViewModel @Inject constructor(
             status = success.case.status.name.lowercase().replaceFirstChar { it.uppercase() },
             generatedAt = generatedAt,
             soap = success.soap,
-            aiNarrative = success.ai?.narrative,
+            aiNarrative = success.ai?.narrative?.let(::clinicalAnalysisText),
             imageBase64 = success.imageBase64,
         )
     }

@@ -3,6 +3,7 @@ package com.prudent66.vetguide.domain.model
 import com.prudent66.vetguide.domain.ai.AiAnalysisData
 import com.prudent66.vetguide.domain.ai.SuspectedCondition
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -86,5 +87,22 @@ class CasePayloadsTest {
             ),
         )
         assertTrue(seed!!.contains("Dermatophytosis (confidence 70%)"))
+    }
+
+    @Test
+    fun `clinical analysis text drops the AI prediction tag`() {
+        val narrative = "[AI prediction — gemini/gemini-3.5-flash] Findings: redness. " +
+            "Suspected conditions (decision support, not a diagnosis): none."
+
+        val cleaned = clinicalAnalysisText(narrative)
+
+        assertTrue(cleaned.startsWith("Findings: redness."))
+        assertFalse(cleaned.contains("AI prediction"))
+        assertFalse(cleaned.contains("gemini"))
+    }
+
+    @Test
+    fun `clinical analysis text keeps untagged narrative untouched`() {
+        assertEquals("Findings: redness.", clinicalAnalysisText("Findings: redness."))
     }
 }
