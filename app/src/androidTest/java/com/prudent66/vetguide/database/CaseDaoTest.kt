@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.prudent66.vetguide.domain.model.AgeUnit
 import com.prudent66.vetguide.domain.model.CaseArtifactType
 import com.prudent66.vetguide.domain.model.CaseStatus
 import com.prudent66.vetguide.domain.model.NeuterStatus
@@ -59,7 +60,8 @@ class CaseDaoTest {
         sex = PatientSex.FEMALE,
         neuterStatus = NeuterStatus.INTACT,
         dateOfBirthEpochMs = null,
-        estimatedAgeMonths = 24,
+        ageValue = 24.0,
+        ageUnit = AgeUnit.MONTHS,
         weightKg = 4.2,
         weightUpdatedAtEpochMs = now,
         ownerName = null,

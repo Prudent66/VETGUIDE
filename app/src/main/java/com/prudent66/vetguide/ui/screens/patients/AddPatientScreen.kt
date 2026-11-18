@@ -34,13 +34,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.prudent66.vetguide.R
+import com.prudent66.vetguide.domain.model.AgeUnit
 import com.prudent66.vetguide.domain.model.BreedCatalog
 import com.prudent66.vetguide.domain.model.PatientDraft
 import com.prudent66.vetguide.domain.model.PatientSex
 import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.ui.components.SpeciesField
 import com.prudent66.vetguide.ui.viewmodels.PatientViewModel
-import kotlin.math.roundToInt
 
 /**
  * Add Patient form (Phase 1B): Name, Species, Breed, Age, Sex, Weight.
@@ -126,7 +126,8 @@ private fun SaveButton(
                     species = form.species,
                     breed = form.breed.trim().ifBlank { null },
                     sex = form.sex,
-                    ageMonths = form.ageMonths,
+                    ageValue = form.ageValue,
+                    ageUnit = form.ageUnit,
                     weightKg = form.weightKg,
                 ),
                 onSaved = onSaved,
@@ -145,15 +146,14 @@ class PatientFormState(
 ) {
     var name: String by mutableStateOf("")
     var breed: String by mutableStateOf("")
-    var ageText: String by mutableStateOf("")
+    var ageValueText: String by mutableStateOf("")
+    var ageUnit: AgeUnit by mutableStateOf(AgeUnit.MONTHS)
     var weightText: String by mutableStateOf("")
     var species: Species by mutableStateOf(species)
     var sex: PatientSex by mutableStateOf(sex)
 
-    private val ageYears: Double? get() = ageText.toDoubleOrNull()
-
     private val ageIsValid: Boolean
-        get() = ageText.isBlank() || (ageYears?.let { it >= 0.0 } == true)
+        get() = ageValueText.isBlank() || (ageValue != null)
 
     private val weightIsValid: Boolean
         get() = weightText.isBlank() || weightKg != null
@@ -161,8 +161,8 @@ class PatientFormState(
     val valid: Boolean
         get() = name.isNotBlank() && ageIsValid && weightIsValid
 
-    val ageMonths: Int?
-        get() = ageYears?.let { (it * 12).roundToInt().takeIf { months -> months > 0 } }
+    val ageValue: Double?
+        get() = ageValueText.toDoubleOrNull()?.takeIf { value -> value > 0.0 }
 
     val weightKg: Double?
         get() = weightText.toDoubleOrNull()?.takeIf { it >= 0.0 }
@@ -177,14 +177,7 @@ private fun PatientTextFields(form: PatientFormState) {
         singleLine = true,
         modifier = Modifier.fillMaxWidth(),
     )
-    OutlinedTextField(
-        value = form.ageText,
-        onValueChange = { form.ageText = it },
-        label = { Text("Age (years)") },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-        singleLine = true,
-        modifier = Modifier.fillMaxWidth(),
-    )
+    AgeFields(form)
     OutlinedTextField(
         value = form.weightText,
         onValueChange = { form.weightText = it },
@@ -193,6 +186,62 @@ private fun PatientTextFields(form: PatientFormState) {
         singleLine = true,
         modifier = Modifier.fillMaxWidth(),
     )
+}
+
+/** Age value + unit pair: poultry in days/weeks, adults in months/years. */
+@Composable
+private fun AgeFields(form: PatientFormState) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        OutlinedTextField(
+            value = form.ageValueText,
+            onValueChange = { form.ageValueText = it },
+            label = { Text("Age value") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            singleLine = true,
+            modifier = Modifier.weight(1f),
+        )
+        AgeUnitField(
+            selected = form.ageUnit,
+            onSelect = { form.ageUnit = it },
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+@Composable
+private fun AgeUnitField(
+    selected: AgeUnit,
+    onSelect: (AgeUnit) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    OutlinedButton(onClick = { expanded = true }, modifier = modifier) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(text = selected.label, modifier = Modifier.weight(1f))
+            Icon(
+                painter = painterResource(R.drawable.nav_chevron_down),
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+    }
+    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        AgeUnit.entries.forEach { unit ->
+            DropdownMenuItem(
+                text = { Text(unit.label) },
+                onClick = {
+                    onSelect(unit)
+                    expanded = false
+                },
+            )
+        }
+    }
 }
 
 /** Breed picker scoped to the selected species (BreedCatalog-driven). */

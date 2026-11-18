@@ -42,7 +42,7 @@ object DatabaseModule {
         ).addMigrations(
             VetguideDatabase.MIGRATION_1_TO_2,
             VetguideDatabase.MIGRATION_2_TO_3,
-        ).build()
+        ).fallbackToDestructiveMigration(true).build()
 
     @Provides
     fun providePatientDao(db: VetguideDatabase): PatientDao = db.patientDao()

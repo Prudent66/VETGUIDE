@@ -41,7 +41,7 @@ fun ImageAnalyzingPhase(analysis: ImageAnalysisUiState.Analyzing) {
         CircularProgressIndicator()
         Text("Analyzing image…", style = MaterialTheme.typography.titleMedium)
         Text(
-            text = "This may take up to 60 seconds depending on network speed.",
+            text = "This may take up to 30 seconds depending on network speed.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

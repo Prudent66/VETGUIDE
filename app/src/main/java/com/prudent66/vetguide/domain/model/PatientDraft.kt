@@ -6,6 +6,7 @@ data class PatientDraft(
     val species: Species,
     val breed: String?,
     val sex: PatientSex,
-    val ageMonths: Int?,
+    val ageValue: Double?,
+    val ageUnit: AgeUnit?,
     val weightKg: Double?,
 )

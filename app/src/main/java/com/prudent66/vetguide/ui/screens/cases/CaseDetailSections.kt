@@ -32,6 +32,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.prudent66.vetguide.domain.model.AiArtifactPayload
 import com.prudent66.vetguide.domain.model.SoapPayload
+import com.prudent66.vetguide.domain.model.ageLabel
 import com.prudent66.vetguide.domain.model.clinicalAnalysisText
 import com.prudent66.vetguide.ui.screens.knowledge.speciesLabel
 import com.prudent66.vetguide.ui.viewmodels.CaseDetailUiState
@@ -121,9 +122,11 @@ private fun PatientInfoCard(state: CaseDetailUiState.Success) {
             )
             if (patient != null) {
                 Text(
-                    text = patient.breed
-                        ?.let { "${speciesLabel(patient.species)} · $it" }
-                        ?: speciesLabel(patient.species),
+                    text = listOfNotNull(
+                        speciesLabel(patient.species),
+                        patient.breed,
+                        patient.ageLabel(),
+                    ).joinToString(" · "),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 patient.ownerName?.let { owner ->
@@ -194,32 +197,27 @@ internal fun SoapEditor(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        OutlinedTextField(
+        SoapField(
             value = subjective,
             onValueChange = { subjective = it },
-            label = { Text("Subjective (history / anamnesis)") },
-            modifier = Modifier.fillMaxWidth(),
-            minLines = 3,
+            label = "Subjective (history / anamnesis)",
+            placeholder = SUBJECTIVE_PLACEHOLDER,
         )
-        OutlinedTextField(
+        SoapField(
             value = objective,
             onValueChange = { objective = it },
-            label = { Text("Objective (findings)") },
-            modifier = Modifier.fillMaxWidth(),
-            minLines = 3,
+            label = "Objective (findings)",
         )
-        OutlinedTextField(
+        SoapField(
             value = assessment,
             onValueChange = { assessment = it },
-            label = { Text("Assessment (differentials & final diagnosis)") },
-            modifier = Modifier.fillMaxWidth(),
-            minLines = 3,
+            label = "Assessment (differentials & final diagnosis)",
         )
-        OutlinedTextField(
+        SoapField(
             value = plan,
             onValueChange = { plan = it },
-            label = { Text("Plan (treatment & follow-up)") },
-            modifier = Modifier.fillMaxWidth(),
+            label = "Plan (treatment & follow-up)",
+            placeholder = PLAN_PLACEHOLDER,
             minLines = 2,
         )
         Button(
@@ -232,6 +230,32 @@ internal fun SoapEditor(
         }
     }
 }
+
+@Composable
+private fun SoapField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    placeholder: String = "",
+    minLines: Int = 3,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        placeholder = { Text(placeholder) },
+        modifier = Modifier.fillMaxWidth(),
+        minLines = minLines,
+    )
+}
+
+private const val SUBJECTIVE_PLACEHOLDER =
+    "e.g., Owner reports sudden drop in egg production, swollen faces in 3 birds, " +
+        "and foul-smelling nasal discharge."
+
+private const val PLAN_PLACEHOLDER =
+    "e.g., Administer Tylosin 50mg/kg in drinking water for 3 days. " +
+        "Isolate affected birds. Follow up in 1 week."
 
 private fun statusLabelOf(state: CaseDetailUiState.Success): String =
     state.case.status.name.lowercase().replaceFirstChar { it.uppercase() }

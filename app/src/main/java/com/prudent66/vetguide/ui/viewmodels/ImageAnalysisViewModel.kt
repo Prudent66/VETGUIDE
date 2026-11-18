@@ -69,8 +69,12 @@ class ImageAnalysisViewModel @Inject constructor(
     private val mut = MutableStateFlow<ImageAnalysisUiState>(ImageAnalysisUiState.Idle)
     val uiState: StateFlow<ImageAnalysisUiState> = mut.asStateFlow()
 
+    /** Patient age ("3 Days") forwarded as one-line clinical context. */
+    private var ageLabel: String? = null
+
     /** Entry point from the questionnaire Start phase, carrying the species. */
-    fun start(species: Species?) {
+    fun start(species: Species?, ageLabel: String? = null) {
+        this.ageLabel = ageLabel
         mut.value = ImageAnalysisUiState.Capture(species)
     }
 
@@ -97,6 +101,7 @@ class ImageAnalysisViewModel @Inject constructor(
 
     /** Abandon the image flow — the questionnaire Start phase reappears. */
     fun reset() {
+        ageLabel = null
         mut.value = ImageAnalysisUiState.Idle
     }
 
@@ -152,9 +157,16 @@ class ImageAnalysisViewModel @Inject constructor(
         payloadBase64: String,
         clinicalContext: String?,
     ) = AiRequest(
-        headline = species?.name?.lowercase()?.replaceFirstChar { it.uppercase() }
-            ?: "Unspecified species",
-        findings = IMAGE_FINDINGS,
+        headline = listOfNotNull(
+            species?.name?.lowercase()?.replaceFirstChar { it.uppercase() }
+                ?: "Unspecified species",
+            ageLabel,
+        ).joinToString(" · "),
+        findings = buildString {
+            append(IMAGE_FINDINGS)
+            // The backend prompt is the findings text: age must travel here.
+            ageLabel?.let { age -> append(" Patient age: $age.") }
+        },
         imageBase64 = payloadBase64,
         // Blank context must not ship as whitespace — treat it as absent.
         clinicalContext = clinicalContext?.trim()?.takeIf { it.isNotEmpty() },

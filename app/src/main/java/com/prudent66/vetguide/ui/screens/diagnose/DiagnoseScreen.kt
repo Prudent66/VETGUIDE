@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.prudent66.vetguide.domain.model.Patient
 import com.prudent66.vetguide.domain.model.Species
+import com.prudent66.vetguide.domain.model.ageLabel
 import com.prudent66.vetguide.ui.components.SpeciesField
 import com.prudent66.vetguide.ui.screens.cases.SaveToCaseSheet
 import com.prudent66.vetguide.ui.screens.knowledge.speciesLabel
@@ -110,7 +111,7 @@ private fun QuestionnairePhase(
         is DiagnosticUiState.Start -> StartPhase(
             start = s,
             viewModel = viewModel,
-            onOpenImageFlow = { imageViewModel.start(s.species) },
+            onAnalyzeImage = { ageLabel -> imageViewModel.start(s.species, ageLabel) },
         )
         is DiagnosticUiState.Wizard -> WizardPhase(wizard = s, viewModel = viewModel)
         is DiagnosticUiState.Results -> ResultsPhase(
@@ -217,9 +218,10 @@ private fun ErrorPhase(
 private fun StartPhase(
     start: DiagnosticUiState.Start,
     viewModel: DiagnosticViewModel,
-    onOpenImageFlow: () -> Unit,
+    onAnalyzeImage: (String?) -> Unit,
 ) {
     val patients by viewModel.patients.collectAsState()
+    val selectedPatient = patients.firstOrNull { it.id == start.patientId }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -235,7 +237,7 @@ private fun StartPhase(
         SpeciesSelection(start, viewModel)
         PatientSelection(start, patients, viewModel)
         OutlinedButton(
-            onClick = onOpenImageFlow,
+            onClick = { onAnalyzeImage(selectedPatient?.ageLabel()) },
             modifier = Modifier.fillMaxWidth(),
         ) { Text("Analyze a photo") }
         Button(

@@ -16,6 +16,7 @@ import com.prudent66.vetguide.domain.model.CasePayloadCodec
 import com.prudent66.vetguide.domain.model.Patient
 import com.prudent66.vetguide.domain.model.QuestionnaireArtifactPayload
 import com.prudent66.vetguide.domain.model.SoapPayload
+import com.prudent66.vetguide.domain.model.ageLabel
 import com.prudent66.vetguide.domain.model.clinicalAnalysisText
 import com.prudent66.vetguide.domain.repository.CaseRepository
 import com.prudent66.vetguide.domain.repository.PatientRepository
@@ -181,7 +182,7 @@ class CaseDetailViewModel @Inject constructor(
         val patient = success.patient
         val generatedAt = SimpleDateFormat("d MMM yyyy, HH:mm", Locale.getDefault())
             .format(Date(nowMs))
-        val ageLine = patient?.estimatedAgeMonths?.let { months -> " · ~$months months" }.orEmpty()
+        val ageLine = patient?.ageLabel()?.let { " · $it" }.orEmpty()
         return SoapReportData(
             patientLine = listOfNotNull(
                 patient?.name ?: "Unregistered patient",

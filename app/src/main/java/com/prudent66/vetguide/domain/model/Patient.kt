@@ -2,8 +2,8 @@ package com.prudent66.vetguide.domain.model
 
 /**
  * Patient record. Owner data is optional and minimized per roadmap §10.
- * Dates are epoch milliseconds (UTC). Age may be given as DOB or an
- * estimated value when DOB is unknown — never both null.
+ * Dates are epoch milliseconds (UTC). Age is stored as a value + unit so
+ * poultry batches ("3 Days") and young animals are as expressible as adults.
  */
 data class Patient(
     val id: String,
@@ -13,7 +13,8 @@ data class Patient(
     val sex: PatientSex,
     val neuterStatus: NeuterStatus,
     val dateOfBirthEpochMs: Long?,
-    val estimatedAgeMonths: Int?,
+    val ageValue: Double?,
+    val ageUnit: AgeUnit?,
     val weightKg: Double?,
     val weightUpdatedAtEpochMs: Long?,
     val ownerName: String?,

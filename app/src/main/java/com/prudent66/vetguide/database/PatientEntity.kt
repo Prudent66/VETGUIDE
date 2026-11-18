@@ -3,6 +3,7 @@ package com.prudent66.vetguide.database
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.prudent66.vetguide.domain.model.AgeUnit
 import com.prudent66.vetguide.domain.model.NeuterStatus
 import com.prudent66.vetguide.domain.model.PatientSex
 import com.prudent66.vetguide.domain.model.Species
@@ -24,7 +25,8 @@ data class PatientEntity(
     val sex: PatientSex,
     val neuterStatus: NeuterStatus,
     val dateOfBirthEpochMs: Long?,
-    val estimatedAgeMonths: Int?,
+    val ageValue: Double?,
+    val ageUnit: AgeUnit?,
     val weightKg: Double?,
     val weightUpdatedAtEpochMs: Long?,
     val ownerName: String?,

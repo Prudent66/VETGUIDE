@@ -6,10 +6,11 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 /**
- * VETGUIDE local database (roadmap §11: offline-first, migrations only).
- * Every schema change bumps the @Database version literal and adds a
- * Migration — never fallbackToDestructiveMigration. Schemas are exported to
- * app/schemas and committed.
+ * VETGUIDE local database (roadmap §11: offline-first).
+ * v4 (age value + unit) is a development-stage schema change: patients are
+ * rebuilt via the destructive fallback in [com.prudent66.vetguide.di.DatabaseModule].
+ * Restore strictly additive migrations before the first production release.
+ * Schemas are exported to app/schemas and committed.
  */
 @Database(
     entities = [
@@ -27,7 +28,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         QuestionOptionEntity::class,
         ConditionWeightEntity::class,
     ],
-    version = 3, // literal required by the Room processor
+    version = 4, // literal required by the Room processor
     exportSchema = true,
 )
 abstract class VetguideDatabase : RoomDatabase() {
@@ -40,7 +41,7 @@ abstract class VetguideDatabase : RoomDatabase() {
     abstract fun appSettingsDao(): AppSettingsDao
 
     companion object {
-        const val VETGUIDE_DB_VERSION = 3
+        const val VETGUIDE_DB_VERSION = 4
         const val VETGUIDE_DB_NAME = "vetguide.db"
         const val KB_SEED_VERSION_KEY = "kb_seed_version"
 

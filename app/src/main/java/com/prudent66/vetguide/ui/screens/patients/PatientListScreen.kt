@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.prudent66.vetguide.R
 import com.prudent66.vetguide.domain.model.Patient
+import com.prudent66.vetguide.domain.model.ageLabel
 import com.prudent66.vetguide.ui.viewmodels.PatientListUiState
 import com.prudent66.vetguide.ui.viewmodels.PatientViewModel
 
@@ -108,8 +109,11 @@ private fun PatientRow(patient: Patient, onPatientClick: (String) -> Unit) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(patient.name, style = MaterialTheme.typography.titleMedium)
             Text(
-                text = "${patient.species.name.lowercase().replaceFirstChar { it.uppercase() }}" +
-                    (patient.breed?.let { " · $it" } ?: " · Breed unknown"),
+                text = listOfNotNull(
+                    patient.species.name.lowercase().replaceFirstChar { it.uppercase() },
+                    patient.breed ?: "Breed unknown",
+                    patient.ageLabel(),
+                ).joinToString(" · "),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
