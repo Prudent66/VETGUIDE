@@ -69,7 +69,7 @@ private fun WelcomeCard(patientCount: Int?, conditionCount: Int?) {
         ) {
             Text("Welcome", style = MaterialTheme.typography.titleMedium)
             Text(
-                text = "Offline-first decision support for dogs, cats, and Nigerian " +
+                text = "Offline-first decision support for dogs, cats, and regional " +
                     "livestock — questionnaires, a cited knowledge base, and clinical " +
                     "records for your practice.",
                 style = MaterialTheme.typography.bodyMedium,

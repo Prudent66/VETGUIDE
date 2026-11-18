@@ -2,11 +2,14 @@ package com.prudent66.vetguide.ui.screens.patients
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -201,12 +204,17 @@ private fun AgeFields(form: PatientFormState) {
             label = { Text("Age value") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             singleLine = true,
-            modifier = Modifier.weight(1f),
+            shape = RoundedCornerShape(4.dp),
+            modifier = Modifier
+                .weight(1f)
+                .height(56.dp),
         )
         AgeUnitField(
             selected = form.ageUnit,
             onSelect = { form.ageUnit = it },
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .height(56.dp),
         )
     }
 }
@@ -218,7 +226,12 @@ private fun AgeUnitField(
     modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    OutlinedButton(onClick = { expanded = true }, modifier = modifier) {
+    OutlinedButton(
+        onClick = { expanded = true },
+        modifier = modifier,
+        shape = RoundedCornerShape(4.dp),
+        contentPadding = PaddingValues(horizontal = 12.dp),
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
