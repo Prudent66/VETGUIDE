@@ -22,9 +22,9 @@ object AiCatalog {
     const val BACKEND_BASE_URL = "https://vetguide-api.pman6665.workers.dev"
 
     /**
-     * Roadmap §5.2: configurable provider timeout. 30 s — long enough for an
+     * Roadmap §5.2: configurable provider timeout. 60 s — long enough for an
      * image upload plus a Gemini vision round-trip on field networks, short
      * enough to fall back quickly when the connection is unusable.
      */
-    const val BACKEND_TIMEOUT_MS = 30_000L
+    const val BACKEND_TIMEOUT_MS = 60_000L
 }

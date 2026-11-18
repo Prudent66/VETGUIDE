@@ -15,10 +15,10 @@ import java.util.Base64
 object ImageEncoder {
 
     /** Longest side cap for uploads — resolution stays diagnostic-reviewable. */
-    const val DEFAULT_MAX_DIMENSION = 1024
+    const val DEFAULT_MAX_DIMENSION = 800
 
     /** JPEG quality trade-off: small payload, adequate clinical detail. */
-    const val DEFAULT_JPEG_QUALITY = 65
+    const val DEFAULT_JPEG_QUALITY = 50
 
     fun toBase64(bytes: ByteArray): String = Base64.getEncoder().encodeToString(bytes)
 
