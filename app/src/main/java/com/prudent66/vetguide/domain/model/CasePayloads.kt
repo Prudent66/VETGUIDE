@@ -99,12 +99,13 @@ fun renderSuspectedConditionsSeed(analysisData: AiAnalysisData?): String? =
         ?.takeIf { it.isNotEmpty() }
         ?.let { conditions ->
             buildString {
-                append("Model-suspected conditions (decision support, not a diagnosis): ")
-                append(
-                    conditions.joinToString("; ") { condition ->
-                        "${condition.name} " +
-                            "(confidence ${(condition.confidence * 100).roundToInt()}%)"
-                    },
-                )
+                append("Possible conditions (decision support, not a diagnosis):")
+                conditions.forEach { condition ->
+                    append("\n- ")
+                    append(condition.name)
+                    append(" (confidence ")
+                    append((condition.confidence * 100).roundToInt())
+                    append("%)")
+                }
             }
         }

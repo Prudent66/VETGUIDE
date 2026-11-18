@@ -103,6 +103,17 @@ function buildPrompt(findings: string, clinicalContext?: string): string {
     "- suspectedConditions: ranked, max 5, keep names general (e.g. species-level).",
     "- If the image/findings are insufficient, return an EMPTY suspectedConditions list.",
     "",
+    "Field-veterinarian language rules (strict):",
+    "1. Use simple, plain English. Avoid overly academic terms.",
+    "2. If you MUST use a medical term, immediately explain it in brackets. " +
+      "Example: 'Subcutaneous hematoma (blood-filled swelling under the skin)'.",
+    "3. Prioritize practical, locally available treatments and prescriptions. " +
+      "Assume the vet has basic field equipment (stethoscope, thermometer, syringes) " +
+      "but NO advanced lab or imaging equipment.",
+    "4. In the recommendedNextSteps array, provide actionable, field-ready treatments, " +
+      "drug names (if applicable), and management advice, rather than advanced " +
+      "diagnostic tests.",
+    "",
     ...contextBlock,
     "",
     "Structured findings: " + findings,

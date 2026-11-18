@@ -44,7 +44,7 @@ private fun SectionHeader(text: String) {
 private fun FindingsSection(findings: List<String>) {
     if (findings.isEmpty()) return
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SectionHeader("Visual Findings")
+        SectionHeader("What I See (Observations)")
         findings.forEach { finding ->
             Text(
                 text = "• $finding",
@@ -58,7 +58,7 @@ private fun FindingsSection(findings: List<String>) {
 private fun DifferentialSection(conditions: List<SuspectedCondition>) {
     if (conditions.isEmpty()) return
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SectionHeader("Differential Diagnoses")
+        SectionHeader("Possible Conditions")
         conditions.forEach { condition ->
             ConditionCard(condition)
         }
@@ -97,7 +97,7 @@ private fun ConditionCard(condition: SuspectedCondition) {
 private fun NextStepsSection(steps: List<String>) {
     if (steps.isEmpty()) return
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SectionHeader("Recommended Next Steps")
+        SectionHeader("Practical Field Treatments & Next Steps")
         steps.forEachIndexed { index, step ->
             Text(
                 text = "${index + 1}. $step",

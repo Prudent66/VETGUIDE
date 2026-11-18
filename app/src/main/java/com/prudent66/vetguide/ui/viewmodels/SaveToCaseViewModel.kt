@@ -124,7 +124,7 @@ class SaveToCaseViewModel @Inject constructor(
             subjectiveSeed = result.clinicalContext?.trim().orEmpty(),
             objectiveSeed = result.analysisData?.findings
                 ?.takeIf { it.isNotEmpty() }
-                ?.joinToString("\n")
+                ?.joinToString("\n") { finding -> "• $finding" }
                 ?: result.narrative,
             assessmentSeed = renderSuspectedConditionsSeed(result.analysisData).orEmpty(),
             imageBase64 = result.imageBase64,
