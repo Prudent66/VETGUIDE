@@ -158,6 +158,7 @@ private fun ImageFlowPhase(
             onCancel = imageViewModel::reset,
         )
         is ImageAnalysisUiState.QuotaExceeded -> QuotaExceededPhase(
+            detail = s.detail,
             onRetry = { imageViewModel.start(s.species) },
             onOfflineFallback = { imageViewModel.reset() },
         )
@@ -329,6 +330,7 @@ private fun PatientSelection(
  */
 @Composable
 private fun QuotaExceededPhase(
+    detail: String?,
     onRetry: () -> Unit,
     onOfflineFallback: () -> Unit,
 ) {
@@ -359,6 +361,14 @@ private fun QuotaExceededPhase(
         }
         OutlinedButton(onClick = onRetry, modifier = Modifier.fillMaxWidth()) {
             Text("Retry AI Analysis")
+        }
+        if (!detail.isNullOrBlank()) {
+            Text(
+                "Technical detail: $detail",
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

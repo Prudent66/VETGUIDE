@@ -65,7 +65,11 @@ sealed interface ImageAnalysisUiState {
      * All AI provider keys exhausted (HTTP 429). The UI shows a specific
      * message with an action to fall back to the offline questionnaire.
      */
-    data class QuotaExceeded(val species: Species?) : ImageAnalysisUiState
+    data class QuotaExceeded(
+        val species: Species?,
+        /** Provider-side reason, surfaced as support detail (never the only copy). */
+        val detail: String? = null,
+    ) : ImageAnalysisUiState
 }
 
 @HiltViewModel
@@ -147,7 +151,10 @@ class ImageAnalysisViewModel @Inject constructor(
                 throw e
             } catch (e: AiQuotaExceededException) {
                 // All keys exhausted — show specific message before offline fallback.
-                mut.value = ImageAnalysisUiState.QuotaExceeded(species = review.species)
+                mut.value = ImageAnalysisUiState.QuotaExceeded(
+                    species = review.species,
+                    detail = e.message,
+                )
             } catch (e: IllegalArgumentException) {
                 mut.value = ImageAnalysisUiState.ImageError(
                     species = review.species,
