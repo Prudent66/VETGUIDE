@@ -21,8 +21,10 @@ import org.junit.Test
 /**
  * Contract conformance suite for the cloud tier (roadmap §5/§6): mocked HTTP
  * only — no real billable endpoints in CI (§7). Proves the failure contract:
- * HTTP 401/429/5xx, schema violations, and network errors all surface as
+ * HTTP 401/5xx, schema violations, and network errors all surface as
  * AiAttempt.Failure (never a throw), so the orchestrator ladder can fail over.
+ * HTTP 429 is the one deliberate exception: it raises
+ * [AiQuotaExceededException] so the UI can explain the capacity outage.
  */
 class CloudAiProviderTest {
 
@@ -99,10 +101,9 @@ class CloudAiProviderTest {
     }
 
     @Test
-    fun `http auth rate-limit and server errors map to failure`() = runBlocking {
+    fun `http auth and server errors map to failure`() = runBlocking {
         listOf(
             HttpStatusCode.Unauthorized,
-            HttpStatusCode.TooManyRequests,
             HttpStatusCode.InternalServerError,
             HttpStatusCode.BadGateway,
         ).forEach { status ->
@@ -116,6 +117,20 @@ class CloudAiProviderTest {
             assertTrue(failure.message.contains("HTTP ${status.value}"))
             assertTrue(failure.message.contains(AiCatalog.CLOUD_PROVIDER_ID))
         }
+    }
+
+    @Test
+    fun `http 429 raises the quota exception so the UI can explain the outage`() = runBlocking {
+        val (client, _) = jsonHandler(validBody, HttpStatusCode.TooManyRequests)
+        val provider = CloudAiProvider(client = client)
+
+        val error = runCatching { provider.analyze(request) }.exceptionOrNull()
+
+        assertTrue(
+            "HTTP 429 must raise AiQuotaExceededException, got $error",
+            error is AiQuotaExceededException,
+        )
+        assertTrue(error?.message.orEmpty().contains(AiCatalog.CLOUD_PROVIDER_ID))
     }
 
     @Test
