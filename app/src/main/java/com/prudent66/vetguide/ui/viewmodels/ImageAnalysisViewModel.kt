@@ -2,6 +2,7 @@ package com.prudent66.vetguide.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.prudent66.vetguide.data.ai.AiQuotaExceededException
 import com.prudent66.vetguide.data.ai.ImageEncoder
 import com.prudent66.vetguide.domain.ai.AiAnalysisData
 import com.prudent66.vetguide.domain.ai.AiOrchestrator
@@ -59,6 +60,12 @@ sealed interface ImageAnalysisUiState {
 
     /** Corrupt/unsupported image payload; retake restarts the capture phase. */
     data class ImageError(val species: Species?, val message: String) : ImageAnalysisUiState
+
+    /**
+     * All AI provider keys exhausted (HTTP 429). The UI shows a specific
+     * message with an action to fall back to the offline questionnaire.
+     */
+    data class QuotaExceeded(val species: Species?) : ImageAnalysisUiState
 }
 
 @HiltViewModel
@@ -138,6 +145,9 @@ class ImageAnalysisViewModel @Inject constructor(
                 )
             } catch (e: CancellationException) {
                 throw e
+            } catch (e: AiQuotaExceededException) {
+                // All keys exhausted — show specific message before offline fallback.
+                mut.value = ImageAnalysisUiState.QuotaExceeded(species = review.species)
             } catch (e: IllegalArgumentException) {
                 mut.value = ImageAnalysisUiState.ImageError(
                     species = review.species,

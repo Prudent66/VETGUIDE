@@ -12,12 +12,15 @@ place provider credentials exist. The APK never contains keys.
 ## Current state: Gemini routing with mock fallback (Phase 6)
 
 `POST /analyze` validates the request shape and routes to **Gemini**
-(`gemini-2.0-flash`, falling back to `gemini-2.5-flash` on a 404 — the 1.5
-series is retired for newer API keys) when the `GEMINI_API_KEY` secret is
-configured, enforcing
+(`gemini-1.5-flash`, falling back to `gemini-2.0-flash-exp` on a 404) when the
+`GEMINI_API_KEY` secret is configured, enforcing
 the `AiAnalysisData` JSON schema in the prompt and normalizing the model
-output defensively. Without the secret the Worker answers with a **mocked**
-response that mirrors the same schema — useful for `npx wrangler dev` and CI:
+output defensively. `GEMINI_API_KEY` may contain **several comma-separated
+keys** (`key1,key2,key3`); a key that answers `429 Too Many Requests` is
+skipped and the next key is tried, and a `429` is only returned to the app
+when every key is exhausted. Without the secret the Worker answers with a
+**mocked** response that mirrors the same schema — useful for
+`npx wrangler dev` and CI:
 
 ```json
 {
@@ -75,6 +78,7 @@ curl -X POST http://localhost:8787/analyze \
 
    ```bash
    npx wrangler secret put GEMINI_API_KEY
+   # e.g. "key1,key2,key3" — keys are tried in order, rotating on HTTP 429
    ```
 
    Secrets are stored encrypted server-side by Cloudflare and exposed to the

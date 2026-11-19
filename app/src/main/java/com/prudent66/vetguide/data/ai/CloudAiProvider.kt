@@ -25,9 +25,12 @@ import kotlinx.serialization.json.Json
  * APK holds no keys (§8).
  *
  * Contract (§5/§6, mirrors the AiProvider docs): never throws for an expected
- * refusal. Network errors, HTTP 401/429/5xx, and schema violations all map to
+ * refusal — network errors, HTTP 401/5xx, and schema violations all map to
  * [AiAttempt.Failure] so the orchestrator ladder can fail over (on-device
- * tier, then the mode-4 deterministic fallback). Cancellation still propagates.
+ * tier, then the mode-4 deterministic fallback). The one deliberate exception
+ * is HTTP 429: [AiQuotaExceededException] is thrown so the UI can show a
+ * specific capacity message instead of silently degrading. Cancellation still
+ * propagates.
  */
 class CloudAiProvider(
     override val id: String = AiCatalog.CLOUD_PROVIDER_ID,
@@ -51,13 +54,17 @@ class CloudAiProvider(
             )
         }
         val body = response.bodyAsText()
-        if (response.status == HttpStatusCode.OK) {
-            decodeAttempt(body)
-        } else {
-            AiAttempt.Failure("[$id] backend returned HTTP ${response.status.value}")
+        when (response.status) {
+            HttpStatusCode.OK -> decodeAttempt(body)
+            HttpStatusCode.TooManyRequests -> throw AiQuotaExceededException(
+                "[$id] AI service at maximum capacity — all provider keys exhausted",
+            )
+            else -> AiAttempt.Failure("[$id] backend returned HTTP ${response.status.value}")
         }
     } catch (e: CancellationException) {
         throw e
+    } catch (e: AiQuotaExceededException) {
+        throw e // propagate to UI for specific message
     } catch (e: SecurityException) {
         // Defense in depth: e.g. a build without the INTERNET permission must
         // degrade to the failover ladder, never crash the app (§5.2).

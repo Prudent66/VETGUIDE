@@ -1,6 +1,10 @@
 package com.prudent66.vetguide.ui.viewmodels
 
+import com.prudent66.vetguide.data.ai.AiQuotaExceededException
+import com.prudent66.vetguide.domain.ai.AiAttempt
 import com.prudent66.vetguide.domain.ai.AiOrchestrator
+import com.prudent66.vetguide.domain.ai.AiProvider
+import com.prudent66.vetguide.domain.ai.AiRequest
 import com.prudent66.vetguide.domain.ai.FakeAiProvider
 import com.prudent66.vetguide.domain.ai.OFFLINE_PROVIDER_ID
 import com.prudent66.vetguide.domain.model.Species
@@ -174,5 +178,28 @@ class ImageAnalysisViewModelTest {
 
         assertTrue(viewModel.uiState.value is ImageAnalysisUiState.Idle)
         assertEquals(0, provider.callCount)
+    }
+
+    @Test
+    fun `quota exhaustion surfaces the capacity state for the UI`() = runTest {
+        val quotaProvider = object : AiProvider {
+            override val id: String = "quota-cloud"
+
+            override suspend fun analyze(request: AiRequest): AiAttempt =
+                throw AiQuotaExceededException()
+        }
+        val viewModel = viewModel(AiOrchestrator(listOf(quotaProvider)))
+
+        viewModel.start(Species.POULTRY)
+        viewModel.onImageCaptured("cGF5bG9hZA==")
+        viewModel.sendForAnalysis(imageBase64 = "cGF5bG9hZA==", squareCrop = false)
+
+        withTimeout(5_000) {
+            while (viewModel.uiState.value !is ImageAnalysisUiState.QuotaExceeded) {
+                delay(10)
+            }
+        }
+        val state = viewModel.uiState.value as ImageAnalysisUiState.QuotaExceeded
+        assertEquals(Species.POULTRY, state.species)
     }
 }

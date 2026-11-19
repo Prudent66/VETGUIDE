@@ -26,7 +26,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.prudent66.vetguide.domain.model.Patient
@@ -155,6 +157,10 @@ private fun ImageFlowPhase(
             onRetake = imageViewModel::retryFromError,
             onCancel = imageViewModel::reset,
         )
+        is ImageAnalysisUiState.QuotaExceeded -> QuotaExceededPhase(
+            onRetry = { imageViewModel.start(s.species) },
+            onOfflineFallback = { imageViewModel.reset() },
+        )
     }
 }
 
@@ -166,6 +172,7 @@ private fun title(state: DiagnosticUiState, imageState: ImageAnalysisUiState): S
             is ImageAnalysisUiState.Analyzing -> "Analyzing"
             is ImageAnalysisUiState.Result -> "AI analysis"
             is ImageAnalysisUiState.ImageError -> "Photo analysis"
+            is ImageAnalysisUiState.QuotaExceeded -> "AI service busy"
             ImageAnalysisUiState.Idle -> "Diagnose"
         }
     } else {
@@ -311,6 +318,47 @@ private fun PatientSelection(
                     },
                 )
             }
+        }
+    }
+}
+
+/**
+ * Shown when all AI provider keys are exhausted (HTTP 429). Gives the vet
+ * a clear message and an explicit action to fall back to the offline
+ * questionnaire engine.
+ */
+@Composable
+private fun QuotaExceededPhase(
+    onRetry: () -> Unit,
+    onOfflineFallback: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            "The AI service is currently at maximum capacity. " +
+                "Please try again later or use the offline questionnaire.",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.error,
+        )
+        Text(
+            "The offline engine uses your selected signs against the built-in " +
+                "knowledge base — no network required.",
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Button(onClick = onOfflineFallback, modifier = Modifier.fillMaxWidth()) {
+            Text("Use Offline Questionnaire")
+        }
+        OutlinedButton(onClick = onRetry, modifier = Modifier.fillMaxWidth()) {
+            Text("Retry AI Analysis")
         }
     }
 }
