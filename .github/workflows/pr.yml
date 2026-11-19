@@ -27,8 +27,19 @@ jobs:
           gradle-version: "8.13"
           # Gradle dependency/build caching is automatic in setup-gradle v4.
 
+      # gitleaks CLI (Apache-2.0, no license key) instead of gitleaks-action@v2:
+      # the action requires a GITLEAKS_LICENSE and fails spuriously with
+      # "missing gitleaks license" whenever GitHub's API rate-limits the runner
+      # (it cannot resolve the repo owner), which was the only recurring
+      # pipeline flake. The CLI scans the same full git history and exits 1 on
+      # any finding, so the §8 gate is unchanged.
       - name: Secret scan (roadmap §8 — no credentials in history)
-        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITLEAKS_VERSION: "8.30.1"
+        run: |
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin gitleaks
+          gitleaks detect --source . --redact --no-banner --verbose
 
       - name: Static analysis (detekt)
         run: gradle detekt
