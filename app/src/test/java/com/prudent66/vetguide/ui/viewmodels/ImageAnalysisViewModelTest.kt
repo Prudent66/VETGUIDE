@@ -123,25 +123,6 @@ class ImageAnalysisViewModelTest {
     }
 
     @Test
-    fun `cloud-AI toggle off goes straight to the rule-based result`() = runTest {
-        val provider = FakeAiProvider(id = "should-not-run")
-        val viewModel = viewModel(
-            AiOrchestrator(
-                providers = listOf(provider),
-                cloudAiEnabled = { false },
-            ),
-        )
-
-        viewModel.start(Species.DOG)
-        viewModel.onImageCaptured("cGF5bG9hZA==")
-        viewModel.sendForAnalysis(imageBase64 = "cGF5bG9hZA==", squareCrop = false)
-
-        val result = viewModel.awaitResult()
-        assertEquals(OFFLINE_PROVIDER_ID, result.providerId)
-        assertEquals(0, provider.callCount)
-    }
-
-    @Test
     fun `clinical context is trimmed and blank context is treated as absent`() = runTest {
         val provider = FakeAiProvider(id = "fake-cloud")
         val viewModel = viewModel(AiOrchestrator(listOf(provider)))

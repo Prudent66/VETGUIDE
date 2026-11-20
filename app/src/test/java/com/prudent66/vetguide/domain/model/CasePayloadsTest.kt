@@ -2,6 +2,7 @@ package com.prudent66.vetguide.domain.model
 
 import com.prudent66.vetguide.domain.ai.AiAnalysisData
 import com.prudent66.vetguide.domain.ai.SuspectedCondition
+import com.prudent66.vetguide.domain.ai.toNarrativeText
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -104,5 +105,49 @@ class CasePayloadsTest {
     @Test
     fun `clinical analysis text keeps untagged narrative untouched`() {
         assertEquals("Findings: redness.", clinicalAnalysisText("Findings: redness."))
+    }
+
+    @Test
+    fun `clinical analysis text collapses legacy repeated punctuation`() {
+        val legacy = "[AI prediction — p/m] Findings: earlobe.; (fowl pox).. " +
+            "Recommended next steps: follow guidelines.."
+
+        val cleaned = clinicalAnalysisText(legacy)
+
+        assertFalse(cleaned.contains(".."))
+        assertFalse(cleaned.contains(".;"))
+        assertTrue(cleaned.endsWith("guidelines."))
+    }
+
+    @Test
+    fun `plan seed numbers and sanitises the practical next steps`() {
+        val data = AiAnalysisData(
+            provider = "p",
+            model = "m",
+            findings = listOf("lesion"),
+            suspectedConditions = listOf(SuspectedCondition(name = "Fowl pox.", confidence = 0.8)),
+            recommendedNextSteps = listOf("Isolate affected birds.;", " Disinfect drinkers.. ", "   "),
+        )
+
+        assertEquals("1. Isolate affected birds.\n2. Disinfect drinkers.", renderPlanSeed(data))
+        assertNull(renderPlanSeed(null))
+        assertNull(renderPlanSeed(data.copy(recommendedNextSteps = emptyList())))
+    }
+
+    @Test
+    fun `narrative strips trailing punctuation before joining items`() {
+        val narrative = AiAnalysisData(
+            provider = "p",
+            model = "m",
+            findings = listOf("earlobe.", "lesion;"),
+            suspectedConditions = listOf(SuspectedCondition(name = "Fowl pox..", confidence = 0.8)),
+            recommendedNextSteps = listOf("follow guidelines.."),
+        ).toNarrativeText()
+
+        assertTrue(narrative.contains("Findings: earlobe; lesion."))
+        assertTrue(narrative.contains("Fowl pox (confidence 80%)"))
+        assertTrue(narrative.contains("follow guidelines."))
+        assertFalse(narrative.contains(".."))
+        assertFalse(narrative.contains(".;"))
     }
 }

@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import com.prudent66.vetguide.domain.ai.sanitizeAiItem
 import com.prudent66.vetguide.domain.model.AiArtifactPayload
 import com.prudent66.vetguide.domain.model.SoapPayload
 import com.prudent66.vetguide.domain.model.ageLabel
@@ -100,7 +101,7 @@ private fun AiAnalysisCard(ai: AiArtifactPayload) {
             )
             steps.forEachIndexed { index, step ->
                 Text(
-                    "${index + 1}. $step",
+                    "${index + 1}. ${sanitizeAiItem(step)}",
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }

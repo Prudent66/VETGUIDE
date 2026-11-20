@@ -120,21 +120,33 @@ data class AiAnalysisData(
 )
 
 /**
+ * Trims trailing periods/semicolons (and any whitespace before them) from an
+ * AI finding or next step. Model output regularly ends items with a full stop,
+ * and the joins below add their own separator — without this the saved report
+ * shows artifacts such as "earlobe.;", "(fowl pox).." or "guidelines..".
+ */
+fun sanitizeAiItem(item: String): String =
+    item.trim().trimEnd { it == '.' || it == ';' || it.isWhitespace() }
+
+/**
  * Human-readable narrative for an AiAttempt.Success (§10): always carries
  * provider/model provenance and the standing "not a diagnosis" framing.
  */
 fun AiAnalysisData.toNarrativeText(): String = buildString {
     append("[AI prediction — $provider/$model] ")
-    append("Findings: ").append(findings.joinToString("; ")).append(". ")
+    append("Findings: ")
+    append(findings.joinToString("; ") { sanitizeAiItem(it) })
+    append(". ")
     append("Suspected conditions (decision support, not a diagnosis): ")
     append(
         suspectedConditions.joinToString("; ") { condition ->
-            "${condition.name} (confidence ${(condition.confidence * 100).roundToInt()}%)"
+            "${sanitizeAiItem(condition.name)} " +
+                "(confidence ${(condition.confidence * 100).roundToInt()}%)"
         },
     ).append(". ")
     if (recommendedNextSteps.isNotEmpty()) {
         append("Recommended next steps: ")
-        append(recommendedNextSteps.joinToString("; ")).append(". ")
+        append(recommendedNextSteps.joinToString("; ") { sanitizeAiItem(it) }).append(". ")
     }
     append(
         "Confidence values are model estimates, not validated diagnostic " +

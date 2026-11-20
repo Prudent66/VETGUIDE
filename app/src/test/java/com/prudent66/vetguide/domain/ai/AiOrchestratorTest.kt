@@ -88,44 +88,6 @@ class AiOrchestratorTest {
     }
 
     @Test
-    fun `cloud AI toggle off skips the ladder and returns the rule-based fallback`() = runBlocking {
-        val primary = FakeAiProvider(id = "primary", failuresBeforeSuccess = 99)
-        val secondary = FakeAiProvider(id = "secondary", failuresBeforeSuccess = 99)
-        val orchestrator = AiOrchestrator(
-            providers = listOf(primary, secondary),
-            cloudAiEnabled = { false },
-        )
-
-        val result = orchestrator.analyze(request, nowMs = 1_000) as AiResult.DeterministicFallback
-
-        // No provider is consulted and no breaker state is touched (§5).
-        assertEquals(0, primary.callCount)
-        assertEquals(0, secondary.callCount)
-        assertFalse(orchestrator.isBenched("primary", nowMs = 1_000))
-        assertFalse(orchestrator.isBenched("secondary", nowMs = 1_000))
-        assertEquals(OFFLINE_PROVIDER_ID, result.providerId)
-        assertTrue(result.text.contains("requires veterinary review"))
-        // The gate state is visible in diagnostics for support/debugging.
-        assertTrue(result.diagnostics.any { it.contains("OFF in Settings") })
-    }
-
-    @Test
-    fun `cloud AI toggle on runs the full failover ladder`() = runBlocking {
-        val primary = FakeAiProvider(id = "primary")
-        val secondary = FakeAiProvider(id = "secondary")
-        val orchestrator = AiOrchestrator(
-            providers = listOf(primary, secondary),
-            cloudAiEnabled = { true },
-        )
-
-        val result = orchestrator.analyze(request, nowMs = 1_000) as AiResult.ProviderSuccess
-
-        assertEquals("primary", result.providerId)
-        assertEquals(1, primary.callCount)
-        assertEquals(0, secondary.callCount)
-    }
-
-    @Test
     fun `circuit breaker benches provider after three consecutive failures`() = runBlocking {
         val primary = FakeAiProvider(id = "primary", failuresBeforeSuccess = 99)
         val secondary = FakeAiProvider(id = "secondary")

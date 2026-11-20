@@ -3,6 +3,7 @@ package com.prudent66.vetguide.ui.viewmodels
 import android.database.sqlite.SQLiteException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.prudent66.vetguide.domain.ai.sanitizeAiItem
 import com.prudent66.vetguide.domain.model.AnsweredQuestionPayload
 import com.prudent66.vetguide.domain.model.Case
 import com.prudent66.vetguide.domain.model.CaseArtifact
@@ -18,6 +19,7 @@ import com.prudent66.vetguide.domain.model.SoapPayload
 import com.prudent66.vetguide.domain.model.AiArtifactPayload
 import com.prudent66.vetguide.domain.model.displayName
 import com.prudent66.vetguide.domain.model.renderDifferentialsSeed
+import com.prudent66.vetguide.domain.model.renderPlanSeed
 import com.prudent66.vetguide.domain.model.renderSubjectiveSeed
 import com.prudent66.vetguide.domain.model.renderSuspectedConditionsSeed
 import com.prudent66.vetguide.domain.repository.CaseRepository
@@ -88,6 +90,7 @@ class SaveToCaseViewModel @Inject constructor(
         val subjectiveSeed: String,
         val objectiveSeed: String,
         val assessmentSeed: String,
+        val planSeed: String,
         val imageBase64: String?,
         val aiContent: String?,
         val questionnaireContent: String?,
@@ -102,6 +105,7 @@ class SaveToCaseViewModel @Inject constructor(
             subjectiveSeed = renderSubjectiveSeed(clinicalContext = null, answers = results.answers),
             objectiveSeed = "",
             assessmentSeed = renderDifferentialsSeed(results.matches),
+            planSeed = "",
             imageBase64 = null,
             aiContent = null,
             questionnaireContent = CasePayloadCodec.encode(
@@ -123,10 +127,13 @@ class SaveToCaseViewModel @Inject constructor(
             defaultPatientId = null,
             subjectiveSeed = result.clinicalContext?.trim().orEmpty(),
             objectiveSeed = result.analysisData?.findings
+                ?.map { sanitizeAiItem(it) }
+                ?.filter { it.isNotEmpty() }
                 ?.takeIf { it.isNotEmpty() }
                 ?.joinToString("\n") { finding -> "• $finding" }
                 ?: result.narrative,
             assessmentSeed = renderSuspectedConditionsSeed(result.analysisData).orEmpty(),
+            planSeed = renderPlanSeed(result.analysisData).orEmpty(),
             imageBase64 = result.imageBase64,
             aiContent = CasePayloadCodec.encode(
                 AiArtifactPayload(
@@ -230,7 +237,7 @@ class SaveToCaseViewModel @Inject constructor(
                     subjective = assessment.subjectiveSeed,
                     objective = assessment.objectiveSeed,
                     assessment = assessment.assessmentSeed,
-                    plan = "",
+                    plan = assessment.planSeed,
                 ),
             ),
             now,

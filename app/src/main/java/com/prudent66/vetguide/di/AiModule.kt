@@ -4,8 +4,6 @@ import com.prudent66.vetguide.data.ai.CloudAiProvider
 import com.prudent66.vetguide.domain.ai.AiCatalog
 import com.prudent66.vetguide.domain.ai.AiOrchestrator
 import com.prudent66.vetguide.domain.ai.OnDeviceAiProvider
-import com.prudent66.vetguide.domain.repository.SettingsKeys
-import com.prudent66.vetguide.domain.repository.SettingsRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -24,7 +22,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
-import kotlinx.coroutines.flow.first
 
 /**
  * Ktor's default HttpPlainText plugin force-appends "Accept-Charset: UTF-8"
@@ -54,8 +51,8 @@ private object KtorLogcatLogger : Logger {
  * §8) then the on-device tier (mode 3, stubbed until the TFLite model lands).
  * When every provider is exhausted, the orchestrator answers with the mode-4
  * deterministic fallback. FakeAiProvider never enters production DI — it is
- * for fault-injection tests only (§7). The Settings "Cloud AI Analysis"
- * toggle gates the whole ladder: off = deterministic offline results only.
+ * for fault-injection tests only (§7). Cloud analysis is always attempted:
+ * the Settings toggle was removed so a stale preference can never suppress it.
  */
 @Module
 @InstallIn(SingletonComponent::class)
@@ -109,13 +106,7 @@ object AiModule {
     fun provideAiOrchestrator(
         cloudProvider: CloudAiProvider,
         onDeviceProvider: OnDeviceAiProvider,
-        settingsRepository: SettingsRepository,
     ): AiOrchestrator = AiOrchestrator(
         providers = listOf(cloudProvider, onDeviceProvider),
-        cloudAiEnabled = {
-            settingsRepository
-                .observeBoolean(SettingsKeys.CLOUD_AI_ENABLED, default = false)
-                .first()
-        },
     )
 }

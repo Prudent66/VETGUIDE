@@ -10,15 +10,13 @@ import java.util.concurrent.ConcurrentHashMap
  * exhausted or benched, the deterministic mode-4 fallback (questionnaire +
  * offline KB) answers — which is never an AiProvider (§5.1).
  *
- * Cloud-AI gate (Settings "Cloud AI Analysis", §5 execution mode A): while
- * [cloudAiEnabled] returns false no provider and no provider breaker state is
- * touched at all — analysis goes straight to the mode-4 deterministic
- * fallback, exactly like an offline environment. Until Phase 5 introduces the
- * on-device tier (mode 3), that gate covers every provider in the ladder.
+ * Cloud AI analysis is always attempted: Settings no longer exposes an
+ * opt-out, so the ladder runs on every call. When every provider is
+ * unreachable, out of quota, or benched, the deterministic mode-4 fallback
+ * (questionnaire + offline KB) answers — which is never an AiProvider (§5.1).
  */
 class AiOrchestrator(
     private val providers: List<AiProvider>,
-    private val cloudAiEnabled: suspend () -> Boolean = { true },
     private val failureThreshold: Int = DEFAULT_FAILURE_THRESHOLD,
     private val benchMs: Long = DEFAULT_BENCH_MS,
 ) {
@@ -30,20 +28,7 @@ class AiOrchestrator(
 
     private val breakers = ConcurrentHashMap<String, BreakerState>()
 
-    suspend fun analyze(request: AiRequest, nowMs: Long = System.currentTimeMillis()): AiResult =
-        if (!cloudAiEnabled()) {
-            AiResult.DeterministicFallback(
-                text = DeterministicFallbackBuilder.build(request),
-                diagnostics = listOf(
-                    "Cloud AI Analysis is OFF in Settings — providers were not consulted",
-                ),
-            )
-        } else {
-            runLadder(request, nowMs)
-        }
-
-    /** Provider ladder — only reached while the Settings cloud-AI gate is on. */
-    private suspend fun runLadder(request: AiRequest, nowMs: Long): AiResult {
+    suspend fun analyze(request: AiRequest, nowMs: Long = System.currentTimeMillis()): AiResult {
         val diagnostics = mutableListOf<String>()
         providers.forEach { provider ->
             val breaker = breakers.getOrPut(provider.id) { BreakerState() }

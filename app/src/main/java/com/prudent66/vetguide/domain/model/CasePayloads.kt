@@ -1,6 +1,7 @@
 package com.prudent66.vetguide.domain.model
 
 import com.prudent66.vetguide.domain.ai.AiAnalysisData
+import com.prudent66.vetguide.domain.ai.sanitizeAiItem
 import kotlin.math.roundToInt
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -92,13 +93,20 @@ fun renderDifferentialsSeed(matches: List<DiagnosticMatch>): String = if (matche
 /** Strips the "[AI prediction — provider/model]" provenance tag for clinical views. */
 private val AI_TAG_REGEX = Regex("""^\[AI prediction[^\]]*\]\s*""")
 
+/** Collapses repeated sentence punctuation ("..", ".;", ". .") to the first mark. */
+private val REPEATED_PUNCTUATION_REGEX = Regex("""([.;])\s*[.;]+""")
+
 /**
  * Narrative text for the case record and PDF: the vet-facing clinical finding
  * report carries no provider/model banner, so legacy payloads that were saved
- * with the tag are cleaned on read as well.
+ * with the tag are cleaned on read as well. Repeated punctuation from older
+ * saved payloads is collapsed so pre-existing cases also read cleanly.
  */
 fun clinicalAnalysisText(narrative: String): String =
-    narrative.replace(AI_TAG_REGEX, "").trim()
+    narrative
+        .replace(AI_TAG_REGEX, "")
+        .replace(REPEATED_PUNCTUATION_REGEX, "$1")
+        .trim()
 
 /** Human-readable species name for complaint/report lines ("Dog", "Goat", …). */
 fun Species?.displayName(): String =
@@ -113,10 +121,23 @@ fun renderSuspectedConditionsSeed(analysisData: AiAnalysisData?): String? =
                 append("Possible conditions (decision support, not a diagnosis):")
                 conditions.forEach { condition ->
                     append("\n- ")
-                    append(condition.name)
+                    append(sanitizeAiItem(condition.name))
                     append(" (confidence ")
                     append((condition.confidence * 100).roundToInt())
                     append("%)")
                 }
             }
         }
+
+/**
+ * Plan seed: the assessment's practical field treatments as a numbered list,
+ * matching the Objective/Assessment pre-fill. Null when the AI tier returned
+ * no structured next steps (offline results or a degraded response).
+ */
+fun renderPlanSeed(analysisData: AiAnalysisData?): String? =
+    analysisData?.recommendedNextSteps
+        ?.map { sanitizeAiItem(it) }
+        ?.filter { it.isNotEmpty() }
+        ?.takeIf { it.isNotEmpty() }
+        ?.mapIndexed { index, step -> "${index + 1}. $step." }
+        ?.joinToString("\n")
