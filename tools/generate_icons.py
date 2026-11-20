@@ -26,9 +26,10 @@ BRAND = (46, 125, 50, 255)  # #2E7D32 — matches res/values/colors.xml
 WHITE = (255, 255, 255, 255)
 SS = 4  # supersampling factor for clean edges
 
-# Medical cross in the 108x108 launcher viewport.
-CROSS_V = (46, 26, 62, 82)  # x0, y0, x1, y1 of the vertical bar
-CROSS_H = (32, 40, 76, 56)  # x0, y0, x1, y1 of the horizontal bar
+# Greek cross (Red Cross proportions) in the 108x108 launcher viewport:
+# equal-length arms, 54-unit span, 18-unit bar thickness (3:1), centred at 54,54.
+CROSS_V = (45, 27, 63, 81)  # x0, y0, x1, y1 of the vertical bar
+CROSS_H = (27, 45, 81, 63)  # x0, y0, x1, y1 of the horizontal bar
 VIEWPORT = 108
 
 # Legacy icon: cross occupies ~64% of the height (Android legacy safe area).

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Android 13+ themed icon: a single-color silhouette the launcher tints.
-  Same medical-cross geometry as the launcher foreground.
+  Same Greek-cross geometry as the launcher foreground.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
@@ -10,5 +10,5 @@
     android:viewportHeight="108">
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M46,26 L62,26 L62,40 L76,40 L76,56 L62,56 L62,82 L46,82 L46,56 L32,56 L32,40 L46,40 Z" />
+        android:pathData="M45,27 L63,27 L63,45 L81,45 L81,63 L63,63 L63,81 L45,81 L45,63 L27,63 L27,45 L45,45 Z" />
 </vector>

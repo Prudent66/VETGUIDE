@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- White medical cross inside the 66dp adaptive-icon safe zone (108dp viewport, 22dp margin). -->
+<!--
+  White Greek cross (Red Cross proportions) centred in the 108dp adaptive-icon
+  viewport. Arms are equal length: 54dp span with 18dp bar thickness (3:1),
+  so it reads as a clinical first-aid mark rather than a religious symbol.
+  All arm tips sit within the 66dp safe zone.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
@@ -7,5 +12,5 @@
     android:viewportHeight="108">
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M46,26 L62,26 L62,40 L76,40 L76,56 L62,56 L62,82 L46,82 L46,56 L32,56 L32,40 L46,40 Z" />
+        android:pathData="M45,27 L63,27 L63,45 L81,45 L81,63 L63,63 L63,81 L45,81 L45,63 L27,63 L27,45 L45,45 Z" />
 </vector>

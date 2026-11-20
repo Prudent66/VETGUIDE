@@ -58,12 +58,41 @@ jobs:
       - name: Build debug APK
         run: gradle assembleDebug
 
-      # Release gate: exercises R8 minification + resource shrinking and the
-      # ProGuard keep rules (Hilt/Room/Ktor/serialization). Without signing env
-      # vars AGP emits app-release-unsigned.apk, which is enough to prove the
-      # release build is not broken by shrinking.
-      - name: Build release APK (R8 + resource shrinking gate)
-        run: gradle assembleRelease
+      # ---------------------------------------------------------------------
+      # Signed release bundle for Google Play.
+      #
+      # Secrets (Settings → Secrets and variables → Actions):
+      #   KEYSTORE_BASE64     base64 of vetguide-release.jks
+      #   KEYSTORE_PASSWORD   keystore password
+      #   KEY_ALIAS           key alias inside the keystore
+      #   KEY_PASSWORD        key password
+      #
+      # Without KEYSTORE_BASE64 the same task still runs and produces an
+      # unsigned AAB, so R8/resource-shrinking is validated on every push.
+      # ---------------------------------------------------------------------
+      - name: Decode release keystore
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/vetguide-release.jks"
+          test -s "$RUNNER_TEMP/vetguide-release.jks"
+
+      - name: Build release bundle (AAB — signed when keystore secrets exist)
+        env:
+          VETGUIDE_KEYSTORE_PATH: ${{ runner.temp }}/vetguide-release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: gradle bundleRelease
+
+      - name: Verify AAB signature
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        run: |
+          AAB=app/build/outputs/bundle/release/app-release.aab
+          jarsigner -verify "$AAB" | tee /tmp/aab-verify.txt
+          grep -q "jar verified" /tmp/aab-verify.txt
+          ls -lh "$AAB"
 
       # room.schemaLocation is written by the Room processor outside the KSP
       # task's declared outputs, so a FROM-CACHE kspDebugKotlin hit never
@@ -85,11 +114,11 @@ jobs:
           path: app/schemas
           if-no-files-found: warn
 
-      - name: Upload release APK (unsigned unless signing secrets are set)
+      - name: Upload release AAB (signed when keystore secrets are set)
         uses: actions/upload-artifact@v4
         with:
-          name: vetguide-release-unsigned-apk
-          path: app/build/outputs/apk/release/app-release-*.apk
+          name: vetguide-release-aab
+          path: app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
 
 # TODO: Re-enable connectedAndroidTest for release branches or manual triggers to save CI time

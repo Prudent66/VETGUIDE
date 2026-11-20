@@ -21,36 +21,48 @@ android {
     }
 
     /**
-     * Release signing is optional so CI (and contributors without the keystore)
-     * can still run `assembleRelease` — an unsigned APK is produced when
-     * VETGUIDE_KEYSTORE_PATH is not set. Provide the four env vars below to sign:
-     *   VETGUIDE_KEYSTORE_PATH, VETGUIDE_KEYSTORE_PASSWORD,
-     *   VETGUIDE_KEY_ALIAS, VETGUIDE_KEY_PASSWORD
+     * Google Play release signing. CI decodes the `KEYSTORE_BASE64` secret into
+     * a .jks file inside the runner and exports:
+     *   VETGUIDE_KEYSTORE_PATH, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD
+     * Local builds can export the same four variables. When any is missing the
+     * release bundle is still built — unsigned — so the pipeline can validate
+     * R8/shrinking without the keystore.
      */
     val releaseKeystorePath: String? = System.getenv("VETGUIDE_KEYSTORE_PATH")
         ?.takeIf { it.isNotBlank() }
+        ?.takeIf { java.io.File(it).isFile }
+    val releaseStorePassword: String? = System.getenv("KEYSTORE_PASSWORD")
+        ?.takeIf { it.isNotBlank() }
+    val releaseKeyAlias: String? = System.getenv("KEY_ALIAS")
+        ?.takeIf { it.isNotBlank() }
+    val releaseKeyPassword: String? = System.getenv("KEY_PASSWORD")
+        ?.takeIf { it.isNotBlank() }
+    val hasReleaseSigning = releaseKeystorePath != null &&
+        releaseStorePassword != null &&
+        releaseKeyAlias != null &&
+        releaseKeyPassword != null
 
     signingConfigs {
-        if (releaseKeystorePath != null) {
+        if (hasReleaseSigning) {
             create("release") {
-                storeFile = file(releaseKeystorePath)
-                storePassword = System.getenv("VETGUIDE_KEYSTORE_PASSWORD")
-                keyAlias = System.getenv("VETGUIDE_KEY_ALIAS")
-                keyPassword = System.getenv("VETGUIDE_KEY_PASSWORD")
+                storeFile = file(requireNotNull(releaseKeystorePath))
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
             }
         }
     }
 
     buildTypes {
         release {
-            // R8 code + resource shrinking: smaller, faster release APK.
+            // R8 code + resource shrinking: smaller, faster release AAB.
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            if (releaseKeystorePath != null) {
+            if (hasReleaseSigning) {
                 signingConfig = signingConfigs.getByName("release")
             }
         }
