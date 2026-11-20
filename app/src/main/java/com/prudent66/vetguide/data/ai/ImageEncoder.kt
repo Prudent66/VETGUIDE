@@ -17,8 +17,11 @@ object ImageEncoder {
     /** Longest side cap for uploads — resolution stays diagnostic-reviewable. */
     const val DEFAULT_MAX_DIMENSION = 800
 
-    /** JPEG quality trade-off: small payload, adequate clinical detail. */
-    const val DEFAULT_JPEG_QUALITY = 50
+    /**
+     * JPEG quality trade-off: keeps the payload well under ~40 KB (weak
+     * 3G/4G uploads) while retaining enough detail for lesion review.
+     */
+    const val DEFAULT_JPEG_QUALITY = 60
 
     fun toBase64(bytes: ByteArray): String = Base64.getEncoder().encodeToString(bytes)
 

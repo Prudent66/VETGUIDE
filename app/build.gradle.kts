@@ -16,17 +16,43 @@ android {
         applicationId = "com.prudent66.vetguide"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "1.0.0"
+    }
+
+    /**
+     * Release signing is optional so CI (and contributors without the keystore)
+     * can still run `assembleRelease` — an unsigned APK is produced when
+     * VETGUIDE_KEYSTORE_PATH is not set. Provide the four env vars below to sign:
+     *   VETGUIDE_KEYSTORE_PATH, VETGUIDE_KEYSTORE_PASSWORD,
+     *   VETGUIDE_KEY_ALIAS, VETGUIDE_KEY_PASSWORD
+     */
+    val releaseKeystorePath: String? = System.getenv("VETGUIDE_KEYSTORE_PATH")
+        ?.takeIf { it.isNotBlank() }
+
+    signingConfigs {
+        if (releaseKeystorePath != null) {
+            create("release") {
+                storeFile = file(releaseKeystorePath)
+                storePassword = System.getenv("VETGUIDE_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("VETGUIDE_KEY_ALIAS")
+                keyPassword = System.getenv("VETGUIDE_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
         release {
+            // R8 code + resource shrinking: smaller, faster release APK.
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            if (releaseKeystorePath != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 
@@ -62,6 +88,7 @@ ksp {
 dependencies {
     // AndroidX core
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.activity.compose)
@@ -72,6 +99,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.animation)
     implementation(libs.androidx.navigation.compose)
     debugImplementation(libs.androidx.ui.tooling)
 

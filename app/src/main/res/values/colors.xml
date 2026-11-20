@@ -2,4 +2,8 @@
 <resources>
     <!-- Launcher background matches the forest green brand color. -->
     <color name="ic_launcher_background">#2E7D32</color>
+    <!-- Window background behind Compose (matches the light M3 surface). -->
+    <color name="window_background">#FFFBFE</color>
+    <!-- Dark-scheme window background (BarkDark, mirrors ui/theme/Color.kt). -->
+    <color name="window_background_dark">#121410</color>
 </resources>

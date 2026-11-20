@@ -23,6 +23,8 @@ navigationCompose = "2.9.8"
 lifecycleRuntimeKtx = "2.10.0"
 lifecycleRuntimeCompose = "2.10.0"
 coreKtx = "1.15.0"
+# Android 12+ SplashScreen API with backport to minSdk 26.
+coreSplashscreen = "1.0.1"
 # Persistence (Room) — 2.8.5 verified minCompileSdk=34 (AGP-8-compatible), supports KSP2.
 room = "2.8.5"
 # AI networking (Phase 5): Ktor client to the secure backend (§8). Manual JSON
@@ -40,6 +42,7 @@ junit = "4.13.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleRuntimeCompose" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
@@ -49,6 +52,7 @@ androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-animation = { group = "androidx.compose.animation", name = "animation" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }

@@ -58,6 +58,13 @@ jobs:
       - name: Build debug APK
         run: gradle assembleDebug
 
+      # Release gate: exercises R8 minification + resource shrinking and the
+      # ProGuard keep rules (Hilt/Room/Ktor/serialization). Without signing env
+      # vars AGP emits app-release-unsigned.apk, which is enough to prove the
+      # release build is not broken by shrinking.
+      - name: Build release APK (R8 + resource shrinking gate)
+        run: gradle assembleRelease
+
       # room.schemaLocation is written by the Room processor outside the KSP
       # task's declared outputs, so a FROM-CACHE kspDebugKotlin hit never
       # exports the schema JSON. Re-run KSP fresh to guarantee the export.
@@ -77,6 +84,13 @@ jobs:
           name: vetguide-room-schemas
           path: app/schemas
           if-no-files-found: warn
+
+      - name: Upload release APK (unsigned unless signing secrets are set)
+        uses: actions/upload-artifact@v4
+        with:
+          name: vetguide-release-unsigned-apk
+          path: app/build/outputs/apk/release/app-release-*.apk
+          if-no-files-found: error
 
 # TODO: Re-enable connectedAndroidTest for release branches or manual triggers to save CI time
 # The DAO instrumented tests (reactivecircus/android-emulator-runner, API 34) are removed from the

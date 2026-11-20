@@ -1,5 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Compose draws the real theme; this only styles the Android window pre-Compose. -->
-    <style name="Theme.VETGUIDE" parent="android:Theme.Material.Light.NoActionBar" />
+    <!--
+      Compose draws the real theme; this only styles the Android window before
+      the first Compose frame. Keep the window background aligned with the
+      Compose surface to avoid a flash on launch.
+    -->
+    <style name="Theme.VETGUIDE" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
+    </style>
+
+    <!--
+      Android 12+ SplashScreen API (androidx.core:core-splashscreen backports the
+      behaviour to API 26). Brand-green background + white medical cross, then
+      hand over to the Compose theme; the in-app "VETGUIDE" wordmark fades in
+      after the system splash is dismissed.
+    -->
+    <style name="Theme.VETGUIDE.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/ic_launcher_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="windowSplashScreenAnimationDuration">200</item>
+        <item name="postSplashScreenTheme">@style/Theme.VETGUIDE</item>
+    </style>
 </resources>
