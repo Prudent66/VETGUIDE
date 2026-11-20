@@ -31,5 +31,33 @@ class ImageEncoderTest {
     fun `upload budget constants are present`() {
         assertEquals(800, ImageEncoder.DEFAULT_MAX_DIMENSION)
         assertEquals(60, ImageEncoder.DEFAULT_JPEG_QUALITY)
+        assertEquals(30 * 1024, ImageEncoder.MAX_UPLOAD_BYTES)
+        assertEquals(40, ImageEncoder.MIN_JPEG_QUALITY)
+    }
+
+    @Test
+    fun `budget loop steps quality down only until the payload fits`() {
+        val attempted = mutableListOf<Int>()
+
+        val bytes = ImageEncoder.encodeWithinBudget(60, 40, 100) { quality ->
+            attempted += quality
+            ByteArray(if (quality >= 60) 200 else 50)
+        }
+
+        assertEquals(listOf(60, 50), attempted)
+        assertEquals(50, bytes.size)
+    }
+
+    @Test
+    fun `budget loop never drops below the quality floor`() {
+        val attempted = mutableListOf<Int>()
+
+        val bytes = ImageEncoder.encodeWithinBudget(60, 40, 10) { quality ->
+            attempted += quality
+            ByteArray(500)
+        }
+
+        assertEquals(listOf(60, 50, 40), attempted)
+        assertEquals(500, bytes.size)
     }
 }

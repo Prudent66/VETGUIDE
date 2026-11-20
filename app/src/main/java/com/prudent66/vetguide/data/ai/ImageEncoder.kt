@@ -18,26 +18,37 @@ object ImageEncoder {
     const val DEFAULT_MAX_DIMENSION = 800
 
     /**
-     * JPEG quality trade-off: keeps the payload well under ~40 KB (weak
-     * 3G/4G uploads) while retaining enough detail for lesion review.
+     * Starting JPEG quality: good clinical detail while staying inside the
+     * upload budget for most photos (the budget loop guarantees the ceiling).
      */
     const val DEFAULT_JPEG_QUALITY = 60
+
+    /** Raw JPEG ceiling so the Base64-wrapped upload stays around 40 KB. */
+    const val MAX_UPLOAD_BYTES = 30 * 1024
+
+    /** Quality floor for the budget loop — below this clinical detail suffers. */
+    const val MIN_JPEG_QUALITY = 40
 
     fun toBase64(bytes: ByteArray): String = Base64.getEncoder().encodeToString(bytes)
 
     fun fromBase64(base64: String): ByteArray = Base64.getDecoder().decode(base64)
 
-    /** Decode → scale down → JPEG compress → Base64. */
+    /** Decode → scale down → JPEG compress under budget → Base64. */
     fun compressToBase64(
         rawBytes: ByteArray,
         maxDimension: Int = DEFAULT_MAX_DIMENSION,
         quality: Int = DEFAULT_JPEG_QUALITY,
     ): String {
         val bitmap = decode(rawBytes)
-        return toBase64(compress(scaleDown(bitmap, maxDimension), quality))
+        val scaled = scaleDown(bitmap, maxDimension)
+        return toBase64(
+            encodeWithinBudget(quality, MIN_JPEG_QUALITY, MAX_UPLOAD_BYTES) { q ->
+                compress(scaled, q)
+            },
+        )
     }
 
-    /** Decode → center-crop to a square → scale down → JPEG compress → Base64. */
+    /** Decode → center-crop to a square → scale down → JPEG compress under budget → Base64. */
     fun centerCropSquareToBase64(
         rawBytes: ByteArray,
         maxDimension: Int = DEFAULT_MAX_DIMENSION,
@@ -48,7 +59,34 @@ object ImageEncoder {
         val left = (bitmap.width - side) / 2
         val top = (bitmap.height - side) / 2
         val square = Bitmap.createBitmap(bitmap, left, top, side, side)
-        return toBase64(compress(scaleDown(square, maxDimension), quality))
+        val scaled = scaleDown(square, maxDimension)
+        return toBase64(
+            encodeWithinBudget(quality, MIN_JPEG_QUALITY, MAX_UPLOAD_BYTES) { q ->
+                compress(scaled, q)
+            },
+        )
+    }
+
+    /**
+     * Steps [startQuality] down in 10-point increments until [encode] fits
+     * [budgetBytes], floored at [minQuality]. A fixed quality alone cannot
+     * guarantee a payload ceiling: a detailed lesion close-up can be several
+     * times larger than a plain background at the same settings, which is
+     * exactly the case that stalls a weak-network upload. Pure and JVM-testable.
+     */
+    internal fun encodeWithinBudget(
+        startQuality: Int,
+        minQuality: Int,
+        budgetBytes: Int,
+        encode: (Int) -> ByteArray,
+    ): ByteArray {
+        var quality = startQuality.coerceIn(minQuality, 100)
+        var bytes = encode(quality)
+        while (bytes.size > budgetBytes && quality > minQuality) {
+            quality = (quality - 10).coerceAtLeast(minQuality)
+            bytes = encode(quality)
+        }
+        return bytes
     }
 
     private fun decode(rawBytes: ByteArray): Bitmap =
