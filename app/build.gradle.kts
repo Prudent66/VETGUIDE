@@ -1,3 +1,5 @@
+import java.io.File
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -30,7 +32,7 @@ android {
      */
     val releaseKeystorePath: String? = System.getenv("VETGUIDE_KEYSTORE_PATH")
         ?.takeIf { it.isNotBlank() }
-        ?.takeIf { java.io.File(it).isFile }
+        ?.takeIf { File(it).isFile }
     val releaseStorePassword: String? = System.getenv("KEYSTORE_PASSWORD")
         ?.takeIf { it.isNotBlank() }
     val releaseKeyAlias: String? = System.getenv("KEY_ALIAS")
