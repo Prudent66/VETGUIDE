@@ -148,7 +148,7 @@ class AiOrchestratorTest {
             AiRequest("Goat, adult", "sudden deaths in flock; labored breathing"),
         )
 
-        assertTrue(text.contains("Placeholder rule-based engine"))
+        assertTrue(text.contains("Rule-based summary engine"))
         assertTrue(text.contains("requires veterinary review"))
     }
 }
