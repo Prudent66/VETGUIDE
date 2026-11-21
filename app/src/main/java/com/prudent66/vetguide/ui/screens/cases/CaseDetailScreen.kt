@@ -82,28 +82,15 @@ fun CaseDetailScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
-        Box(
+        CaseDetailBody(
+            state = state,
+            pdfWorking = pdfState == PdfState.Working,
+            viewModel = viewModel,
+            onExportPdf = onExportPdf,
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize(),
-        ) {
-            when (val s = state) {
-                CaseDetailUiState.Loading -> CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-                )
-                is CaseDetailUiState.Error -> Text(
-                    text = s.message,
-                    modifier = Modifier.align(Alignment.Center),
-                    color = MaterialTheme.colorScheme.error,
-                )
-                is CaseDetailUiState.Success -> CaseDetailContent(
-                    state = s,
-                    pdfWorking = pdfState == PdfState.Working,
-                    viewModel = viewModel,
-                    onExportPdf = onExportPdf,
-                )
-            }
-        }
+        )
     }
 
     val success = state as? CaseDetailUiState.Success
@@ -125,6 +112,35 @@ fun CaseDetailScreen(
             },
             onDismiss = { confirmDelete = false },
         )
+    }
+}
+
+/** Scrollable record body: loading/error states or the full case content. */
+@Composable
+private fun CaseDetailBody(
+    state: CaseDetailUiState,
+    pdfWorking: Boolean,
+    viewModel: CaseDetailViewModel,
+    onExportPdf: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(modifier = modifier) {
+        when (val s = state) {
+            CaseDetailUiState.Loading -> CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center),
+            )
+            is CaseDetailUiState.Error -> Text(
+                text = s.message,
+                modifier = Modifier.align(Alignment.Center),
+                color = MaterialTheme.colorScheme.error,
+            )
+            is CaseDetailUiState.Success -> CaseDetailContent(
+                state = s,
+                pdfWorking = pdfWorking,
+                viewModel = viewModel,
+                onExportPdf = onExportPdf,
+            )
+        }
     }
 }
 

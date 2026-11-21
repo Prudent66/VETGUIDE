@@ -91,26 +91,13 @@ fun CaseListScreen(
             }
         },
     ) { padding ->
-        Box(
+        CaseListBody(
+            state = state,
+            onCaseClick = onCaseClick,
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize(),
-        ) {
-            when (val s = state) {
-                CaseListUiState.Loading -> LoadingBox()
-                is CaseListUiState.Success ->
-                    if (s.cases.isEmpty()) {
-                        EmptyState(s.patientName)
-                    } else {
-                        CaseList(
-                            cases = s.cases,
-                            onCaseClick = onCaseClick,
-                            modifier = Modifier.fillMaxSize(),
-                        )
-                    }
-                is CaseListUiState.Error -> ErrorBox(s.message)
-            }
-        }
+        )
     }
 
     if (confirmDelete) {
@@ -123,6 +110,31 @@ fun CaseListScreen(
             },
             onDismiss = { confirmDelete = false },
         )
+    }
+}
+
+/** Loading/error/list body for the patient's case timeline. */
+@Composable
+private fun CaseListBody(
+    state: CaseListUiState,
+    onCaseClick: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(modifier = modifier) {
+        when (val s = state) {
+            CaseListUiState.Loading -> LoadingBox()
+            is CaseListUiState.Success ->
+                if (s.cases.isEmpty()) {
+                    EmptyState(s.patientName)
+                } else {
+                    CaseList(
+                        cases = s.cases,
+                        onCaseClick = onCaseClick,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            is CaseListUiState.Error -> ErrorBox(s.message)
+        }
     }
 }
 
