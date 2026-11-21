@@ -20,4 +20,14 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun putBoolean(key: String, value: Boolean) {
         dao.upsertSetting(AppSettingEntity(key = key, value = value.toString()))
     }
+
+    override fun observeString(key: String, default: String): Flow<String> =
+        dao.observeSetting(key).map { entity -> entity?.value ?: default }
+
+    override suspend fun getString(key: String, default: String): String =
+        dao.getSetting(key)?.value ?: default
+
+    override suspend fun putString(key: String, value: String) {
+        dao.upsertSetting(AppSettingEntity(key = key, value = value))
+    }
 }

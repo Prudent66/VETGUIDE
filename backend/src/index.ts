@@ -171,7 +171,7 @@ function mockAnalysis(prompt: string): AiAnalysisData {
     ],
     recommendedNextSteps: [
       "Mock backend response — no GEMINI_API_KEY configured on this Worker",
-      "Placeholder output — requires veterinary review; not a diagnosis",
+      "Seed output — requires veterinary review; not a diagnosis",
     ],
   };
 }

@@ -9,6 +9,7 @@ import com.prudent66.vetguide.domain.model.KbReference
 import com.prudent66.vetguide.domain.model.KbUrgency
 import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.domain.model.Symptom
+import com.prudent66.vetguide.domain.model.cleanKbTitle
 import com.prudent66.vetguide.domain.repository.KnowledgeRepository
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -41,14 +42,14 @@ private fun urgencyOf(raw: String?): KbUrgency? = raw
 
 private fun ConditionWithSpecies.toSummary(): KbConditionSummary = KbConditionSummary(
     id = condition.id,
-    name = condition.name,
+    name = condition.name.cleanKbTitle(),
     species = toSpeciesList(species.map { it.species }),
     urgency = urgencyOf(condition.urgency),
 )
 
 private fun ConditionWithRelations.toDetail(): KbConditionDetail = KbConditionDetail(
     id = condition.id,
-    name = condition.name,
+    name = condition.name.cleanKbTitle(),
     species = toSpeciesList(species.map { it.species }),
     urgency = urgencyOf(condition.urgency),
     overview = condition.overview,

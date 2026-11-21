@@ -132,6 +132,13 @@ private fun ProvenanceBanner(result: ImageAnalysisUiState.Result) {
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            if (result.providerId == OFFLINE_PROVIDER_ID && result.fallbackReason != null) {
+                Text(
+                    text = "Reason: ${result.fallbackReason}",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
             if (result.degraded) {
                 Text(
                     text = "Reduced reliability: this result came from a degraded tier.",

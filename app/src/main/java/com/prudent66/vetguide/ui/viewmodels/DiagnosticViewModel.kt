@@ -110,7 +110,7 @@ class DiagnosticViewModel @Inject constructor(
                 val questions = questionnaireRepository.loadQuestions(species)
                 if (questions.isEmpty()) {
                     mut.value = start.copy(
-                        error = "No placeholder questionnaire loaded for this species — " +
+                        error = "No questionnaire loaded for this species — " +
                             "try again in a moment (first-launch seeding may still be running) " +
                             "or pick another species.",
                     )

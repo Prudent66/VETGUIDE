@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.prudent66.vetguide.ui.viewmodels.DiagnosticUiState
 import com.prudent66.vetguide.ui.viewmodels.DiagnosticViewModel
 
-/** Step-by-step wizard: one placeholder question per screen, progressive disclosure. */
+/** Step-by-step wizard: one question per screen, progressive disclosure. */
 @Composable
 fun WizardPhase(
     wizard: DiagnosticUiState.Wizard,
@@ -65,7 +65,7 @@ fun WizardPhase(
             viewModel = viewModel,
         )
         Text(
-            "Placeholder questionnaire — requires veterinary review.",
+            "Guided questionnaire — requires veterinary review.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

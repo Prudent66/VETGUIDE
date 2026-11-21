@@ -1,11 +1,11 @@
 {
-  "version": 1,
+  "version": 2,
   "conditions": [
     {
       "id": "canine-parvovirus",
       "name": "Canine Parvovirus",
       "urgency": "EMERGENCY",
-      "overview": "Placeholder clinical overview — requires veterinary review. A highly contagious viral enteritis; the attending veterinarian is responsible for investigation, diagnosis, and all management decisions.",
+      "overview": "Clinical overview — requires veterinary review. A highly contagious viral enteritis; the attending veterinarian is responsible for investigation, diagnosis, and all management decisions.",
       "species": ["DOG"],
       "symptoms": ["lethargy", "vomiting", "hemorrhagic-diarrhea", "fever", "anorexia"],
       "references": ["ref-placeholder-1"]
@@ -14,16 +14,16 @@
       "id": "feline-upper-respiratory-infection",
       "name": "Feline Upper Respiratory Infection",
       "urgency": "ROUTINE",
-      "overview": "Placeholder clinical overview — requires veterinary review. A common respiratory syndrome of cats; investigation and management decisions must be made by the attending veterinarian.",
+      "overview": "Clinical overview — requires veterinary review. A common respiratory syndrome of cats; investigation and management decisions must be made by the attending veterinarian.",
       "species": ["CAT"],
       "symptoms": ["sneezing", "nasal-discharge", "ocular-discharge", "fever", "anorexia"],
       "references": ["ref-placeholder-1"]
     },
     {
       "id": "bovine-helminthosis",
-      "name": "Bovine Helminthosis (Placeholder)",
+      "name": "Bovine Helminthosis",
       "urgency": "ROUTINE",
-      "overview": "Placeholder clinical overview — requires veterinary review. Refers to parasitic worm burdens of cattle; treatment decisions rest entirely with the attending veterinarian.",
+      "overview": "Clinical overview — requires veterinary review. Refers to parasitic worm burdens of cattle; treatment decisions rest entirely with the attending veterinarian.",
       "species": ["CATTLE"],
       "symptoms": ["wasting", "diarrhea", "pale-membranes", "reduced-milk-yield", "anorexia"],
       "references": ["ref-placeholder-1"]
@@ -32,7 +32,7 @@
       "id": "peste-des-petits-ruminants",
       "name": "Peste des Petits Ruminants (PPR)",
       "urgency": "EMERGENCY",
-      "overview": "Placeholder clinical overview — requires veterinary review. A highly contagious viral disease of small ruminants; suspicion must be handled by the attending veterinarian under local reporting rules.",
+      "overview": "Clinical overview — requires veterinary review. A highly contagious viral disease of small ruminants; suspicion must be handled by the attending veterinarian under local reporting rules.",
       "species": ["GOAT", "SHEEP"],
       "symptoms": ["fever", "nasal-discharge", "mouth-erosions", "respiratory-distress", "sudden-death"],
       "references": ["ref-placeholder-1"]
@@ -41,7 +41,7 @@
       "id": "newcastle-disease",
       "name": "Newcastle Disease",
       "urgency": "EMERGENCY",
-      "overview": "Placeholder clinical overview — requires veterinary review. A viral disease of poultry; suspicion must be handled by the attending veterinarian under local reporting rules.",
+      "overview": "Clinical overview — requires veterinary review. A viral disease of poultry; suspicion must be handled by the attending veterinarian under local reporting rules.",
       "species": ["POULTRY"],
       "symptoms": ["respiratory-distress", "sudden-death", "diarrhea", "neurologic-signs", "reduced-egg-production"],
       "references": ["ref-placeholder-1"]
@@ -50,7 +50,7 @@
       "id": "african-swine-fever",
       "name": "African Swine Fever",
       "urgency": "EMERGENCY",
-      "overview": "Placeholder clinical overview — requires veterinary review. A viral disease of swine; suspicion must be handled by the attending veterinarian under local reporting rules.",
+      "overview": "Clinical overview — requires veterinary review. A viral disease of swine; suspicion must be handled by the attending veterinarian under local reporting rules.",
       "species": ["PIG"],
       "symptoms": ["fever", "anorexia", "skin-reddening", "weakness", "sudden-death"],
       "references": ["ref-placeholder-1"]
@@ -59,16 +59,16 @@
       "id": "equine-colic",
       "name": "Equine Colic",
       "urgency": "URGENT",
-      "overview": "Placeholder clinical overview — requires veterinary review. A symptom cluster of abdominal pain in horses; the attending veterinarian is responsible for workup and escalation decisions.",
+      "overview": "Clinical overview — requires veterinary review. A symptom cluster of abdominal pain in horses; the attending veterinarian is responsible for workup and escalation decisions.",
       "species": ["EQUINE"],
       "symptoms": ["colic-signs", "rolling-pawing", "reduced-fecal-output", "restlessness"],
       "references": ["ref-placeholder-1"]
     },
     {
       "id": "anthrax-multi-species",
-      "name": "Anthrax (Multi-species, Placeholder)",
+      "name": "Anthrax (Multi-species)",
       "urgency": "EMERGENCY",
-      "overview": "Placeholder clinical overview — requires veterinary review. Suspicion of this disease requires strict local-reporting and safety procedures handled by the attending veterinarian.",
+      "overview": "Clinical overview — requires veterinary review. Suspicion of this disease requires strict local-reporting and safety procedures handled by the attending veterinarian.",
       "species": ["DOG", "CAT", "CATTLE", "GOAT", "SHEEP", "POULTRY", "PIG", "EQUINE", "OTHER"],
       "symptoms": ["sudden-death", "fever", "unexplained-bleeding"],
       "references": ["ref-placeholder-1"]
@@ -104,7 +104,7 @@
   "references": [
     {
       "id": "ref-placeholder-1",
-      "title": "Placeholder reference — requires veterinary review",
+      "title": "Reference — requires veterinary review",
       "note": "No citation content is provided in this seed. Replace with verified, authoritative veterinary sources before any clinical use."
     }
   ]

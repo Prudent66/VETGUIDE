@@ -18,7 +18,7 @@ android {
         applicationId = "com.prudent66.vetguide"
         minSdk = 26
         targetSdk = 36
-        versionCode = 4
+        versionCode = 5
         versionName = "1.0.0"
     }
 
@@ -81,6 +81,8 @@ android {
 
     buildFeatures {
         compose = true
+        // VERSION_NAME / VERSION_CODE are shown in Settings → About.
+        buildConfig = true
     }
 
     lint {

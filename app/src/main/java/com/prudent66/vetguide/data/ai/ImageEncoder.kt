@@ -18,13 +18,18 @@ object ImageEncoder {
     const val DEFAULT_MAX_DIMENSION = 800
 
     /**
-     * Starting JPEG quality: good clinical detail while staying inside the
-     * upload budget for most photos (the budget loop guarantees the ceiling).
+     * Starting JPEG quality (70%): the clinical-detail/size balance requested
+     * for slow rural networks. The budget loop steps down only when a detailed
+     * close-up would still exceed the payload ceiling.
      */
-    const val DEFAULT_JPEG_QUALITY = 60
+    const val DEFAULT_JPEG_QUALITY = 70
 
-    /** Raw JPEG ceiling so the Base64-wrapped upload stays around 40 KB. */
-    const val MAX_UPLOAD_BYTES = 30 * 1024
+    /**
+     * Raw JPEG ceiling. Base64 adds ~33%, so 90 KB raw keeps the encoded
+     * request payload under the 120 KB target that 2G/3G uploads can finish
+     * without stalling.
+     */
+    const val MAX_UPLOAD_BYTES = 90 * 1024
 
     /** Quality floor for the budget loop — below this clinical detail suffers. */
     const val MIN_JPEG_QUALITY = 40

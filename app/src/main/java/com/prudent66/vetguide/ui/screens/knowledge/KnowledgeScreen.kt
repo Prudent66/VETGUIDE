@@ -43,7 +43,7 @@ import com.prudent66.vetguide.ui.viewmodels.KnowledgeViewModel
 
 /**
  * Offline Knowledge Base (Phase 2): search bar + species filter + condition
- * cards → detail view. All content is placeholder pending veterinary review.
+ * cards → detail view. All content requires veterinary review.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

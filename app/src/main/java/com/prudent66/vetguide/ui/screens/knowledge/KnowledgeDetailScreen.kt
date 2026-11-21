@@ -34,7 +34,7 @@ import com.prudent66.vetguide.ui.viewmodels.KbDetailViewModel
 
 /**
  * Condition detail: urgency flag, overview, symptoms, references.
- * Content is placeholder pending veterinary review — no clinical advice.
+ * Content requires veterinary review — no clinical advice.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -109,7 +109,7 @@ private fun DetailContent(detail: KbConditionDetail, modifier: Modifier) {
         SymptomsSection(detail.symptoms)
         ReferencesSection(detail.references)
         Text(
-            text = "Placeholder content — requires veterinary review before clinical use.",
+            text = "Clinical content — requires veterinary review before clinical use.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -147,7 +147,7 @@ private fun ReferencesSection(references: List<KbReference>) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (references.isEmpty()) {
                 Text(
-                    "- Placeholder reference — requires veterinary review",
+                    "- Reference pending — requires veterinary review",
                     style = MaterialTheme.typography.bodyMedium,
                 )
             } else {

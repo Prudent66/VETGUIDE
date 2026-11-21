@@ -20,6 +20,9 @@ data class SoapReportData(
     val soap: SoapPayload,
     val aiNarrative: String?,
     val imageBase64: String?,
+    val clinicName: String? = null,
+    val vetName: String? = null,
+    val clinicContact: String? = null,
 )
 
 /**
@@ -42,9 +45,9 @@ object SoapPdfDocument {
             textSize = 11f
             isAntiAlias = true
         }
-        val cursor = Cursor(document, body)
+        val cursor = Cursor(document, body, footerLines(data))
 
-        drawHeader(cursor)
+        drawHeader(cursor, data)
         drawPatientInfo(cursor, data)
         drawSection(cursor, "Subjective (history / anamnesis)", data.soap.subjective)
         drawSection(cursor, "Objective (findings)", data.soap.objective)
@@ -60,7 +63,7 @@ object SoapPdfDocument {
         return document
     }
 
-    private fun drawHeader(cursor: Cursor) {
+    private fun drawHeader(cursor: Cursor, data: SoapReportData) {
         cursor.y = MARGIN
         cursor.canvas.drawText(
             "VETGUIDE",
@@ -75,7 +78,27 @@ object SoapPdfDocument {
         )
         cursor.y += 24f
         cursor.line("Veterinary clinical assistant — clinical report", cursor.smallPaint)
+        data.clinicName?.takeIf { it.isNotBlank() }?.let {
+            cursor.line("Clinic: $it", cursor.smallPaint)
+        }
+        data.vetName?.takeIf { it.isNotBlank() }?.let {
+            cursor.line("Veterinarian: $it", cursor.smallPaint)
+        }
+        data.clinicContact?.takeIf { it.isNotBlank() }?.let {
+            cursor.line("Contact / license: $it", cursor.smallPaint)
+        }
         cursor.y += 14f
+    }
+
+    /** Clinic identity (when set) + the standing decision-support line per page. */
+    private fun footerLines(data: SoapReportData): List<String> = buildList {
+        val clinicLine = listOfNotNull(
+            data.clinicName?.takeIf { it.isNotBlank() },
+            data.vetName?.takeIf { it.isNotBlank() },
+            data.clinicContact?.takeIf { it.isNotBlank() },
+        ).joinToString(" · ")
+        if (clinicLine.isNotBlank()) add(clinicLine)
+        add("VETGUIDE — clinical decision support; not a diagnosis.")
     }
 
     private fun drawPatientInfo(cursor: Cursor, data: SoapReportData) {
@@ -129,7 +152,7 @@ object SoapPdfDocument {
         cursor.y += 12f
         val disclaimer = "Decision support — not a diagnosis. The veterinarian remains " +
             "responsible for all clinical decisions. Match/confidence values are " +
-            "placeholder or model estimates and must not guide treatment without " +
+            "seed or model estimates and must not guide treatment without " +
             "professional review."
         wrapText(disclaimer, cursor.smallPaint, CONTENT_WIDTH).forEach { line ->
             cursor.line(line, cursor.smallPaint)
@@ -157,9 +180,14 @@ object SoapPdfDocument {
     private class Cursor(
         private val document: PdfDocument,
         val bodyPaint: Paint,
+        private val footerLines: List<String>,
     ) {
         val boldPaint = Paint(bodyPaint).apply { typeface = Typeface.DEFAULT_BOLD }
         val smallPaint = Paint(bodyPaint).apply { textSize = 10f }
+        private val footerPaint = Paint(bodyPaint).apply {
+            textSize = 8f
+            color = Color.DKGRAY
+        }
         var pageNumber = 1
         lateinit var canvas: android.graphics.Canvas
         var y = MARGIN
@@ -183,12 +211,18 @@ object SoapPdfDocument {
 
         /** The last page must be finished before the document is written. */
         fun finish() {
-            page?.let { document.finishPage(it) }
+            page?.let {
+                drawFooter(it.canvas)
+                document.finishPage(it)
+            }
             page = null
         }
 
         private fun startPage() {
-            page?.let { document.finishPage(it) }
+            page?.let {
+                drawFooter(it.canvas)
+                document.finishPage(it)
+            }
             val newPage = document.startPage(
                 PdfDocument.PageInfo.Builder(PAGE_WIDTH, PAGE_HEIGHT, pageNumber).create(),
             )
@@ -196,6 +230,15 @@ object SoapPdfDocument {
             canvas = newPage.canvas
             y = MARGIN
             pageNumber += 1
+        }
+
+        /** Draws the clinic/disclaimer footer above the bottom margin. */
+        private fun drawFooter(canvas: android.graphics.Canvas) {
+            var baseline = PAGE_HEIGHT - 28f
+            footerLines.forEach { line ->
+                canvas.drawText(line, MARGIN, baseline, footerPaint)
+                baseline += 11f
+            }
         }
     }
 }

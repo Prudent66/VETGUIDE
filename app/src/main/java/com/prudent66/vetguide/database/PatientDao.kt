@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -30,4 +31,11 @@ interface PatientDao {
 
     @Query("SELECT * FROM patients WHERE id = :id")
     suspend fun getById(id: String): PatientEntity?
+
+    @Query("SELECT * FROM patients")
+    suspend fun getAll(): List<PatientEntity>
+
+    /** Backup restore: insert or replace by primary key, never delete. */
+    @Upsert
+    suspend fun upsertAll(patients: List<PatientEntity>)
 }

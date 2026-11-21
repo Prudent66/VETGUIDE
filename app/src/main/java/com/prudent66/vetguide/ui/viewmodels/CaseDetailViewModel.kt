@@ -14,13 +14,16 @@ import com.prudent66.vetguide.domain.model.CaseArtifact
 import com.prudent66.vetguide.domain.model.CaseArtifactType
 import com.prudent66.vetguide.domain.model.CasePayloadCodec
 import com.prudent66.vetguide.domain.model.CaseStatus
+import com.prudent66.vetguide.domain.model.ClinicProfile
 import com.prudent66.vetguide.domain.model.Patient
 import com.prudent66.vetguide.domain.model.QuestionnaireArtifactPayload
 import com.prudent66.vetguide.domain.model.SoapPayload
 import com.prudent66.vetguide.domain.model.ageLabel
 import com.prudent66.vetguide.domain.model.clinicalAnalysisText
 import com.prudent66.vetguide.domain.repository.CaseRepository
+import com.prudent66.vetguide.domain.repository.ClinicProfileSettings
 import com.prudent66.vetguide.domain.repository.PatientRepository
+import com.prudent66.vetguide.domain.repository.SettingsRepository
 import com.prudent66.vetguide.ui.navigation.Destinations
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -84,6 +87,7 @@ class CaseDetailViewModel @Inject constructor(
     @ApplicationContext private val appContext: Context,
     private val caseRepository: CaseRepository,
     patientRepository: PatientRepository,
+    private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
     private val caseId: String = checkNotNull(savedStateHandle[Destinations.ARG_CASE_ID])
@@ -205,7 +209,8 @@ class CaseDetailViewModel @Inject constructor(
                 val fileName = withContext(Dispatchers.IO) {
                     val now = System.currentTimeMillis()
                     val name = PdfFileWriter.buildFileName(success.patient?.name, now)
-                    val document = SoapPdfDocument.build(soapReportData(success, now))
+                    val profile = ClinicProfileSettings.load(settingsRepository)
+                    val document = SoapPdfDocument.build(soapReportData(success, now, profile))
                     try {
                         PdfFileWriter.writeToDownloads(appContext, document, name)
                     } finally {
@@ -226,7 +231,11 @@ class CaseDetailViewModel @Inject constructor(
         }
     }
 
-    private fun soapReportData(success: CaseDetailUiState.Success, nowMs: Long): SoapReportData {
+    private fun soapReportData(
+        success: CaseDetailUiState.Success,
+        nowMs: Long,
+        profile: ClinicProfile,
+    ): SoapReportData {
         val patient = success.patient
         val generatedAt = SimpleDateFormat("d MMM yyyy, HH:mm", Locale.getDefault())
             .format(Date(nowMs))
@@ -245,6 +254,9 @@ class CaseDetailViewModel @Inject constructor(
             soap = success.soap,
             aiNarrative = success.ai?.narrative?.let(::clinicalAnalysisText),
             imageBase64 = success.imageBase64,
+            clinicName = profile.clinicName,
+            vetName = profile.vetName,
+            clinicContact = profile.contact,
         )
     }
 

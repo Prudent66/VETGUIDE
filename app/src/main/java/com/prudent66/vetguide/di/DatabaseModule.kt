@@ -2,6 +2,7 @@ package com.prudent66.vetguide.di
 
 import android.content.Context
 import androidx.room.Room
+import com.prudent66.vetguide.data.repository.BackupRepositoryImpl
 import com.prudent66.vetguide.data.repository.CaseRepositoryImpl
 import com.prudent66.vetguide.data.repository.KnowledgeRepositoryImpl
 import com.prudent66.vetguide.data.repository.PatientRepositoryImpl
@@ -14,6 +15,7 @@ import com.prudent66.vetguide.database.KbDao
 import com.prudent66.vetguide.database.PatientDao
 import com.prudent66.vetguide.database.QuestionnaireDao
 import com.prudent66.vetguide.database.VetguideDatabase
+import com.prudent66.vetguide.domain.repository.BackupRepository
 import com.prudent66.vetguide.domain.repository.CaseRepository
 import com.prudent66.vetguide.domain.repository.KnowledgeRepository
 import com.prudent66.vetguide.domain.repository.PatientRepository
@@ -87,4 +89,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindSettingsRepository(impl: SettingsRepositoryImpl): SettingsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindBackupRepository(impl: BackupRepositoryImpl): BackupRepository
 }

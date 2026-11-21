@@ -8,6 +8,7 @@ import com.prudent66.vetguide.domain.ai.AiAnalysisData
 import com.prudent66.vetguide.domain.ai.AiOrchestrator
 import com.prudent66.vetguide.domain.ai.AiRequest
 import com.prudent66.vetguide.domain.ai.AiResult
+import com.prudent66.vetguide.domain.ai.fallbackReason
 import com.prudent66.vetguide.domain.model.Species
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -56,6 +57,11 @@ sealed interface ImageAnalysisUiState {
         val imageBase64: String? = null,
         /** Optional vet clinical context, retained for the Subjective prefill. */
         val clinicalContext: String? = null,
+        /**
+         * Short cause shown in the rule-based banner when every AI provider
+         * failed (e.g. "Network timeout", "Cloud API HTTP 5xx").
+         */
+        val fallbackReason: String? = null,
     ) : ImageAnalysisUiState
 
     /** Corrupt/unsupported image payload; retake restarts the capture phase. */
@@ -138,6 +144,7 @@ class ImageAnalysisViewModel @Inject constructor(
                     imageRequest(review.species, payloadBase64, clinicalContext),
                 )
                 val success = result as? AiResult.ProviderSuccess
+                val fallback = result as? AiResult.DeterministicFallback
                 mut.value = ImageAnalysisUiState.Result(
                     species = review.species,
                     providerId = result.providerId,
@@ -146,6 +153,7 @@ class ImageAnalysisViewModel @Inject constructor(
                     analysisData = success?.analysisData,
                     imageBase64 = review.imageBase64,
                     clinicalContext = clinicalContext,
+                    fallbackReason = fallback?.let { fallbackReason(it.diagnostics) },
                 )
             } catch (e: CancellationException) {
                 throw e

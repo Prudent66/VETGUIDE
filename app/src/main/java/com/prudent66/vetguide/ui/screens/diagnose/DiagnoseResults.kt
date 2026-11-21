@@ -23,7 +23,7 @@ import com.prudent66.vetguide.ui.screens.knowledge.speciesLabel
 import com.prudent66.vetguide.ui.screens.knowledge.urgencyColor
 import com.prudent66.vetguide.ui.viewmodels.DiagnosticUiState
 
-/** Ranked placeholder differentials ("Match Strength") + urgency + review notice. */
+/** Ranked differentials ("Match Strength") + urgency + review notice. */
 @Composable
 fun ResultsPhase(
     results: DiagnosticUiState.Results,
@@ -70,7 +70,7 @@ private fun ReviewBanner(species: Species?) {
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
-                text = "Placeholder diagnostic engine — requires veterinary review.",
+                text = "Clinical decision support — requires veterinary review.",
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.error,
             )
@@ -81,7 +81,7 @@ private fun ReviewBanner(species: Species?) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
-                text = "Match Strength values come from dummy placeholder weights and " +
+                text = "Match Strength values come from seed weights and " +
                     "must not guide treatment decisions.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -94,7 +94,7 @@ private fun ReviewBanner(species: Species?) {
 private fun EmptyDifferentials() {
     Card(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "No ranked differentials from the placeholder seed for the selected " +
+            text = "No ranked differentials from the seeded knowledge base for the selected " +
                 "signs. Record the case and review with a veterinarian.",
             modifier = Modifier.padding(16.dp),
             style = MaterialTheme.typography.bodyMedium,
@@ -129,7 +129,7 @@ private fun MatchCard(
             )
             Text(
                 text = "Signs matched: ${match.matchedSigns} of ${match.totalSigns} " +
-                    "(placeholder weights)",
+                    "(seed weights)",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

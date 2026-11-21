@@ -77,11 +77,11 @@ fun renderSubjectiveSeed(
 
 /** Assessment seed from the questionnaire's placeholder differentials. */
 fun renderDifferentialsSeed(matches: List<DiagnosticMatch>): String = if (matches.isEmpty()) {
-    "No ranked differentials for the selected signs (placeholder engine) — record " +
+    "No ranked differentials for the selected signs — record " +
         "your own assessment."
 } else {
     buildString {
-        append("Ranked placeholder differentials (dummy weights — requires veterinary review): ")
+        append("Ranked differentials (seed weights — requires veterinary review): ")
         append(
             matches.joinToString("; ") { match ->
                 "${match.conditionName} (${match.matchStrengthPercent}% match)"

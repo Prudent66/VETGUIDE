@@ -62,20 +62,22 @@ object AiModule {
     @Singleton
     fun provideAiHttpClient(): HttpClient = HttpClient(OkHttp) {
         // HttpTimeout.requestTimeoutMillis maps to OkHttp's call timeout, but
-        // OkHttp's OWN read/write timeouts default to 10 s — a Gemini vision
-        // round-trip that streams no bytes for >10 s was killed mid-flight
-        // (SocketTimeoutException) even with the generous request budget,
-        // while curl from a PC (no read timeout) succeeded. Set them all
-        // explicitly so the 90 s budget is real end to end.
+        // OkHttp's OWN read/write timeouts default to 10 s — a slow upload
+        // that streams no bytes for >10 s was killed mid-flight. Set every
+        // timeout explicitly against the shared 45 s per-attempt ceiling so a
+        // stalled 2G/3G connection falls over instead of hanging for minutes.
         engine {
             config {
-                connectTimeout(15, TimeUnit.SECONDS)
+                connectTimeout(
+                    AiCatalog.BACKEND_CONNECT_TIMEOUT_MS,
+                    TimeUnit.MILLISECONDS,
+                )
                 readTimeout(AiCatalog.BACKEND_TIMEOUT_MS, TimeUnit.MILLISECONDS)
                 writeTimeout(AiCatalog.BACKEND_TIMEOUT_MS, TimeUnit.MILLISECONDS)
             }
         }
         install(HttpTimeout) {
-            connectTimeoutMillis = 15_000L
+            connectTimeoutMillis = AiCatalog.BACKEND_CONNECT_TIMEOUT_MS
             socketTimeoutMillis = AiCatalog.BACKEND_TIMEOUT_MS
             requestTimeoutMillis = AiCatalog.BACKEND_TIMEOUT_MS
         }

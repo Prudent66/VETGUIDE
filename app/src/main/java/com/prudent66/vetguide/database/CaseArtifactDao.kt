@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -23,4 +24,11 @@ interface CaseArtifactDao {
 
     @Query("SELECT * FROM case_artifacts WHERE id = :id")
     suspend fun getById(id: String): CaseArtifactEntity?
+
+    @Query("SELECT * FROM case_artifacts")
+    suspend fun getAll(): List<CaseArtifactEntity>
+
+    /** Backup restore: insert or replace by primary key, never delete. */
+    @Upsert
+    suspend fun upsertAll(artifacts: List<CaseArtifactEntity>)
 }

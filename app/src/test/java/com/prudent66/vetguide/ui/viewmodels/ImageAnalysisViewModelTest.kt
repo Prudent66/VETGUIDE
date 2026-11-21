@@ -120,6 +120,8 @@ class ImageAnalysisViewModelTest {
         assertEquals(OFFLINE_PROVIDER_ID, result.providerId)
         assertTrue(result.narrative.contains("requires veterinary review"))
         assertFalse(result.degraded)
+        // The banner explains why the cloud tier was skipped.
+        assertEquals("Cloud AI unavailable", result.fallbackReason)
     }
 
     @Test

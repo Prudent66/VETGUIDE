@@ -238,7 +238,7 @@ private fun StartPhase(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
-            "Placeholder diagnostic engine — requires veterinary review.",
+            "Clinical decision support — requires veterinary review.",
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.error,
         )
@@ -257,8 +257,8 @@ private fun StartPhase(
             Text(error, color = MaterialTheme.colorScheme.error)
         }
         Text(
-            text = "Placeholder flows are seeded for dogs and poultry; other species " +
-                "arrive with content review.",
+            text = "Select a species or registered patient to begin a structured " +
+                "assessment or photo analysis.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

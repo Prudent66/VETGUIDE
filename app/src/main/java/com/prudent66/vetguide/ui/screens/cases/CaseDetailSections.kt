@@ -202,7 +202,7 @@ internal fun SoapEditor(
             value = subjective,
             onValueChange = { subjective = it },
             label = "Subjective (history / anamnesis)",
-            placeholder = SUBJECTIVE_PLACEHOLDER,
+            placeholder = SUBJECTIVE_HINT,
         )
         SoapField(
             value = objective,
@@ -218,7 +218,7 @@ internal fun SoapEditor(
             value = plan,
             onValueChange = { plan = it },
             label = "Plan (treatment & follow-up)",
-            placeholder = PLAN_PLACEHOLDER,
+            placeholder = PLAN_HINT,
             minLines = 2,
         )
         Button(
@@ -250,11 +250,11 @@ private fun SoapField(
     )
 }
 
-private const val SUBJECTIVE_PLACEHOLDER =
+private const val SUBJECTIVE_HINT =
     "e.g., Owner reports sudden drop in egg production, swollen faces in 3 birds, " +
         "and foul-smelling nasal discharge."
 
-private const val PLAN_PLACEHOLDER =
+private const val PLAN_HINT =
     "e.g., Administer Tylosin 50mg/kg in drinking water for 3 days. " +
         "Isolate affected birds. Follow up in 1 week."
 

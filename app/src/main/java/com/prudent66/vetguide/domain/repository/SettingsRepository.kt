@@ -20,4 +20,13 @@ interface SettingsRepository {
     fun observeBoolean(key: String, default: Boolean): Flow<Boolean>
 
     suspend fun putBoolean(key: String, value: Boolean)
+
+    /** Observes a plain string setting (empty when unset). */
+    fun observeString(key: String, default: String = ""): Flow<String>
+
+    /** Reads a plain string setting once (empty when unset). */
+    suspend fun getString(key: String, default: String = ""): String
+
+    /** Stores a plain string setting; never used for credentials. */
+    suspend fun putString(key: String, value: String)
 }

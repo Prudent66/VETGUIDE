@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -32,4 +33,11 @@ interface CaseDao {
 
     @Query("UPDATE cases SET status = :status, updatedAtEpochMs = :updatedAtEpochMs WHERE id = :id")
     suspend fun updateStatus(id: String, status: String, updatedAtEpochMs: Long): Int
+
+    @Query("SELECT * FROM cases")
+    suspend fun getAll(): List<CaseEntity>
+
+    /** Backup restore: insert or replace by primary key, never delete. */
+    @Upsert
+    suspend fun upsertAll(cases: List<CaseEntity>)
 }
