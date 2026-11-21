@@ -1,6 +1,8 @@
 package com.prudent66.vetguide.ui.screens.patients
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,7 +28,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +44,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.prudent66.vetguide.R
 import com.prudent66.vetguide.domain.model.AgeUnit
 import com.prudent66.vetguide.domain.model.BreedCatalog
+import com.prudent66.vetguide.domain.model.Patient
 import com.prudent66.vetguide.domain.model.PatientDraft
 import com.prudent66.vetguide.domain.model.PatientSex
 import com.prudent66.vetguide.domain.model.Species
@@ -46,22 +52,32 @@ import com.prudent66.vetguide.ui.components.SpeciesField
 import com.prudent66.vetguide.ui.viewmodels.PatientViewModel
 
 /**
- * Add Patient form (Phase 1B): Name, Species, Breed, Age, Sex, Weight.
- * Saves through the PatientViewModel and pops back on success.
+ * Add/Edit Patient form (Phase 1B + Phase 8): the add route starts blank; the
+ * edit route pre-fills every form field from Room and saves in place.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddPatientScreen(
+fun PatientFormScreen(
     onSaved: () -> Unit,
     onDismiss: () -> Unit,
     viewModel: PatientViewModel = hiltViewModel(),
 ) {
     val form = remember { PatientFormState() }
+    val editingPatient by viewModel.editingPatient.collectAsState()
+    var loadedPatientId by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(editingPatient) {
+        val patient = editingPatient
+        if (patient != null && loadedPatientId != patient.id) {
+            form.load(patient)
+            loadedPatientId = patient.id
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Add patient") },
+                title = { Text(if (viewModel.isEditing) "Edit patient" else "Add patient") },
                 navigationIcon = {
                     IconButton(onClick = onDismiss) {
                         Icon(
@@ -73,45 +89,71 @@ fun AddPatientScreen(
             )
         },
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text("Species", style = MaterialTheme.typography.labelLarge)
-            SpeciesField(
-                selected = form.species,
-                onSelect = { species ->
-                    val changed = species != form.species
-                    form.species = species
-                    if (changed) {
-                        form.breed = ""
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            PatientTextFields(form)
-            BreedField(
-                selected = form.breed,
-                breeds = BreedCatalog.forSpecies(form.species),
-                onSelect = { form.breed = it },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            ChoiceRow(
-                label = "Sex",
-                options = listOf("Female", "Male", "Unknown"),
-                selectedIndex = form.sex.ordinal,
-                onSelect = { index -> form.sex = PatientSex.entries[index] },
-            )
-            SaveButton(form, viewModel, onSaved)
-            Text(
-                text = "Owner details are optional and can be added later.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+        if (viewModel.isEditing && editingPatient == null) {
+            Box(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            PatientFormBody(
+                form = form,
+                viewModel = viewModel,
+                onSaved = onSaved,
+                modifier = Modifier
+                    .padding(padding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
             )
         }
+    }
+}
+
+@Composable
+private fun PatientFormBody(
+    form: PatientFormState,
+    viewModel: PatientViewModel,
+    onSaved: () -> Unit,
+    modifier: Modifier,
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text("Species", style = MaterialTheme.typography.labelLarge)
+        SpeciesField(
+            selected = form.species,
+            onSelect = { species ->
+                val changed = species != form.species
+                form.species = species
+                if (changed) {
+                    form.breed = ""
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        PatientTextFields(form)
+        BreedField(
+            selected = form.breed,
+            breeds = BreedCatalog.forSpecies(form.species),
+            onSelect = { form.breed = it },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        ChoiceRow(
+            label = "Sex",
+            options = listOf("Female", "Male", "Unknown"),
+            selectedIndex = form.sex.ordinal,
+            onSelect = { index -> form.sex = PatientSex.entries[index] },
+        )
+        SaveButton(form, viewModel, onSaved)
+        Text(
+            text = "Owner details are optional and can be added later.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
@@ -123,7 +165,7 @@ private fun SaveButton(
 ) {
     Button(
         onClick = {
-            viewModel.addPatient(
+            viewModel.savePatient(
                 PatientDraft(
                     name = form.name.trim(),
                     species = form.species,
@@ -138,7 +180,7 @@ private fun SaveButton(
         },
         enabled = form.valid,
         modifier = Modifier.fillMaxWidth(),
-    ) { Text("Save patient") }
+    ) { Text(if (viewModel.isEditing) "Save changes" else "Save patient") }
 }
 
 /** Screen-scoped form state + validation (kept out of the ViewModel on purpose). */
@@ -155,6 +197,17 @@ class PatientFormState(
     var species: Species by mutableStateOf(species)
     var sex: PatientSex by mutableStateOf(sex)
 
+    /** Pre-fills every editable field from an existing patient (edit mode). */
+    fun load(patient: Patient) {
+        name = patient.name
+        species = patient.species
+        sex = patient.sex
+        breed = patient.breed.orEmpty()
+        ageValueText = patient.ageValue?.let(::formatNumber).orEmpty()
+        ageUnit = patient.ageUnit ?: AgeUnit.MONTHS
+        weightText = patient.weightKg?.let(::formatNumber).orEmpty()
+    }
+
     private val ageIsValid: Boolean
         get() = ageValueText.isBlank() || (ageValue != null)
 
@@ -169,6 +222,9 @@ class PatientFormState(
 
     val weightKg: Double?
         get() = weightText.toDoubleOrNull()?.takeIf { it >= 0.0 }
+
+    private fun formatNumber(value: Double): String =
+        if (value % 1.0 == 0.0) value.toLong().toString() else value.toString()
 }
 
 @Composable

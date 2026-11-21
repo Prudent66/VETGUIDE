@@ -5,24 +5,33 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -35,17 +44,20 @@ import com.prudent66.vetguide.ui.viewmodels.PatientListUiState
 import com.prudent66.vetguide.ui.viewmodels.PatientViewModel
 
 /**
- * Patient management gateway (Phase 1B). Lists Name / Species / Breed with an
- * empty state and a FAB that opens the Add Patient form.
+ * Patient management gateway (Phase 1B + Phase 8 CRUD). Lists Name / Species /
+ * Breed; tapping opens the patient's cases. Each row also exposes Edit and
+ * Delete (with a cascade confirmation) from its overflow menu.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PatientListScreen(
     onPatientClick: (String) -> Unit,
     onAddPatientClick: () -> Unit,
+    onEditPatientClick: (String) -> Unit = {},
     viewModel: PatientViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
+    var pendingDelete by remember { mutableStateOf<Patient?>(null) }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Patients") }) },
@@ -74,12 +86,44 @@ fun PatientListScreen(
                             patients = s.patients,
                             modifier = Modifier.fillMaxSize(),
                             onPatientClick = onPatientClick,
+                            onEditPatient = onEditPatientClick,
+                            onDeletePatient = { pendingDelete = it },
                         )
                     }
                 is PatientListUiState.Error -> ErrorBox(s.message)
             }
         }
     }
+
+    pendingDelete?.let { patient ->
+        DeletePatientDialog(
+            patient = patient,
+            onConfirm = {
+                viewModel.deletePatient(patient.id)
+                pendingDelete = null
+            },
+            onDismiss = { pendingDelete = null },
+        )
+    }
+}
+
+@Composable
+private fun DeletePatientDialog(
+    patient: Patient,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Delete ${patient.name}?") },
+        text = { Text("Delete patient and all associated cases?") },
+        confirmButton = {
+            TextButton(onClick = onConfirm) { Text("Delete") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        },
+    )
 }
 
 @Composable
@@ -87,6 +131,8 @@ private fun PatientList(
     patients: List<Patient>,
     modifier: Modifier,
     onPatientClick: (String) -> Unit,
+    onEditPatient: (String) -> Unit,
+    onDeletePatient: (Patient) -> Unit,
 ) {
     LazyColumn(
         modifier = modifier,
@@ -94,29 +140,75 @@ private fun PatientList(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(patients, key = { it.id }) { patient ->
-            PatientRow(patient = patient, onPatientClick = onPatientClick)
+            PatientRow(
+                patient = patient,
+                onPatientClick = onPatientClick,
+                onEditPatient = onEditPatient,
+                onDeletePatient = onDeletePatient,
+            )
         }
     }
 }
 
 @Composable
-private fun PatientRow(patient: Patient, onPatientClick: (String) -> Unit) {
+private fun PatientRow(
+    patient: Patient,
+    onPatientClick: (String) -> Unit,
+    onEditPatient: (String) -> Unit,
+    onDeletePatient: (Patient) -> Unit,
+) {
+    var menuOpen by remember { mutableStateOf(false) }
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onPatientClick(patient.id) },
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(patient.name, style = MaterialTheme.typography.titleMedium)
-            Text(
-                text = listOfNotNull(
-                    patient.species.name.lowercase().replaceFirstChar { it.uppercase() },
-                    patient.breed ?: "Breed unknown",
-                    patient.ageLabel(),
-                ).joinToString(" · "),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        Row(
+            modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Text(patient.name, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = listOfNotNull(
+                        patient.species.name.lowercase().replaceFirstChar { it.uppercase() },
+                        patient.breed ?: "Breed unknown",
+                        patient.ageLabel(),
+                    ).joinToString(" · "),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Box {
+                IconButton(onClick = { menuOpen = true }) {
+                    Icon(
+                        painter = painterResource(R.drawable.nav_more),
+                        contentDescription = "Patient actions",
+                    )
+                }
+                DropdownMenu(
+                    expanded = menuOpen,
+                    onDismissRequest = { menuOpen = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Edit patient") },
+                        onClick = {
+                            menuOpen = false
+                            onEditPatient(patient.id)
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Delete patient") },
+                        onClick = {
+                            menuOpen = false
+                            onDeletePatient(patient)
+                        },
+                    )
+                }
+            }
         }
     }
 }

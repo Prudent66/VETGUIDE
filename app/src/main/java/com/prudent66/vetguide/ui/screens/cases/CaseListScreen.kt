@@ -10,8 +10,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -21,12 +24,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -43,32 +49,30 @@ import java.util.Locale
 import kotlinx.coroutines.launch
 
 /**
- * Case timeline for one patient (Phase 1B): complaint, status, date.
- * The FAB creates a demo case to verify the patient→case relation.
+ * Case timeline for one patient (Phase 1B + Phase 8 CRUD): complaint, status,
+ * date. The top-bar menu edits or deletes the patient (cascade confirmation);
+ * the FAB creates a demo case to verify the patient→case relation.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CaseListScreen(
     onBack: () -> Unit,
     onCaseClick: (String) -> Unit = {},
+    onEditPatient: (String) -> Unit = {},
     viewModel: CaseViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    var confirmDelete by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(titleFor(state)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            painter = painterResource(R.drawable.nav_back),
-                            contentDescription = "Back",
-                        )
-                    }
-                },
+            CaseListTopBar(
+                state = state,
+                onBack = onBack,
+                onEditPatient = onEditPatient,
+                onDeletePatient = { confirmDelete = true },
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -108,6 +112,90 @@ fun CaseListScreen(
             }
         }
     }
+
+    if (confirmDelete) {
+        val patientName = (state as? CaseListUiState.Success)?.patientName ?: "this patient"
+        DeletePatientDialog(
+            patientName = patientName,
+            onConfirm = {
+                confirmDelete = false
+                viewModel.deletePatient(onDeleted = onBack)
+            },
+            onDismiss = { confirmDelete = false },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CaseListTopBar(
+    state: CaseListUiState,
+    onBack: () -> Unit,
+    onEditPatient: (String) -> Unit,
+    onDeletePatient: () -> Unit,
+) {
+    var menuOpen by remember { mutableStateOf(false) }
+    TopAppBar(
+        title = { Text(titleFor(state)) },
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(
+                    painter = painterResource(R.drawable.nav_back),
+                    contentDescription = "Back",
+                )
+            }
+        },
+        actions = {
+            Box {
+                IconButton(onClick = { menuOpen = true }) {
+                    Icon(
+                        painter = painterResource(R.drawable.nav_more),
+                        contentDescription = "Patient actions",
+                    )
+                }
+                DropdownMenu(
+                    expanded = menuOpen,
+                    onDismissRequest = { menuOpen = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Edit patient") },
+                        onClick = {
+                            menuOpen = false
+                            (state as? CaseListUiState.Success)?.let {
+                                onEditPatient(it.patientId)
+                            }
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Delete patient") },
+                        onClick = {
+                            menuOpen = false
+                            onDeletePatient()
+                        },
+                    )
+                }
+            }
+        },
+    )
+}
+
+@Composable
+private fun DeletePatientDialog(
+    patientName: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Delete $patientName?") },
+        text = { Text("Delete patient and all associated cases?") },
+        confirmButton = {
+            TextButton(onClick = onConfirm) { Text("Delete") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        },
+    )
 }
 
 private fun titleFor(state: CaseListUiState): String = when (state) {
@@ -147,7 +235,7 @@ private fun CaseRow(
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(item.presentingComplaint, style = MaterialTheme.typography.titleMedium)
             Text(
-                text = statusLabel(item.status),
+                text = item.status.label,
                 style = MaterialTheme.typography.labelMedium,
                 color = statusColor(item.status),
             )
@@ -160,14 +248,13 @@ private fun CaseRow(
     }
 }
 
-private fun statusLabel(status: CaseStatus): String = status.name
-    .lowercase()
-    .replaceFirstChar { it.uppercase() }
-
 @Composable
 private fun statusColor(status: CaseStatus) = when (status) {
     CaseStatus.OPEN -> MaterialTheme.colorScheme.tertiary
     CaseStatus.INVESTIGATING -> MaterialTheme.colorScheme.primary
+    CaseStatus.RECOVERED -> MaterialTheme.colorScheme.secondary
+    CaseStatus.REFERRED -> MaterialTheme.colorScheme.secondary
+    CaseStatus.CLOSED -> MaterialTheme.colorScheme.onSurfaceVariant
     CaseStatus.PLAN_SET -> MaterialTheme.colorScheme.secondary
     CaseStatus.RESOLVED -> MaterialTheme.colorScheme.secondary
 }

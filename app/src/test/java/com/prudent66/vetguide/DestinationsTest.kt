@@ -47,4 +47,10 @@ class DestinationsTest {
         )
         assertTrue(Destinations.casesForPatient("p1") != Destinations.casesForPatient("p2"))
     }
+
+    @Test
+    fun `patient edit route embeds the id and stays a drill-in route`() {
+        assertEquals("patients/abc/edit", Destinations.patientEdit("abc"))
+        assertFalse(Destinations.isTopLevel(Destinations.patientEdit("abc")))
+    }
 }

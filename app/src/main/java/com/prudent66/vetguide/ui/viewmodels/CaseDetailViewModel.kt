@@ -13,6 +13,7 @@ import com.prudent66.vetguide.domain.model.Case
 import com.prudent66.vetguide.domain.model.CaseArtifact
 import com.prudent66.vetguide.domain.model.CaseArtifactType
 import com.prudent66.vetguide.domain.model.CasePayloadCodec
+import com.prudent66.vetguide.domain.model.CaseStatus
 import com.prudent66.vetguide.domain.model.Patient
 import com.prudent66.vetguide.domain.model.QuestionnaireArtifactPayload
 import com.prudent66.vetguide.domain.model.SoapPayload
@@ -113,6 +114,15 @@ class CaseDetailViewModel @Inject constructor(
     /** One-shot: SOAP persistence failed (screen shows the message). */
     val saveError = MutableSharedFlow<String>()
 
+    /** One-shot: case title/status were persisted (confirmation snackbar). */
+    val caseUpdated = MutableSharedFlow<Unit>()
+
+    /** One-shot: the case was deleted and the screen can navigate back. */
+    val caseDeleted = MutableSharedFlow<Unit>()
+
+    /** One-shot: a case action failed (snackbar). */
+    val actionError = MutableSharedFlow<String>()
+
     private val pdfMut = MutableStateFlow<PdfState>(PdfState.Idle)
     val pdfState: StateFlow<PdfState> = pdfMut.asStateFlow()
 
@@ -139,11 +149,49 @@ class CaseDetailViewModel @Inject constructor(
                         updatedAtEpochMs = now,
                     ),
                 )
+                caseRepository.upsertCase(success.case.copy(updatedAtEpochMs = now))
                 soapSaved.emit(Unit)
             } catch (e: SQLiteException) {
                 saveError.emit(e.message ?: "Database error while saving the SOAP note")
             } catch (e: IllegalStateException) {
                 saveError.emit(e.message ?: "Database error while saving the SOAP note")
+            }
+        }
+    }
+
+    /** Updates the case summary and workflow status (SOAP is saved separately). */
+    fun updateCaseDetails(presentingComplaint: String, status: CaseStatus) {
+        val title = presentingComplaint.trim()
+        val success = uiState.value as? CaseDetailUiState.Success ?: return
+        if (title.isEmpty()) return
+        viewModelScope.launch {
+            try {
+                caseRepository.upsertCase(
+                    success.case.copy(
+                        presentingComplaint = title,
+                        status = status,
+                        updatedAtEpochMs = System.currentTimeMillis(),
+                    ),
+                )
+                caseUpdated.emit(Unit)
+            } catch (e: SQLiteException) {
+                actionError.emit(e.message ?: "Database error while updating the case")
+            } catch (e: IllegalStateException) {
+                actionError.emit(e.message ?: "Database error while updating the case")
+            }
+        }
+    }
+
+    /** Deletes the case; Room's FK cascade also removes its artifacts. */
+    fun deleteCase() {
+        viewModelScope.launch {
+            try {
+                caseRepository.deleteCase(caseId)
+                caseDeleted.emit(Unit)
+            } catch (e: SQLiteException) {
+                actionError.emit(e.message ?: "Database error while deleting the case")
+            } catch (e: IllegalStateException) {
+                actionError.emit(e.message ?: "Database error while deleting the case")
             }
         }
     }

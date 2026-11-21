@@ -1,5 +1,6 @@
 package com.prudent66.vetguide.ui.screens.home
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,18 +21,21 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.prudent66.vetguide.R
 import com.prudent66.vetguide.domain.model.Patient
 import com.prudent66.vetguide.ui.viewmodels.HomeViewModel
+import com.prudent66.vetguide.ui.viewmodels.RecentCaseSummary
 
 /**
- * Home: VETGUIDE hub. Navigation lives in the bottom bar, so the screen is a
- * clean dashboard: a welcome message, live practice stats, and the most
- * recently registered patient. The diary note is a clinical-safety reminder
- * per roadmap §10.
+ * Home: VETGUIDE hub. The most recent patient and case are tappable shortcuts
+ * into the record screens; the diary note is a clinical-safety reminder per
+ * roadmap §10.
  */
 @Composable
 fun HomeScreen(
+    onPatientClick: (String) -> Unit = {},
+    onCaseClick: (String) -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val recentPatient by viewModel.recentPatient.collectAsState()
+    val recentCase by viewModel.recentCase.collectAsState()
     val patientCount by viewModel.patientCount.collectAsState()
     val conditionCount by viewModel.conditionCount.collectAsState()
     Column(
@@ -51,7 +55,13 @@ fun HomeScreen(
             style = MaterialTheme.typography.bodyLarge,
         )
         WelcomeCard(patientCount = patientCount, conditionCount = conditionCount)
-        RecentPatientCard(patient = recentPatient)
+        RecentPatientCard(
+            patient = recentPatient,
+            onOpen = { id -> onPatientClick(id) },
+        )
+        recentCase?.let { recent ->
+            RecentCaseCard(recent = recent, onOpen = { onCaseClick(recent.caseId) })
+        }
         Text(
             text = stringResource(R.string.disclaimer),
             style = MaterialTheme.typography.bodySmall,
@@ -84,8 +94,15 @@ private fun WelcomeCard(patientCount: Int?, conditionCount: Int?) {
 }
 
 @Composable
-private fun RecentPatientCard(patient: Patient?) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+private fun RecentPatientCard(patient: Patient?, onOpen: (String) -> Unit) {
+    val clickModifier = if (patient == null) {
+        Modifier.fillMaxWidth()
+    } else {
+        Modifier
+            .fillMaxWidth()
+            .clickable { onOpen(patient.id) }
+    }
+    Card(modifier = clickModifier) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -105,6 +122,28 @@ private fun RecentPatientCard(patient: Patient?) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun RecentCaseCard(recent: RecentCaseSummary, onOpen: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onOpen),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text("Most recent case", style = MaterialTheme.typography.titleSmall)
+            Text(recent.title, style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = "${recent.patientName} · ${recent.status.label}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.prudent66.vetguide.ui.viewmodels
 
+import android.database.sqlite.SQLiteException
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -21,6 +23,7 @@ import kotlinx.coroutines.launch
 sealed interface CaseListUiState {
     data object Loading : CaseListUiState
     data class Success(
+        val patientId: String,
         val patientName: String,
         val cases: List<Case>,
     ) : CaseListUiState
@@ -28,12 +31,15 @@ sealed interface CaseListUiState {
     data class Error(val message: String) : CaseListUiState
 }
 
-/** Timeline of cases for one patient (drill-in from the Patients tab). */
+/**
+ * Timeline of cases for one patient (drill-in from the Patients tab), plus the
+ * patient-level edit/delete actions shown in the top bar.
+ */
 @HiltViewModel
 class CaseViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val caseRepository: CaseRepository,
-    patientRepository: PatientRepository,
+    private val patientRepository: PatientRepository,
 ) : ViewModel() {
 
     private val patientId: String = checkNotNull(savedStateHandle[Destinations.ARG_PATIENT_ID])
@@ -44,6 +50,7 @@ class CaseViewModel @Inject constructor(
     ) { patient, cases ->
         // Typed as the base interface so the catch block can emit Error below.
         val success: CaseListUiState = CaseListUiState.Success(
+            patientId = patientId,
             patientName = patient?.name ?: "Unknown patient",
             cases = cases,
         )
@@ -73,5 +80,23 @@ class CaseViewModel @Inject constructor(
                 ),
             )
         }
+    }
+
+    /** Deletes the patient and every linked case (Room FK cascade). */
+    fun deletePatient(onDeleted: () -> Unit = {}) {
+        viewModelScope.launch {
+            try {
+                patientRepository.deletePatient(patientId)
+                onDeleted()
+            } catch (e: SQLiteException) {
+                Log.e(TAG, "Could not delete patient $patientId", e)
+            } catch (e: IllegalStateException) {
+                Log.e(TAG, "Could not delete patient $patientId", e)
+            }
+        }
+    }
+
+    private companion object {
+        const val TAG = "CaseViewModel"
     }
 }
