@@ -34,6 +34,10 @@ ktor = "3.2.3"
 camerax = "1.5.1"
 # AndroidX instrumented-test tooling
 androidxTestJunit = "1.2.1"
+# WorkManager for background sync (store-and-forward)
+workManager = "2.10.0"
+# Hilt WorkManager integration
+hiltWork = "1.2.0"
 androidxTestRunner = "1.6.2"
 androidxTestCore = "1.6.1"
 # Static analysis & testing
@@ -75,6 +79,8 @@ androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version
 androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }
 androidx-test-core = { group = "androidx.test", name = "core", version.ref = "androidxTestCore" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workManager" }
+androidx-hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltWork" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

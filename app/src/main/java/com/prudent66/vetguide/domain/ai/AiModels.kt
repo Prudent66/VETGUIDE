@@ -2,6 +2,7 @@ package com.prudent66.vetguide.domain.ai
 
 import kotlin.math.roundToInt
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 /**
  * Abstract request into the AI layer (roadmap §5–§6): providers receive a
@@ -117,7 +118,10 @@ data class AiAnalysisData(
     val findings: List<String>,
     val suspectedConditions: List<SuspectedCondition>,
     val recommendedNextSteps: List<String> = emptyList(),
-)
+) {
+    /** Serializes the full structured analysis for persistence as a CaseArtifact. */
+    fun toJson(): String = Json { ignoreUnknownKeys = true }.encodeToString(this)
+}
 
 /**
  * Trims trailing periods/semicolons (and any whitespace before them) from an

@@ -18,7 +18,7 @@ android {
         applicationId = "com.prudent66.vetguide"
         minSdk = 26
         targetSdk = 36
-        versionCode = 5
+        versionCode = 6
         versionName = "1.0.0"
     }
 
@@ -136,6 +136,10 @@ dependencies {
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.logging)
+
+    // Background work (Phase 9): store-and-forward for cloud AI retry
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.hilt.work)
 
     // Image capture (Phase 6): CameraX preview + still capture
     implementation(libs.androidx.camera.core)

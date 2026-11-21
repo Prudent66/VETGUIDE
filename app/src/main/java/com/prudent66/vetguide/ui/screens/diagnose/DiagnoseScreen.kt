@@ -151,6 +151,7 @@ private fun ImageFlowPhase(
             result = s,
             onRestart = imageViewModel::reset,
             onSaveToCase = { saveToCaseViewModel.openForImage(s) },
+            onQueueForRetry = { imageViewModel.queueForRetry(s) },
         )
         is ImageAnalysisUiState.ImageError -> ImageErrorPhase(
             error = s,

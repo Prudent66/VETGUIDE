@@ -112,4 +112,34 @@ object ImageEncoder {
             bitmap.compress(Bitmap.CompressFormat.JPEG, quality, out)
             out.toByteArray()
         }
+
+    /**
+     * Re-compress an already-Base64-encoded JPEG with a lower dimension and
+     * quality budget for the automatic low-bandwidth retry (§9 resilience).
+     * Decodes the Base64, scales down, re-compresses under the compact budget.
+     */
+    fun recompressForCompactRetry(
+        base64: String,
+        maxDimension: Int = COMPACT_MAX_DIMENSION,
+        quality: Int = COMPACT_JPEG_QUALITY,
+        budgetBytes: Int = COMPACT_MAX_UPLOAD_BYTES,
+    ): String {
+        val bytes = fromBase64(base64)
+        val bitmap = decode(bytes)
+        val scaled = scaleDown(bitmap, maxDimension)
+        return toBase64(
+            encodeWithinBudget(quality, MIN_JPEG_QUALITY, budgetBytes) { q ->
+                compress(scaled, q)
+            },
+        )
+    }
+
+    companion object {
+        /** Compact retry: 512px longest side. */
+        const val COMPACT_MAX_DIMENSION = 512
+        /** Compact retry: 50% JPEG quality. */
+        const val COMPACT_JPEG_QUALITY = 50
+        /** Compact retry: ~30 KB raw JPEG budget. */
+        const val COMPACT_MAX_UPLOAD_BYTES = 30 * 1024
+    }
 }

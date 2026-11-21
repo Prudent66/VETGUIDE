@@ -6,6 +6,7 @@ import com.prudent66.vetguide.data.repository.BackupRepositoryImpl
 import com.prudent66.vetguide.data.repository.CaseRepositoryImpl
 import com.prudent66.vetguide.data.repository.KnowledgeRepositoryImpl
 import com.prudent66.vetguide.data.repository.PatientRepositoryImpl
+import com.prudent66.vetguide.data.repository.PendingCloudAnalysisRepositoryImpl
 import com.prudent66.vetguide.data.repository.QuestionnaireRepositoryImpl
 import com.prudent66.vetguide.data.repository.SettingsRepositoryImpl
 import com.prudent66.vetguide.database.AppSettingsDao
@@ -13,12 +14,14 @@ import com.prudent66.vetguide.database.CaseArtifactDao
 import com.prudent66.vetguide.database.CaseDao
 import com.prudent66.vetguide.database.KbDao
 import com.prudent66.vetguide.database.PatientDao
+import com.prudent66.vetguide.database.PendingCloudAnalysisDao
 import com.prudent66.vetguide.database.QuestionnaireDao
 import com.prudent66.vetguide.database.VetguideDatabase
 import com.prudent66.vetguide.domain.repository.BackupRepository
 import com.prudent66.vetguide.domain.repository.CaseRepository
 import com.prudent66.vetguide.domain.repository.KnowledgeRepository
 import com.prudent66.vetguide.domain.repository.PatientRepository
+import com.prudent66.vetguide.domain.repository.PendingCloudAnalysisRepository
 import com.prudent66.vetguide.domain.repository.QuestionnaireRepository
 import com.prudent66.vetguide.domain.repository.SettingsRepository
 import dagger.Binds
@@ -63,6 +66,9 @@ object DatabaseModule {
 
     @Provides
     fun provideAppSettingsDao(db: VetguideDatabase): AppSettingsDao = db.appSettingsDao()
+
+    @Provides
+    fun providePendingCloudAnalysisDao(db: VetguideDatabase): PendingCloudAnalysisDao = db.pendingCloudAnalysisDao()
 }
 
 /** Binds repository implementations to their domain contracts. */
@@ -93,4 +99,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindBackupRepository(impl: BackupRepositoryImpl): BackupRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindPendingCloudAnalysisRepository(impl: PendingCloudAnalysisRepositoryImpl): PendingCloudAnalysisRepository
 }

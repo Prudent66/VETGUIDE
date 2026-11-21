@@ -27,8 +27,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         QuestionEntity::class,
         QuestionOptionEntity::class,
         ConditionWeightEntity::class,
+        PendingCloudAnalysisEntity::class,
     ],
-    version = 4, // literal required by the Room processor
+    version = 5, // literal required by the Room processor
     exportSchema = true,
 )
 abstract class VetguideDatabase : RoomDatabase() {
@@ -40,8 +41,10 @@ abstract class VetguideDatabase : RoomDatabase() {
 
     abstract fun appSettingsDao(): AppSettingsDao
 
+    abstract fun pendingCloudAnalysisDao(): PendingCloudAnalysisDao
+
     companion object {
-        const val VETGUIDE_DB_VERSION = 4
+        const val VETGUIDE_DB_VERSION = 5
         const val VETGUIDE_DB_NAME = "vetguide.db"
         const val KB_SEED_VERSION_KEY = "kb_seed_version"
 
@@ -115,4 +118,25 @@ abstract class VetguideDatabase : RoomDatabase() {
             }
         }
     }
+
+        /** v5: pending cloud analyses for store-and-forward (§9 resilience). */
+        val MIGRATION_4_TO_5: Migration = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `pending_cloud_analyses` " +
+                        "(`id` TEXT NOT NULL, `imageBase64` TEXT NOT NULL, " +
+                        "`species` TEXT, `clinicalContext` TEXT, " +
+                        "`caseId` TEXT, `patientId` TEXT, " +
+                        "`createdAtEpochMs` INTEGER NOT NULL, " +
+                        "`compactRetryAttempted` INTEGER NOT NULL DEFAULT 0, " +
+                        "`retryCount` INTEGER NOT NULL DEFAULT 0, " +
+                        "PRIMARY KEY(`id`))",
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_pending_cloud_analyses_createdAt` " +
+                    "ON `pending_cloud_analyses` (`createdAtEpochMs`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_pending_cloud_analyses_caseId` " +
+                    "ON `pending_cloud_analyses` (`caseId`)")
+            }
+        }
+}
 }

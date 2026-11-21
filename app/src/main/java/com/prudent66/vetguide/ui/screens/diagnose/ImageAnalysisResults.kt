@@ -58,6 +58,7 @@ fun ImageResultPhase(
     result: ImageAnalysisUiState.Result,
     onRestart: () -> Unit,
     onSaveToCase: () -> Unit,
+    onQueueForRetry: (() -> Unit)? = null,
 ) {
     Column(
         modifier = Modifier
@@ -96,6 +97,21 @@ fun ImageResultPhase(
         )
         Button(onClick = onSaveToCase, modifier = Modifier.fillMaxWidth()) {
             Text("Save to Case")
+        }
+        // Show "Queue for Cloud AI (Auto-Sync)" button for offline results
+        // that failed due to transient network issues (§9 resilience).
+        val shouldShowQueueButton = result.providerId == OFFLINE_PROVIDER_ID &&
+            result.fallbackReason != null &&
+            (result.fallbackReason == "Network timeout" ||
+             result.fallbackReason == "No internet connection" ||
+             result.fallbackReason == "Network unreachable")
+        if (shouldShowQueueButton) {
+            OutlinedButton(
+                onClick = onQueueForRetry ?: { },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Queue for Cloud AI (Auto-Sync)")
+            }
         }
         OutlinedButton(onClick = onRestart, modifier = Modifier.fillMaxWidth()) {
             Text("New assessment")

@@ -10,7 +10,10 @@ import com.prudent66.vetguide.domain.ai.AiRequest
 import com.prudent66.vetguide.domain.ai.AiResult
 import com.prudent66.vetguide.domain.ai.fallbackReason
 import com.prudent66.vetguide.domain.model.Species
+import com.prudent66.vetguide.domain.repository.PendingCloudAnalysisRepository
+import com.prudent66.vetguide.worker.CloudAnalysisScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -81,6 +84,8 @@ sealed interface ImageAnalysisUiState {
 @HiltViewModel
 class ImageAnalysisViewModel @Inject constructor(
     private val orchestrator: AiOrchestrator,
+    @ApplicationContext private val context: Context,
+    private val pendingAnalysisRepository: PendingCloudAnalysisRepository,
 ) : ViewModel() {
 
     private val mut = MutableStateFlow<ImageAnalysisUiState>(ImageAnalysisUiState.Idle)
@@ -145,6 +150,7 @@ class ImageAnalysisViewModel @Inject constructor(
                 )
                 val success = result as? AiResult.ProviderSuccess
                 val fallback = result as? AiResult.DeterministicFallback
+                val reason = fallback?.let { fallbackReason(it.diagnostics) }
                 mut.value = ImageAnalysisUiState.Result(
                     species = review.species,
                     providerId = result.providerId,
@@ -153,8 +159,12 @@ class ImageAnalysisViewModel @Inject constructor(
                     analysisData = success?.analysisData,
                     imageBase64 = review.imageBase64,
                     clinicalContext = clinicalContext,
-                    fallbackReason = fallback?.let { fallbackReason(it.diagnostics) },
+                    fallbackReason = reason,
                 )
+                // Queue for background retry if the failure was a network issue.
+                if (reason != null && shouldQueueForRetry(reason)) {
+                    queueForBackgroundRetry(review, clinicalContext, reason)
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: AiQuotaExceededException) {
@@ -200,6 +210,49 @@ class ImageAnalysisViewModel @Inject constructor(
     private fun resultNarrative(result: AiResult): String = when (result) {
         is AiResult.ProviderSuccess -> result.text
         is AiResult.DeterministicFallback -> result.text
+    }
+
+    /**
+     * Determines if the fallback reason indicates a transient network issue
+     * that warrants queuing for background retry when connectivity improves.
+     */
+    private fun shouldQueueForRetry(reason: String): Boolean =
+        reason == "Network timeout" || reason == "No internet connection" || reason == "Network unreachable"
+
+    /**
+     * Persists the failed analysis to the store-and-forward queue and
+     * schedules a WorkManager retry with NetworkType.CONNECTED constraint.
+     */
+    private fun queueForBackgroundRetry(
+        review: ImageAnalysisUiState.Review,
+        clinicalContext: String?,
+        reason: String,
+    ) {
+        viewModelScope.launch {
+            val entity = com.prudent66.vetguide.database.PendingCloudAnalysisEntity(
+                id = java.util.UUID.randomUUID().toString(),
+                imageBase64 = review.imageBase64,
+                species = review.species?.name,
+                clinicalContext = clinicalContext,
+                caseId = null, // Will be linked if user saves to case later
+                patientId = null,
+                createdAtEpochMs = System.currentTimeMillis(),
+                compactRetryAttempted = false, // The compact retry already happened in CloudAiProvider
+                retryCount = 0,
+            )
+            pendingAnalysisRepository.add(entity)
+            CloudAnalysisScheduler.enqueueNewAnalysis(context, entity)
+        }
+    }
+
+    /** Public entry for the "Queue for Cloud AI (Auto-Sync)" button. */
+    fun queueForRetry(result: ImageAnalysisUiState.Result) {
+        val review = mut.value as? ImageAnalysisUiState.Review
+            ?: return
+        val reason = result.fallbackReason ?: return
+        if (shouldQueueForRetry(reason)) {
+            queueForBackgroundRetry(review, result.clinicalContext, reason)
+        }
     }
 
     private companion object {
