@@ -148,7 +148,10 @@ private fun CaseListTopBar(
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     TopAppBar(
-        title = { Text(titleFor(state)) },
+        title = {
+            val name = (state as? CaseListUiState.Success)?.patientName
+            Text(if (name == null) "Cases" else "Cases · $name")
+        },
         navigationIcon = {
             IconButton(onClick = onBack) {
                 Icon(
@@ -208,11 +211,6 @@ private fun DeletePatientDialog(
             TextButton(onClick = onDismiss) { Text("Cancel") }
         },
     )
-}
-
-private fun titleFor(state: CaseListUiState): String = when (state) {
-    is CaseListUiState.Success -> "Cases · ${state.patientName}"
-    else -> "Cases"
 }
 
 @Composable
