@@ -72,6 +72,7 @@ class CloudHealthClient @Inject constructor(
         } catch (e: CancellationException) {
             throw e
         } catch (e: HttpRequestTimeoutException) {
+            android.util.Log.w("CloudHealthClient", "Health probe timed out", e)
             CloudHealthResult.Unhealthy("Network timeout", elapsedMs())
         } catch (e: IOException) {
             CloudHealthResult.Unhealthy(networkMessage(e), elapsedMs())

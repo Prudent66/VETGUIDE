@@ -10,20 +10,22 @@ package com.prudent66.vetguide.domain.ai
  */
 fun fallbackReason(diagnostics: List<String>): String {
     val text = diagnostics.joinToString(" ").lowercase()
-    return when {
-        text.contains("timed out") || text.contains("timeout") -> "Network timeout"
-        text.contains("network access unavailable") -> "No internet connection"
-        text.contains("unknownhost") ||
-            text.contains("unable to resolve host") ||
-            text.contains("no address associated") -> "No internet connection"
-        text.contains("http 429") || text.contains("maximum capacity") ->
-            "Cloud API HTTP 429 (rate limited)"
-        Regex("""http 5\d\d""").containsMatchIn(text) -> "Cloud API HTTP 5xx"
-        text.contains("insufficient information") -> "Cloud response was inconclusive"
-        text.contains("schema validation") -> "Cloud response was invalid"
-        text.contains("network failure") -> "Network unreachable"
-        text.contains("cooling down") || text.contains("benched") ->
-            "Cloud AI temporarily paused"
-        else -> "Cloud AI unavailable"
-    }
+    return reasonMarkers
+        .firstOrNull { (markers, _) -> markers.any(text::contains) }
+        ?.second
+        ?: "Cloud AI unavailable"
 }
+
+/** Ordered cause → short banner reason; the first matching marker wins. */
+private val reasonMarkers: List<Pair<List<String>, String>> = listOf(
+    listOf("timed out", "timeout") to "Network timeout",
+    listOf("network access unavailable") to "No internet connection",
+    listOf("unknownhost", "unable to resolve host", "no address associated") to
+        "No internet connection",
+    listOf("http 429", "maximum capacity") to "Cloud API HTTP 429 (rate limited)",
+    listOf("http 5") to "Cloud API HTTP 5xx",
+    listOf("insufficient information") to "Cloud response was inconclusive",
+    listOf("schema validation") to "Cloud response was invalid",
+    listOf("network failure") to "Network unreachable",
+    listOf("cooling down", "benched") to "Cloud AI temporarily paused",
+)
