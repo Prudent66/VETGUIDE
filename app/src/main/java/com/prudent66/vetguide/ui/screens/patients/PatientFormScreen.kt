@@ -1,4 +1,5 @@
 package com.prudent66.vetguide.ui.screens.patients
+import com.prudent66.vetguide.ui.components.LocalBottomBarClearance
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.WindowInsets
@@ -108,7 +109,8 @@ fun PatientFormScreen(
                 modifier = Modifier
                     .padding(padding)
                     .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .padding(bottom = LocalBottomBarClearance.current),
             )
         }
     }

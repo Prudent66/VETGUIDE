@@ -1,4 +1,5 @@
 package com.prudent66.vetguide.ui.screens.knowledge
+import com.prudent66.vetguide.ui.components.LocalBottomBarClearance
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -160,6 +161,7 @@ private fun KnowledgeList(
         conditions.isEmpty() -> EmptyState(modifier)
         else -> LazyColumn(
             modifier = modifier,
+            contentPadding = PaddingValues(bottom = LocalBottomBarClearance.current),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(conditions, key = { it.id }) { condition ->

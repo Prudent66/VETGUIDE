@@ -1,4 +1,5 @@
 package com.prudent66.vetguide.ui.screens.knowledge
+import com.prudent66.vetguide.ui.components.LocalBottomBarClearance
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.WindowInsets
@@ -92,7 +93,8 @@ private fun DetailContent(detail: KbConditionDetail, modifier: Modifier) {
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(16.dp)
+            .padding(bottom = LocalBottomBarClearance.current),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(

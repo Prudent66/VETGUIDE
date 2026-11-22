@@ -1,4 +1,5 @@
 package com.prudent66.vetguide.ui.screens.cases
+import com.prudent66.vetguide.ui.components.LocalBottomBarClearance
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -223,7 +224,12 @@ private fun CaseList(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(
+            start = 16.dp,
+            top = 16.dp,
+            end = 16.dp,
+            bottom = 16.dp + LocalBottomBarClearance.current,
+        ),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(cases, key = { it.id }) { item ->

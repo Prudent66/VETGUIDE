@@ -1,4 +1,5 @@
 package com.prudent66.vetguide.ui.screens.diagnose
+import com.prudent66.vetguide.ui.components.LocalBottomBarClearance
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -200,7 +201,8 @@ private fun ErrorPhase(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(16.dp)
+            .padding(bottom = LocalBottomBarClearance.current),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Card(modifier = Modifier.fillMaxWidth()) {
@@ -239,7 +241,8 @@ private fun StartPhase(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(16.dp)
+            .padding(bottom = LocalBottomBarClearance.current),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
@@ -343,7 +346,8 @@ private fun QuotaExceededPhase(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(16.dp)
+            .padding(bottom = LocalBottomBarClearance.current),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {

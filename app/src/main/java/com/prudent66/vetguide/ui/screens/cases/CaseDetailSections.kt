@@ -1,4 +1,5 @@
 package com.prudent66.vetguide.ui.screens.cases
+import com.prudent66.vetguide.ui.components.LocalBottomBarClearance
 
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
@@ -53,7 +54,8 @@ internal fun CaseDetailContent(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(16.dp)
+            .padding(bottom = LocalBottomBarClearance.current),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         PatientInfoCard(state)

@@ -1,4 +1,5 @@
 package com.prudent66.vetguide.ui.screens.diagnose
+import com.prudent66.vetguide.ui.components.LocalBottomBarClearance
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -66,7 +67,8 @@ fun ImageReviewScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(16.dp)
+            .padding(bottom = LocalBottomBarClearance.current),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text("Confirm image", style = MaterialTheme.typography.titleMedium)

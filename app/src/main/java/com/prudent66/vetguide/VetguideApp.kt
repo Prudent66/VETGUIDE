@@ -21,6 +21,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,6 +44,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.prudent66.vetguide.ui.components.LocalBottomBarClearance
 import com.prudent66.vetguide.ui.navigation.Destinations
 import com.prudent66.vetguide.ui.screens.cases.CaseDetailScreen
 import com.prudent66.vetguide.ui.screens.cases.CaseListScreen
@@ -142,20 +144,26 @@ fun VetguideApp() {
         },
     ) { innerPadding ->
         val layoutDirection = LocalLayoutDirection.current
-        VetguideNavHost(
-            navController = navController,
-            modifier = Modifier
-                .padding(
-                    PaddingValues(
-                        start = innerPadding.calculateStartPadding(layoutDirection),
-                        top = innerPadding.calculateTopPadding(),
-                        end = innerPadding.calculateEndPadding(layoutDirection),
-                        // Stable resting clearance + breathing room.
-                        bottom = restingBottom.value + bottomScrollClearance,
-                    ),
-                )
-                .nestedScroll(scrollTracker),
-        )
+        // No outer bottom padding: the viewport runs flush to the footer so no
+        // dark dead band appears above it. The resting clearance is consumed
+        // inside each scrollable container instead.
+        CompositionLocalProvider(
+            LocalBottomBarClearance provides restingBottom.value + bottomScrollClearance,
+        ) {
+            VetguideNavHost(
+                navController = navController,
+                modifier = Modifier
+                    .padding(
+                        PaddingValues(
+                            start = innerPadding.calculateStartPadding(layoutDirection),
+                            top = innerPadding.calculateTopPadding(),
+                            end = innerPadding.calculateEndPadding(layoutDirection),
+                            bottom = 0.dp,
+                        ),
+                    )
+                    .nestedScroll(scrollTracker),
+            )
+        }
     }
 }
 

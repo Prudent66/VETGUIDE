@@ -1,4 +1,5 @@
 package com.prudent66.vetguide.ui.screens.diagnose
+import com.prudent66.vetguide.ui.components.LocalBottomBarClearance
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
@@ -39,7 +40,8 @@ fun WizardPhase(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(16.dp)
+            .padding(bottom = LocalBottomBarClearance.current),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         ProgressHeader(wizard)

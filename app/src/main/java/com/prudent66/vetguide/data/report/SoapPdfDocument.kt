@@ -38,6 +38,14 @@ object SoapPdfDocument {
     private const val MARGIN = 48f
     private const val CONTENT_WIDTH = PAGE_WIDTH - 2 * MARGIN
 
+    /** Footer baseline sits this far above the page bottom; leave a clear gap. */
+    private const val FOOTER_BASELINE_OFFSET = 28f
+    private const val FOOTER_GAP = 8f
+    private const val LINE_GAP = 4f
+
+    /** Cap the case image so the report/disclaimer do not strand on a new page. */
+    private const val MAX_IMAGE_HEIGHT = 260f
+
     /** Single source for the header subtitle — rendered exactly once per report. */
     private const val HEADER_SUBTITLE = "Veterinary clinical assistant - clinical report"
 
@@ -68,18 +76,16 @@ object SoapPdfDocument {
 
     private fun drawHeader(cursor: Cursor, data: SoapReportData) {
         cursor.y = MARGIN
-        cursor.canvas.drawText(
-            "VETGUIDE",
-            MARGIN,
-            cursor.y + 18f,
-            Paint().apply {
-                color = Color.rgb(76, 175, 80)
-                textSize = 20f
-                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-                isAntiAlias = true
-            },
-        )
-        cursor.y += 24f
+        val titlePaint = Paint().apply {
+            color = Color.rgb(76, 175, 80)
+            textSize = 20f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            isAntiAlias = true
+        }
+        val titleBaseline = cursor.y + 18f
+        cursor.canvas.drawText("VETGUIDE", MARGIN, titleBaseline, titlePaint)
+        // Advance past the title's descent so the subtitle never overlaps it.
+        cursor.y = titleBaseline + titlePaint.fontMetrics.descent + 12f
         cursor.line(HEADER_SUBTITLE, cursor.smallPaint)
         data.clinicName?.takeIf { it.isNotBlank() }?.let {
             cursor.line("Clinic: $it", cursor.smallPaint)
@@ -90,7 +96,7 @@ object SoapPdfDocument {
         data.clinicContact?.takeIf { it.isNotBlank() }?.let {
             cursor.line("Contact / license: $it", cursor.smallPaint)
         }
-        cursor.y += 14f
+        cursor.y += 10f
     }
 
     /** Clinic identity (when set) + the standing decision-support line per page. */
@@ -111,34 +117,40 @@ object SoapPdfDocument {
         cursor.line("Case: ${data.caseId.take(8)} · status: ${data.status}", cursor.smallPaint)
         cursor.line("Presenting complaint: ${data.complaint}", cursor.smallPaint)
         cursor.line("Generated: ${data.generatedAt}", cursor.smallPaint)
-        cursor.y += 12f
+        cursor.y += 8f
     }
 
     private fun drawSection(cursor: Cursor, heading: String, body: String) {
         if (body.isBlank()) return
         cursor.ensure(48f)
-        cursor.y += 8f
-        cursor.line(heading, cursor.boldPaint)
         cursor.y += 6f
+        cursor.line(heading, cursor.boldPaint)
+        cursor.y += 4f
         body.split("\n").forEach { paragraph ->
             wrapText(paragraph, cursor.bodyPaint, CONTENT_WIDTH).forEach { line ->
                 cursor.line(line, cursor.bodyPaint)
             }
         }
-        cursor.y += 10f
+        cursor.y += 6f
     }
 
     private fun drawImage(cursor: Cursor, imageBase64: String?) {
         if (imageBase64.isNullOrBlank()) return
         val bitmap = decodeImage(imageBase64) ?: return
-        val drawWidth = CONTENT_WIDTH.toInt()
-        val drawHeight = (bitmap.height * (drawWidth.toFloat() / bitmap.width)).toInt()
+        val scale = minOf(CONTENT_WIDTH / bitmap.width, MAX_IMAGE_HEIGHT / bitmap.height)
+        val drawWidth = (bitmap.width * scale).toInt()
+        val drawHeight = (bitmap.height * scale).toInt()
         cursor.ensure(24f + drawHeight + 24f)
-        cursor.y += 8f
-        cursor.line("Case image", cursor.boldPaint)
         cursor.y += 6f
-        cursor.canvas.drawBitmap(bitmap, null, android.graphics.RectF(MARGIN, cursor.y, MARGIN + drawWidth, cursor.y + drawHeight), cursor.bodyPaint)
-        cursor.y += drawHeight + 16f
+        cursor.line("Case image", cursor.boldPaint)
+        cursor.y += 4f
+        cursor.canvas.drawBitmap(
+            bitmap,
+            null,
+            android.graphics.RectF(MARGIN, cursor.y, MARGIN + drawWidth, cursor.y + drawHeight),
+            cursor.bodyPaint,
+        )
+        cursor.y += drawHeight + 10f
         bitmap.recycle()
     }
 
@@ -151,8 +163,8 @@ object SoapPdfDocument {
     }
 
     private fun drawDisclaimer(cursor: Cursor) {
-        cursor.ensure(96f)
-        cursor.y += 12f
+        cursor.ensure(32f)
+        cursor.y += 8f
         val disclaimer = "Decision support — not a diagnosis. The veterinarian remains " +
             "responsible for all clinical decisions. Match/confidence values are " +
             "seed or model estimates and must not guide treatment without " +
@@ -197,17 +209,26 @@ object SoapPdfDocument {
 
         private var page: PdfDocument.Page? = null
 
+        /** Lowest baseline whose line still clears the footer zone on a page. */
+        private val contentBottom: Float
+            get() = PAGE_HEIGHT - FOOTER_BASELINE_OFFSET - (-footerPaint.ascent) - FOOTER_GAP
+
         init {
             startPage()
         }
 
+        /** Never draw a line that would enter the footer zone — paginate first. */
         fun line(text: String, paint: Paint) {
+            val advance = paint.textSize + LINE_GAP
+            if (y + advance > contentBottom) {
+                startPage()
+            }
             canvas.drawText(text, MARGIN, y, paint)
-            y += paint.textSize + 4f
+            y += advance
         }
 
         fun ensure(required: Float) {
-            if (y + required > PAGE_HEIGHT - MARGIN) {
+            if (y + required > contentBottom) {
                 startPage()
             }
         }
@@ -237,7 +258,7 @@ object SoapPdfDocument {
 
         /** Draws the clinic/disclaimer footer above the bottom margin. */
         private fun drawFooter(canvas: android.graphics.Canvas) {
-            var baseline = PAGE_HEIGHT - 28f
+            var baseline = PAGE_HEIGHT - FOOTER_BASELINE_OFFSET
             footerLines.forEach { line ->
                 canvas.drawText(line, MARGIN, baseline, footerPaint)
                 baseline += 11f
