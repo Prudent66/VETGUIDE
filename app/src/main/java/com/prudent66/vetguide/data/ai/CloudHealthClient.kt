@@ -1,16 +1,22 @@
 package com.prudent66.vetguide.data.ai
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import com.prudent66.vetguide.domain.ai.AiCatalog
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.timeout
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.IOException
+import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import javax.inject.Inject
 import javax.inject.Singleton
+import javax.net.ssl.SSLException
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.contentOrNull
@@ -40,6 +46,7 @@ sealed interface CloudHealthResult {
 @Singleton
 class CloudHealthClient @Inject constructor(
     private val client: HttpClient,
+    @ApplicationContext private val context: Context,
 ) {
 
     private val json = Json { ignoreUnknownKeys = true }
@@ -89,18 +96,34 @@ class CloudHealthClient @Inject constructor(
         status to mode
     }.getOrDefault(null to null)
 
-    private fun networkMessage(error: IOException): String = when {
-        error is SocketTimeoutException -> "Network timeout"
-        error is UnknownHostException -> "No internet connection"
-        error.message?.contains("timeout", ignoreCase = true) == true -> "Network timeout"
-        error.message?.contains("unable to resolve host", ignoreCase = true) == true ->
-            "No internet connection"
-        else -> "Network unreachable (${error.message ?: error.javaClass.simpleName})"
+    /** True when ConnectivityManager reports an active internet capability. */
+    private fun hasActiveInternet(): Boolean {
+        val manager = context.getSystemService(Context.CONNECTIVITY_SERVICE)
+            as? ConnectivityManager ?: return false
+        val network = manager.activeNetwork ?: return false
+        val capabilities = manager.getNetworkCapabilities(network) ?: return false
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
+
+    private fun networkMessage(error: IOException): String {
+        // A phone with mobile data active but a failing handshake is NOT offline.
+        if (!hasActiveInternet()) return "No internet connection"
+        return when {
+            error is SocketTimeoutException -> "Network timeout"
+            error is UnknownHostException -> "DNS lookup failed — check mobile data"
+            error is ConnectException -> "Server unreachable — slow or unstable signal"
+            error is SSLException -> "Server unreachable — slow or unstable signal"
+            error.message?.contains("timeout", ignoreCase = true) == true -> "Network timeout"
+            error.message?.contains("unable to resolve host", ignoreCase = true) == true ->
+                "DNS lookup failed — check mobile data"
+            else -> "Network unreachable (${error.message ?: error.javaClass.simpleName})"
+        }
     }
 
     private companion object {
-        const val REQUEST_TIMEOUT_MS = 15_000L
-        const val CONNECT_TIMEOUT_MS = 10_000L
+        /** Slow cellular handshakes need a longer budget than the old 10/15 s. */
+        const val REQUEST_TIMEOUT_MS = 25_000L
+        const val CONNECT_TIMEOUT_MS = 20_000L
         const val NANOS_PER_MILLI = 1_000_000L
     }
 }

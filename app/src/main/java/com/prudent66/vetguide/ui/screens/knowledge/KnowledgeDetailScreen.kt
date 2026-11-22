@@ -1,6 +1,7 @@
 package com.prudent66.vetguide.ui.screens.knowledge
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -45,6 +46,7 @@ fun KnowledgeDetailScreen(
     val state by viewModel.uiState.collectAsState()
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
                 title = { Text(bodyTitleOf(state)) },

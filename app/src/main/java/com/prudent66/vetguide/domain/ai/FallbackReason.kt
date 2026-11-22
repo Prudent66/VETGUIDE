@@ -28,12 +28,18 @@ private val transientNetworkReasons: Set<String> = setOf(
     "Network timeout",
     "No internet connection",
     "Network unreachable",
+    "DNS lookup failed — check mobile data",
+    "Server unreachable — slow or unstable signal",
 )
 
 /** Ordered cause → short banner reason; the first matching marker wins. */
 private val reasonMarkers: List<Pair<List<String>, String>> = listOf(
     listOf("timed out", "timeout") to "Network timeout",
     listOf("network access unavailable") to "No internet connection",
+    // Mobile data can be active while DNS fails or a TLS/connection attempt
+    // stalls — surface actionable detail instead of claiming true offline.
+    listOf("dns lookup failed") to "DNS lookup failed — check mobile data",
+    listOf("server unreachable") to "Server unreachable — slow or unstable signal",
     listOf("unknownhost", "unable to resolve host", "no address associated") to
         "No internet connection",
     listOf("http 429", "maximum capacity") to "Cloud API HTTP 429 (rate limited)",

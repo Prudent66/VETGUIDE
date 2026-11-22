@@ -36,7 +36,15 @@ sealed interface AiAttempt {
         val analysisData: AiAnalysisData? = null,
     ) : AiAttempt
 
-    data class Failure(val message: String) : AiAttempt
+    data class Failure(
+        val message: String,
+        /**
+         * True only for upstream HTTP failures (429/502/503/504) that may
+         * trip the orchestrator's circuit breaker. Local network/DNS/timeout
+         * errors stay false so a weak mobile signal never pauses cloud AI.
+         */
+        val breakerEligible: Boolean = false,
+    ) : AiAttempt
 }
 
 /**

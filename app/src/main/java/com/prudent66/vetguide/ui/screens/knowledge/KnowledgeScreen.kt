@@ -2,9 +2,9 @@ package com.prudent66.vetguide.ui.screens.knowledge
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -53,7 +53,10 @@ fun KnowledgeScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Knowledge Base") }) }) { padding ->
+    Scaffold(
+        topBar = { TopAppBar(title = { Text("Knowledge Base") }) },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+    ) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
@@ -157,7 +160,6 @@ private fun KnowledgeList(
         conditions.isEmpty() -> EmptyState(modifier)
         else -> LazyColumn(
             modifier = modifier,
-            contentPadding = PaddingValues(bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(conditions, key = { it.id }) { condition ->

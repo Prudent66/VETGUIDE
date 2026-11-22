@@ -1,6 +1,7 @@
 package com.prudent66.vetguide.domain.ai
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** Short banner reasons that distinguish slow networks from provider outages. */
@@ -53,6 +54,21 @@ class FallbackReasonTest {
             "Cloud AI temporarily paused",
             fallbackReason(listOf("[cloud-backend] skipped — cooling down after failures")),
         )
+    }
+
+    @Test
+    fun `dns and reachability failures get actionable reasons`() {
+        assertEquals(
+            "DNS lookup failed — check mobile data",
+            fallbackReason(listOf("[cloud-backend] DNS lookup failed — check mobile data")),
+        )
+        assertEquals(
+            "Server unreachable — slow or unstable signal",
+            fallbackReason(listOf("[cloud-backend] Server unreachable — slow or unstable signal")),
+        )
+        // Both are transient mobile-data conditions, so they stay queueable.
+        assertTrue(isTransientNetworkReason("DNS lookup failed — check mobile data"))
+        assertTrue(isTransientNetworkReason("Server unreachable — slow or unstable signal"))
     }
 
     @Test

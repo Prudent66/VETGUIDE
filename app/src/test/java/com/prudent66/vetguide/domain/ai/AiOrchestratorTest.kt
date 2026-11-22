@@ -143,6 +143,34 @@ class AiOrchestratorTest {
     }
 
     @Test
+    fun `local network failures never trip the breaker`() = runBlocking {
+        val provider = LocalFailureProvider()
+        val orchestrator = AiOrchestrator(listOf(provider))
+
+        repeat(4) { orchestrator.analyze(request, nowMs = 1_000) }
+
+        assertEquals(4, provider.calls)
+        assertFalse(orchestrator.isBenched(provider.id, nowMs = 2_000))
+    }
+
+    @Test
+    fun `cooldown is capped and resetCircuitBreaker clears bench immediately`() = runBlocking {
+        val provider = FakeAiProvider(id = "primary", failuresBeforeSuccess = 99)
+        val orchestrator = AiOrchestrator(listOf(provider), benchMs = 5 * 60 * 1000L)
+
+        repeat(3) { orchestrator.analyze(request, nowMs = 1_000) }
+        // A requested 5-minute bench is capped at 15 seconds.
+        assertTrue(orchestrator.isBenched("primary", nowMs = 11_000))
+        assertFalse(orchestrator.isBenched("primary", nowMs = 17_000))
+
+        // A fresh /health result can clear the breaker before the cap expires.
+        orchestrator.resetCircuitBreaker()
+        assertFalse(orchestrator.isBenched("primary", nowMs = 1_000))
+        orchestrator.analyze(request, nowMs = 1_000)
+        assertEquals(4, provider.callCount)
+    }
+
+    @Test
     fun `offline fallback is labeled rule-based with no AI provenance`() {
         val text = DeterministicFallbackBuilder.build(
             AiRequest("Goat, adult", "sudden deaths in flock; labored breathing"),
@@ -150,5 +178,18 @@ class AiOrchestratorTest {
 
         assertTrue(text.contains("Rule-based summary engine"))
         assertTrue(text.contains("requires veterinary review"))
+    }
+}
+
+/** Provider whose failures simulate local network faults (never breaker-eligible). */
+private class LocalFailureProvider : AiProvider {
+    override val id: String = "cloud-local"
+
+    var calls: Int = 0
+        private set
+
+    override suspend fun analyze(request: AiRequest): AiAttempt {
+        calls += 1
+        return AiAttempt.Failure("network failure reaching the backend: connection reset")
     }
 }

@@ -1,5 +1,10 @@
 package com.prudent66.vetguide
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -14,7 +19,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -34,11 +46,58 @@ import com.prudent66.vetguide.ui.screens.knowledge.KnowledgeScreen
 import com.prudent66.vetguide.ui.screens.patients.PatientFormScreen
 import com.prudent66.vetguide.ui.screens.patients.PatientListScreen
 import com.prudent66.vetguide.ui.screens.settings.SettingsScreen
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
+/**
+ * Debounces nested-scroll activity from any screen so the copyright footer
+ * hides only while the user is actively scrolling and returns shortly after
+ * scrolling stops.
+ */
+private class FooterScrollTracker(
+    private val scope: CoroutineScope,
+    private val onActivity: (Boolean) -> Unit,
+) : NestedScrollConnection {
+
+    private var debounceJob: Job? = null
+
+    override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+        if (available.y != 0f) notifyActive()
+        return Offset.Zero
+    }
+
+    override fun onPostScroll(
+        consumed: Offset,
+        available: Offset,
+        source: NestedScrollSource,
+    ): Offset {
+        if (consumed.y != 0f || available.y != 0f) notifyActive()
+        return Offset.Zero
+    }
+
+    private fun notifyActive() {
+        onActivity(true)
+        debounceJob?.cancel()
+        debounceJob = scope.launch {
+            delay(SCROLL_IDLE_DEBOUNCE_MS)
+            onActivity(false)
+        }
+    }
+
+    private companion object {
+        const val SCROLL_IDLE_DEBOUNCE_MS = 350L
+    }
+}
 
 /**
  * App scaffold: copyright footer + bottom navigation bar (top-level tabs) +
  * NavHost. Drill-in routes (patient add/edit, case timeline, case record, KB
  * detail) hide the nav bar but keep the footer at the extreme bottom.
+ *
+ * The footer collapses smoothly while any child screen scrolls vertically so
+ * reading space is maximised, and reappears ~350 ms after scrolling stops.
  */
 @Composable
 fun VetguideApp() {
@@ -47,10 +106,22 @@ fun VetguideApp() {
     val currentRoute = backStackEntry?.destination?.route
     val topLevel = Destinations.isTopLevel(currentRoute)
 
+    val scrolling = remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val scrollTracker = remember(scope, scrolling) {
+        FooterScrollTracker(scope) { active -> scrolling.value = active }
+    }
+
     Scaffold(
         bottomBar = {
             Column(modifier = Modifier.fillMaxWidth()) {
-                AppFooter(withSystemInset = !topLevel)
+                AnimatedVisibility(
+                    visible = !scrolling.value,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut(),
+                ) {
+                    AppFooter(withSystemInset = !topLevel)
+                }
                 if (topLevel) {
                     VetguideBottomBar(navController, currentRoute)
                 }
@@ -59,7 +130,9 @@ fun VetguideApp() {
     ) { innerPadding ->
         VetguideNavHost(
             navController = navController,
-            modifier = Modifier.padding(innerPadding),
+            modifier = Modifier
+                .padding(innerPadding)
+                .nestedScroll(scrollTracker),
         )
     }
 }

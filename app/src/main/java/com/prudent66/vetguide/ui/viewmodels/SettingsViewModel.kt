@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prudent66.vetguide.data.ai.CloudHealthClient
 import com.prudent66.vetguide.data.ai.CloudHealthResult
+import com.prudent66.vetguide.domain.ai.AiOrchestrator
 import com.prudent66.vetguide.domain.model.ClinicProfile
 import com.prudent66.vetguide.domain.repository.BackupRepository
 import com.prudent66.vetguide.domain.repository.ClinicProfileSettings
@@ -54,6 +55,7 @@ class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val backupRepository: BackupRepository,
     private val healthClient: CloudHealthClient,
+    private val orchestrator: AiOrchestrator,
 ) : ViewModel() {
 
     val profile: StateFlow<ClinicProfile> = ClinicProfileSettings.observe(settingsRepository)
@@ -97,11 +99,16 @@ class SettingsViewModel @Inject constructor(
         connectionMut.value = CloudConnectionUiState.Checking
         viewModelScope.launch {
             connectionMut.value = when (val result = healthClient.check()) {
-                is CloudHealthResult.Healthy -> CloudConnectionUiState.Success(
-                    status = result.status,
-                    mode = result.mode,
-                    elapsedMs = result.elapsedMs,
-                )
+                is CloudHealthResult.Healthy -> {
+                    // Backend is reachable again — drop any stale breaker so the
+                    // next analysis retries cloud immediately (field fix).
+                    orchestrator.resetCircuitBreaker()
+                    CloudConnectionUiState.Success(
+                        status = result.status,
+                        mode = result.mode,
+                        elapsedMs = result.elapsedMs,
+                    )
+                }
                 is CloudHealthResult.Unhealthy -> CloudConnectionUiState.Failure(
                     message = result.message,
                     elapsedMs = result.elapsedMs,

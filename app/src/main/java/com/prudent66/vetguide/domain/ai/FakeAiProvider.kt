@@ -26,7 +26,9 @@ class FakeAiProvider(
         lastRequest = request
         return if (failuresBeforeSuccess > 0) {
             failuresBeforeSuccess -= 1
-            AiAttempt.Failure("[$id] simulated failure #$callCount")
+            // Scripted failures represent an upstream provider outage, so they
+            // remain eligible to exercise the orchestrator's breaker in tests.
+            AiAttempt.Failure("[$id] simulated failure #$callCount", breakerEligible = true)
         } else {
             AiAttempt.Success(successText)
         }

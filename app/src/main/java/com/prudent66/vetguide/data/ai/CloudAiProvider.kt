@@ -16,7 +16,10 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import java.io.IOException
+import java.net.ConnectException
 import java.net.SocketTimeoutException
+import java.net.UnknownHostException
+import javax.net.ssl.SSLException
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
@@ -61,7 +64,13 @@ class CloudAiProvider(
             HttpStatusCode.TooManyRequests -> throw AiQuotaExceededException(
                 "[$id] AI service at maximum capacity — all provider keys exhausted",
             )
-            else -> AiAttempt.Failure("[$id] backend returned HTTP ${response.status.value}")
+            else -> {
+                val status = response.status.value
+                AiAttempt.Failure(
+                    "[$id] backend returned HTTP $status",
+                    breakerEligible = status in breakerHttpStatuses,
+                )
+            }
         }
     } catch (e: CancellationException) {
         throw e
@@ -77,6 +86,13 @@ class CloudAiProvider(
     } catch (e: HttpRequestTimeoutException) {
         // Ktor's own request timeout (45 s ceiling) also warrants the retry.
         tryCompactRetry(request, e)
+    } catch (e: UnknownHostException) {
+        // Active mobile data but no DNS answer — never bench the cloud tier.
+        AiAttempt.Failure("[$id] DNS lookup failed — check mobile data (${e.message})")
+    } catch (e: ConnectException) {
+        AiAttempt.Failure("[$id] Server unreachable — slow or unstable signal (${e.message})")
+    } catch (e: SSLException) {
+        AiAttempt.Failure("[$id] Server unreachable — slow or unstable signal (${e.message})")
     } catch (e: IOException) {
         // Engine-specific timeout messages that did not map to a typed
         // exception still get the compact retry; other I/O errors (unknown
@@ -152,9 +168,13 @@ class CloudAiProvider(
             HttpStatusCode.OK -> decodeAttempt(body)
             HttpStatusCode.TooManyRequests ->
                 AiAttempt.Failure("[$id] AI service at maximum capacity — all provider keys exhausted")
-            else -> AiAttempt.Failure(
-                "[$id] compact retry backend returned HTTP ${response.status.value}",
-            )
+            else -> {
+                val status = response.status.value
+                AiAttempt.Failure(
+                    "[$id] compact retry backend returned HTTP $status",
+                    breakerEligible = status in breakerHttpStatuses,
+                )
+            }
         }
     } catch (e: CancellationException) {
         throw e
@@ -168,5 +188,10 @@ class CloudAiProvider(
     } catch (e: SerializationException) {
         android.util.Log.w("CloudAiProvider", "Compact retry schema validation failed", e)
         AiAttempt.Failure("[$id] compact retry backend response failed schema validation: ${e.message}")
+    }
+
+    private companion object {
+        /** Only these upstream HTTP responses may trip the circuit breaker. */
+        val breakerHttpStatuses = setOf(429, 502, 503, 504)
     }
 }

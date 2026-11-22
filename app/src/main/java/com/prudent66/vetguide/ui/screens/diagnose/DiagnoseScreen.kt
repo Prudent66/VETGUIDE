@@ -2,6 +2,7 @@ package com.prudent66.vetguide.ui.screens.diagnose
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -68,7 +69,10 @@ fun DiagnoseScreen(
         saveToCaseViewModel.savedCase.collect { caseId -> onCaseSaved(caseId) }
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text(title(state, imageState)) }) }) { padding ->
+    Scaffold(
+        topBar = { TopAppBar(title = { Text(title(state, imageState)) }) },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+    ) { padding ->
         Box(
             modifier = Modifier
                 .padding(padding)
