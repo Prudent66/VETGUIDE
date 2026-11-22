@@ -145,9 +145,9 @@ fun VetguideApp() {
             modifier = Modifier
                 .padding(
                     PaddingValues(
-                        left = innerPadding.calculateLeftPadding(layoutDirection),
+                        start = innerPadding.calculateStartPadding(layoutDirection),
                         top = innerPadding.calculateTopPadding(),
-                        right = innerPadding.calculateRightPadding(layoutDirection),
+                        end = innerPadding.calculateEndPadding(layoutDirection),
                         // Stable resting clearance + breathing room.
                         bottom = restingBottom.value + bottomScrollClearance,
                     ),
