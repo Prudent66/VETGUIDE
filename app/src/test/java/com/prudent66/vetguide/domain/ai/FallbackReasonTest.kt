@@ -72,6 +72,21 @@ class FallbackReasonTest {
     }
 
     @Test
+    fun `upstream capacity and rate limit responses stay queueable`() {
+        assertEquals(
+            "Cloud API HTTP 429 (rate limited)",
+            fallbackReason(listOf("[cloud-backend] maximum capacity reached")),
+        )
+        assertEquals(
+            "Cloud API HTTP 429 (rate limited)",
+            fallbackReason(listOf("[cloud-backend] all provider keys exhausted")),
+        )
+        assertTrue(isQueueableFallbackReason("Cloud API HTTP 429 (rate limited)"))
+        assertTrue(isQueueableFallbackReason("Cloud API HTTP 5xx"))
+        assertTrue(isQueueableFallbackReason("Cloud AI unavailable"))
+    }
+
+    @Test
     fun `unknown failures fall back to a generic reason`() {
         assertEquals("Cloud AI unavailable", fallbackReason(emptyList()))
         assertEquals("Cloud AI unavailable", fallbackReason(listOf("scripted failure")))

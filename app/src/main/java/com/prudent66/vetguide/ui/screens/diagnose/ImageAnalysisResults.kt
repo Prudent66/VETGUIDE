@@ -19,7 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.prudent66.vetguide.domain.ai.OFFLINE_PROVIDER_ID
-import com.prudent66.vetguide.domain.ai.isTransientNetworkReason
+import com.prudent66.vetguide.domain.ai.isQueueableFallbackReason
 import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.ui.screens.knowledge.speciesLabel
 import com.prudent66.vetguide.ui.viewmodels.ImageAnalysisUiState
@@ -99,10 +99,10 @@ fun ImageResultPhase(
         Button(onClick = onSaveToCase, modifier = Modifier.fillMaxWidth()) {
             Text("Save to Case")
         }
-        // Show "Queue for Cloud AI (Auto-Sync)" button for offline results
-        // that failed due to transient network issues (§9 resilience).
+        // Show "Queue for Cloud AI (Auto-Sync)" for transient network faults
+        // AND temporary upstream capacity/rate-limit responses (§9 resilience).
         val shouldShowQueueButton = result.providerId == OFFLINE_PROVIDER_ID &&
-            isTransientNetworkReason(result.fallbackReason)
+            isQueueableFallbackReason(result.fallbackReason)
         if (shouldShowQueueButton && onQueueForRetry != null) {
             OutlinedButton(
                 onClick = onQueueForRetry,

@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -27,8 +28,12 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -50,6 +55,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+/** Extra breathing room so bottom-most buttons clear the resting footer. */
+private val bottomScrollClearance = 16.dp
 
 /**
  * Debounces nested-scroll activity from any screen so the copyright footer
@@ -112,28 +120,74 @@ fun VetguideApp() {
         FooterScrollTracker(scope) { active -> scrolling.value = active }
     }
 
+    // Resting bottom height of footer + bottom nav + system bars, measured
+    // only while the footer is expanded. It must NOT track the collapsing
+    // Scaffold innerPadding: otherwise the re-expanded footer covers the
+    // bottom-most button (e.g. "Export PDF" on Case record) at scroll rest.
+    val restingBottom = remember { mutableStateOf(0.dp) }
+
     Scaffold(
         bottomBar = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                AnimatedVisibility(
-                    visible = !scrolling.value,
-                    enter = expandVertically() + fadeIn(),
-                    exit = shrinkVertically() + fadeOut(),
-                ) {
-                    AppFooter(withSystemInset = !topLevel)
-                }
-                if (topLevel) {
-                    VetguideBottomBar(navController, currentRoute)
-                }
-            }
+            AppBottomBar(
+                topLevel = topLevel,
+                currentRoute = currentRoute,
+                navController = navController,
+                scrolling = scrolling.value,
+                onRestingHeight = { measured ->
+                    restingBottom.value = maxOf(restingBottom.value, measured)
+                },
+            )
         },
     ) { innerPadding ->
+        val layoutDirection = LocalLayoutDirection.current
         VetguideNavHost(
             navController = navController,
             modifier = Modifier
-                .padding(innerPadding)
+                .padding(
+                    PaddingValues(
+                        left = innerPadding.calculateLeftPadding(layoutDirection),
+                        top = innerPadding.calculateTopPadding(),
+                        right = innerPadding.calculateRightPadding(layoutDirection),
+                        // Stable resting clearance + breathing room.
+                        bottom = restingBottom.value + bottomScrollClearance,
+                    ),
+                )
                 .nestedScroll(scrollTracker),
         )
+    }
+}
+
+/**
+ * Bottom bar whose measured resting height is reported upward. Measurement is
+ * skipped while the footer is collapsed so only the full expanded height is
+ * used for the stable content clearance.
+ */
+@Composable
+private fun AppBottomBar(
+    topLevel: Boolean,
+    currentRoute: String?,
+    navController: NavHostController,
+    scrolling: Boolean,
+    onRestingHeight: (Dp) -> Unit,
+) {
+    val density = LocalDensity.current
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .onSizeChanged { size ->
+                if (!scrolling) onRestingHeight(with(density) { size.height.toDp() })
+            },
+    ) {
+        AnimatedVisibility(
+            visible = !scrolling,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut(),
+        ) {
+            AppFooter(withSystemInset = !topLevel)
+        }
+        if (topLevel) {
+            VetguideBottomBar(navController, currentRoute)
+        }
     }
 }
 

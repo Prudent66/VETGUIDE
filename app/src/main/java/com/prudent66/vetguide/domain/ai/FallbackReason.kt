@@ -18,8 +18,7 @@ fun fallbackReason(diagnostics: List<String>): String {
 
 /**
  * True when the fallback was caused by transient connectivity (timeout, no
- * route, host resolution). Those are the cases a store-and-forward queue can
- * resolve once the network improves; provider-side outages are not queued.
+ * route, host resolution).
  */
 fun isTransientNetworkReason(reason: String?): Boolean =
     reason != null && reason in transientNetworkReasons
@@ -32,6 +31,22 @@ private val transientNetworkReasons: Set<String> = setOf(
     "Server unreachable — slow or unstable signal",
 )
 
+/**
+ * True for any fallback a store-and-forward background retry can plausibly
+ * resolve: transient connectivity PLUS temporary upstream capacity limits
+ * (HTTP 429 / 503, "maximum capacity", exhausted keys, or an unspecified
+ * "Cloud AI unavailable"). Rate limits clear after a cooldown, so the
+ * "Queue for Cloud AI (Auto-Sync)" action must stay available for them.
+ */
+fun isQueueableFallbackReason(reason: String?): Boolean =
+    reason != null && reason in queueableReasons
+
+private val queueableReasons: Set<String> = transientNetworkReasons + setOf(
+    "Cloud API HTTP 429 (rate limited)",
+    "Cloud API HTTP 5xx",
+    "Cloud AI unavailable",
+)
+
 /** Ordered cause → short banner reason; the first matching marker wins. */
 private val reasonMarkers: List<Pair<List<String>, String>> = listOf(
     listOf("timed out", "timeout") to "Network timeout",
@@ -42,7 +57,8 @@ private val reasonMarkers: List<Pair<List<String>, String>> = listOf(
     listOf("server unreachable") to "Server unreachable — slow or unstable signal",
     listOf("unknownhost", "unable to resolve host", "no address associated") to
         "No internet connection",
-    listOf("http 429", "maximum capacity") to "Cloud API HTTP 429 (rate limited)",
+    listOf("http 429", "maximum capacity", "keys exhausted") to
+        "Cloud API HTTP 429 (rate limited)",
     listOf("http 5") to "Cloud API HTTP 5xx",
     listOf("insufficient information") to "Cloud response was inconclusive",
     listOf("schema validation") to "Cloud response was invalid",

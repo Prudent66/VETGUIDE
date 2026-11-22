@@ -10,7 +10,7 @@ import com.prudent66.vetguide.domain.ai.AiOrchestrator
 import com.prudent66.vetguide.domain.ai.AiRequest
 import com.prudent66.vetguide.domain.ai.AiResult
 import com.prudent66.vetguide.domain.ai.fallbackReason
-import com.prudent66.vetguide.domain.ai.isTransientNetworkReason
+import com.prudent66.vetguide.domain.ai.isQueueableFallbackReason
 import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.domain.repository.CloudAnalysisScheduler
 import com.prudent66.vetguide.domain.repository.PendingCloudAnalysisRepository
@@ -211,13 +211,13 @@ class ImageAnalysisViewModel @Inject constructor(
     }
 
     /**
-     * Persists a network-failed analysis to the store-and-forward queue and
-     * schedules a WorkManager retry constrained to a connected network.
-     * Triggered by the "Queue for Cloud AI (Auto-Sync)" button on the result
-     * screen; only transient-connectivity reasons qualify.
+     * Persists a failed analysis to the store-and-forward queue and schedules
+     * a WorkManager retry constrained to a connected network. Triggered by the
+     * "Queue for Cloud AI (Auto-Sync)" button; both transient connectivity
+     * faults and temporary upstream capacity/rate-limit responses qualify.
      */
     fun queueForRetry(result: ImageAnalysisUiState.Result) {
-        if (!isTransientNetworkReason(result.fallbackReason)) return
+        if (!isQueueableFallbackReason(result.fallbackReason)) return
         val imageBase64 = result.imageBase64 ?: return
         enqueuePendingAnalysis(imageBase64, result.species, result.clinicalContext)
     }
