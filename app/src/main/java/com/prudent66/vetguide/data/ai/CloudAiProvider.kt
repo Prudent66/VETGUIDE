@@ -59,19 +59,7 @@ class CloudAiProvider(
             )
         }
         val body = response.bodyAsText()
-        when (response.status) {
-            HttpStatusCode.OK -> decodeAttempt(body)
-            HttpStatusCode.TooManyRequests -> throw AiQuotaExceededException(
-                "[$id] AI service at maximum capacity — all provider keys exhausted",
-            )
-            else -> {
-                val status = response.status.value
-                AiAttempt.Failure(
-                    "[$id] backend returned HTTP $status",
-                    breakerEligible = status in breakerHttpStatuses,
-                )
-            }
-        }
+        analyzeStatus(response.status, body)
     } catch (e: CancellationException) {
         throw e
     } catch (e: AiQuotaExceededException) {
@@ -104,6 +92,21 @@ class CloudAiProvider(
         }
     } catch (e: SerializationException) {
         AiAttempt.Failure("[$id] backend response failed schema validation: ${e.message}")
+    }
+
+    /** Maps one upstream HTTP status to an attempt; only 429/502/503/504 bench. */
+    private fun analyzeStatus(status: HttpStatusCode, body: String): AiAttempt = when (status) {
+        HttpStatusCode.OK -> decodeAttempt(body)
+        HttpStatusCode.TooManyRequests -> throw AiQuotaExceededException(
+            "[$id] AI service at maximum capacity — all provider keys exhausted",
+        )
+        else -> {
+            val code = status.value
+            AiAttempt.Failure(
+                "[$id] backend returned HTTP $code",
+                breakerEligible = code in breakerHttpStatuses,
+            )
+        }
     }
 
     private fun decodeAttempt(body: String): AiAttempt {

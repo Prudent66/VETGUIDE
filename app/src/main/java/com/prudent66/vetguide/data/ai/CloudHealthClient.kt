@@ -99,10 +99,9 @@ class CloudHealthClient @Inject constructor(
     /** True when ConnectivityManager reports an active internet capability. */
     private fun hasActiveInternet(): Boolean {
         val manager = context.getSystemService(Context.CONNECTIVITY_SERVICE)
-            as? ConnectivityManager ?: return false
-        val network = manager.activeNetwork ?: return false
-        val capabilities = manager.getNetworkCapabilities(network) ?: return false
-        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            as? ConnectivityManager
+        val capabilities = manager?.activeNetwork?.let { manager.getNetworkCapabilities(it) }
+        return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
     }
 
     private fun networkMessage(error: IOException): String {
