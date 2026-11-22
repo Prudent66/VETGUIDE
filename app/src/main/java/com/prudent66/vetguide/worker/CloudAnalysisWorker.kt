@@ -36,8 +36,9 @@ import kotlinx.coroutines.withContext
 
 /**
  * Background worker that retries pending cloud AI analyses when connectivity
- * is available (store-and-forward). Scheduled by [CloudAnalysisScheduler]
- * with a [androidx.work.NetworkType.CONNECTED] constraint.
+ * is available (store-and-forward). Scheduled by
+ * [WorkManagerCloudAnalysisScheduler] with a
+ * [androidx.work.NetworkType.CONNECTED] constraint.
  *
  * Flow:
  * 1. Load the queued analysis referenced by the work input.

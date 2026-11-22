@@ -19,11 +19,13 @@ import com.prudent66.vetguide.database.QuestionnaireDao
 import com.prudent66.vetguide.database.VetguideDatabase
 import com.prudent66.vetguide.domain.repository.BackupRepository
 import com.prudent66.vetguide.domain.repository.CaseRepository
+import com.prudent66.vetguide.domain.repository.CloudAnalysisScheduler
 import com.prudent66.vetguide.domain.repository.KnowledgeRepository
 import com.prudent66.vetguide.domain.repository.PatientRepository
 import com.prudent66.vetguide.domain.repository.PendingCloudAnalysisRepository
 import com.prudent66.vetguide.domain.repository.QuestionnaireRepository
 import com.prudent66.vetguide.domain.repository.SettingsRepository
+import com.prudent66.vetguide.worker.WorkManagerCloudAnalysisScheduler
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -104,4 +106,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindPendingCloudAnalysisRepository(impl: PendingCloudAnalysisRepositoryImpl): PendingCloudAnalysisRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCloudAnalysisScheduler(impl: WorkManagerCloudAnalysisScheduler): CloudAnalysisScheduler
 }

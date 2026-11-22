@@ -1,6 +1,5 @@
 package com.prudent66.vetguide.ui.viewmodels
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prudent66.vetguide.data.ai.AiQuotaExceededException
@@ -13,10 +12,9 @@ import com.prudent66.vetguide.domain.ai.AiResult
 import com.prudent66.vetguide.domain.ai.fallbackReason
 import com.prudent66.vetguide.domain.ai.isTransientNetworkReason
 import com.prudent66.vetguide.domain.model.Species
+import com.prudent66.vetguide.domain.repository.CloudAnalysisScheduler
 import com.prudent66.vetguide.domain.repository.PendingCloudAnalysisRepository
-import com.prudent66.vetguide.worker.CloudAnalysisScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.UUID
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
@@ -88,8 +86,8 @@ sealed interface ImageAnalysisUiState {
 @HiltViewModel
 class ImageAnalysisViewModel @Inject constructor(
     private val orchestrator: AiOrchestrator,
-    @ApplicationContext private val context: Context,
     private val pendingAnalysisRepository: PendingCloudAnalysisRepository,
+    private val scheduler: CloudAnalysisScheduler,
 ) : ViewModel() {
 
     private val mut = MutableStateFlow<ImageAnalysisUiState>(ImageAnalysisUiState.Idle)
@@ -243,7 +241,7 @@ class ImageAnalysisViewModel @Inject constructor(
                 retryCount = 0,
             )
             pendingAnalysisRepository.add(entity)
-            CloudAnalysisScheduler.enqueueNewAnalysis(context, entity)
+            scheduler.enqueue(entity)
         }
     }
 

@@ -9,25 +9,24 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.prudent66.vetguide.database.PendingCloudAnalysisEntity
+import com.prudent66.vetguide.domain.repository.CloudAnalysisScheduler
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
- * Schedules [CloudAnalysisWorker] requests for the store-and-forward queue.
- * Work is constrained to [NetworkType.CONNECTED] so retries only run once the
- * device has an active internet connection. Retries use exponential back-off;
- * the worker itself enforces the maximum attempt count via
- * [PendingCloudAnalysisEntity.retryCount].
+ * WorkManager-backed [CloudAnalysisScheduler]. Work is constrained to
+ * [NetworkType.CONNECTED] so retries only run once the device has an active
+ * internet connection. Retries use exponential back-off; the worker itself
+ * enforces the maximum attempt count via [PendingCloudAnalysisEntity.retryCount].
  */
-object CloudAnalysisScheduler {
+@Singleton
+class WorkManagerCloudAnalysisScheduler @Inject constructor(
+    @ApplicationContext private val context: Context,
+) : CloudAnalysisScheduler {
 
-    private const val WORK_TAG = "cloud_analysis_retry"
-    private const val BACKOFF_MINUTES = 15L
-
-    /**
-     * Enqueues a queued analysis for background retry. A unique work name per
-     * pending row keeps repeated taps from stacking duplicate requests.
-     */
-    fun enqueueNewAnalysis(context: Context, pending: PendingCloudAnalysisEntity) {
+    override fun enqueue(pending: PendingCloudAnalysisEntity) {
         val request = OneTimeWorkRequestBuilder<CloudAnalysisWorker>()
             .setConstraints(
                 Constraints.Builder()
@@ -35,11 +34,17 @@ object CloudAnalysisScheduler {
                     .build(),
             )
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, BACKOFF_MINUTES, TimeUnit.MINUTES)
-            .setInputData(workDataOf("workId" to pending.id))
+            .setInputData(workDataOf(KEY_WORK_ID to pending.id))
             .addTag(WORK_TAG)
             .build()
 
         WorkManager.getInstance(context)
             .enqueueUniqueWork(pending.id, ExistingWorkPolicy.KEEP, request)
+    }
+
+    private companion object {
+        const val KEY_WORK_ID = "workId"
+        const val WORK_TAG = "cloud_analysis_retry"
+        const val BACKOFF_MINUTES = 15L
     }
 }

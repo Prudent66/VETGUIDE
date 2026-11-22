@@ -1,6 +1,5 @@
 package com.prudent66.vetguide.ui.viewmodels
 
-import android.test.mock.MockContext
 import com.prudent66.vetguide.data.ai.AiQuotaExceededException
 import com.prudent66.vetguide.database.PendingCloudAnalysisEntity
 import com.prudent66.vetguide.domain.ai.AiAttempt
@@ -10,6 +9,7 @@ import com.prudent66.vetguide.domain.ai.AiRequest
 import com.prudent66.vetguide.domain.ai.FakeAiProvider
 import com.prudent66.vetguide.domain.ai.OFFLINE_PROVIDER_ID
 import com.prudent66.vetguide.domain.model.Species
+import com.prudent66.vetguide.domain.repository.CloudAnalysisScheduler
 import com.prudent66.vetguide.domain.repository.PendingCloudAnalysisRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -61,8 +61,8 @@ class ImageAnalysisViewModelTest {
 
     private fun viewModel(orchestrator: AiOrchestrator) = ImageAnalysisViewModel(
         orchestrator = orchestrator,
-        context = MockContext(),
         pendingAnalysisRepository = FakePendingCloudAnalysisRepository(),
+        scheduler = FakeCloudAnalysisScheduler(),
     )
 
     private suspend fun ImageAnalysisViewModel.awaitResult(
@@ -194,6 +194,11 @@ class ImageAnalysisViewModelTest {
         val state = viewModel.uiState.value as ImageAnalysisUiState.QuotaExceeded
         assertEquals(Species.POULTRY, state.species)
     }
+}
+
+/** Test double that records no scheduling side effects (no WorkManager in JVM tests). */
+private class FakeCloudAnalysisScheduler : CloudAnalysisScheduler {
+    override fun enqueue(pending: PendingCloudAnalysisEntity) = Unit
 }
 
 /** In-memory stand-in for the Room-backed store-and-forward queue. */
