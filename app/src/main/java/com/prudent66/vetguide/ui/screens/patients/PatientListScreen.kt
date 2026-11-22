@@ -65,7 +65,11 @@ fun PatientListScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = { TopAppBar(title = { Text("Patients") }) },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddPatientClick) {
+            FloatingActionButton(
+                onClick = onAddPatientClick,
+                // NavHost runs flush to the footer, so lift the FAB above it.
+                modifier = Modifier.padding(bottom = LocalBottomBarClearance.current),
+            ) {
                 Icon(
                     painter = painterResource(R.drawable.nav_add),
                     contentDescription = "Add patient",

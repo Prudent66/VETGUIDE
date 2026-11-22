@@ -18,9 +18,13 @@ import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -43,6 +47,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.prudent66.vetguide.data.ai.ImageEncoder
+import com.prudent66.vetguide.ui.components.LocalBottomBarClearance
 import java.io.IOException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -72,7 +77,9 @@ fun ImageCaptureScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp)
+            .padding(bottom = LocalBottomBarClearance.current),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
@@ -83,16 +90,12 @@ fun ImageCaptureScreen(
             CameraReadyContent(
                 onImageCaptured = onImageCaptured,
                 onError = { capture.captureError = it },
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
             )
         } else {
             CameraRationale(
                 onGrant = capture.requestPermission,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
             )
         }
         CaptureControls(
@@ -167,10 +170,13 @@ private fun CameraReadyContent(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        // Bounded preview: weight(1f) is illegal in a scroll container and an
+        // unbounded preview hides Capture / gallery buttons in landscape.
         Box(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .aspectRatio(4f / 3f)
+                .heightIn(max = 320.dp),
         ) {
             CameraPreviewArea(
                 imageCapture = imageCapture,
