@@ -211,7 +211,7 @@ object SoapPdfDocument {
 
         /** Lowest baseline whose line still clears the footer zone on a page. */
         private val contentBottom: Float
-            get() = PAGE_HEIGHT - FOOTER_BASELINE_OFFSET - (-footerPaint.ascent) - FOOTER_GAP
+            get() = PAGE_HEIGHT - FOOTER_BASELINE_OFFSET - (-footerPaint.ascent()) - FOOTER_GAP
 
         init {
             startPage()
