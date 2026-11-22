@@ -134,12 +134,12 @@ object ImageEncoder {
         )
     }
 
-    companion object {
-        /** Compact retry: 512px longest side. */
-        const val COMPACT_MAX_DIMENSION = 512
-        /** Compact retry: 50% JPEG quality. */
-        const val COMPACT_JPEG_QUALITY = 50
-        /** Compact retry: ~30 KB raw JPEG budget. */
-        const val COMPACT_MAX_UPLOAD_BYTES = 30 * 1024
-    }
+    /** Compact retry: 512px longest side. */
+    const val COMPACT_MAX_DIMENSION = 512
+
+    /** Compact retry: 50% JPEG quality. */
+    const val COMPACT_JPEG_QUALITY = 50
+
+    /** Compact retry: ~30 KB raw JPEG budget. */
+    const val COMPACT_MAX_UPLOAD_BYTES = 30 * 1024
 }
