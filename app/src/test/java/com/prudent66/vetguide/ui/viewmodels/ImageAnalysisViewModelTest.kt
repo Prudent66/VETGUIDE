@@ -1,6 +1,8 @@
 package com.prudent66.vetguide.ui.viewmodels
 
+import android.test.mock.MockContext
 import com.prudent66.vetguide.data.ai.AiQuotaExceededException
+import com.prudent66.vetguide.database.PendingCloudAnalysisEntity
 import com.prudent66.vetguide.domain.ai.AiAttempt
 import com.prudent66.vetguide.domain.ai.AiOrchestrator
 import com.prudent66.vetguide.domain.ai.AiProvider
@@ -8,7 +10,10 @@ import com.prudent66.vetguide.domain.ai.AiRequest
 import com.prudent66.vetguide.domain.ai.FakeAiProvider
 import com.prudent66.vetguide.domain.ai.OFFLINE_PROVIDER_ID
 import com.prudent66.vetguide.domain.model.Species
+import com.prudent66.vetguide.domain.repository.PendingCloudAnalysisRepository
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -54,7 +59,11 @@ class ImageAnalysisViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private fun viewModel(orchestrator: AiOrchestrator) = ImageAnalysisViewModel(orchestrator)
+    private fun viewModel(orchestrator: AiOrchestrator) = ImageAnalysisViewModel(
+        orchestrator = orchestrator,
+        context = MockContext(),
+        pendingAnalysisRepository = FakePendingCloudAnalysisRepository(),
+    )
 
     private suspend fun ImageAnalysisViewModel.awaitResult(
         timeoutMs: Long = 5_000,
@@ -184,5 +193,20 @@ class ImageAnalysisViewModelTest {
         }
         val state = viewModel.uiState.value as ImageAnalysisUiState.QuotaExceeded
         assertEquals(Species.POULTRY, state.species)
+    }
+}
+
+/** In-memory stand-in for the Room-backed store-and-forward queue. */
+private class FakePendingCloudAnalysisRepository : PendingCloudAnalysisRepository {
+    private val queued = mutableListOf<PendingCloudAnalysisEntity>()
+
+    override suspend fun add(analysis: PendingCloudAnalysisEntity) {
+        queued += analysis
+    }
+
+    override fun observeAll(): Flow<List<PendingCloudAnalysisEntity>> = flowOf(queued.toList())
+
+    override suspend fun remove(id: String) {
+        queued.removeAll { it.id == id }
     }
 }

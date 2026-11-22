@@ -47,6 +47,7 @@ object DatabaseModule {
         ).addMigrations(
             VetguideDatabase.MIGRATION_1_TO_2,
             VetguideDatabase.MIGRATION_2_TO_3,
+            VetguideDatabase.migration4To5,
         ).fallbackToDestructiveMigration(true).build()
 
     @Provides

@@ -117,10 +117,9 @@ abstract class VetguideDatabase : RoomDatabase() {
                     "ON `kb_condition_weights` (`symptomId`)")
             }
         }
-    }
 
         /** v5: pending cloud analyses for store-and-forward (§9 resilience). */
-        val MIGRATION_4_TO_5: Migration = object : Migration(4, 5) {
+        val migration4To5: Migration = object : Migration(4, 5) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
                     "CREATE TABLE IF NOT EXISTS `pending_cloud_analyses` " +
@@ -128,15 +127,18 @@ abstract class VetguideDatabase : RoomDatabase() {
                         "`species` TEXT, `clinicalContext` TEXT, " +
                         "`caseId` TEXT, `patientId` TEXT, " +
                         "`createdAtEpochMs` INTEGER NOT NULL, " +
-                        "`compactRetryAttempted` INTEGER NOT NULL DEFAULT 0, " +
-                        "`retryCount` INTEGER NOT NULL DEFAULT 0, " +
+                        "`compactRetryAttempted` INTEGER NOT NULL, " +
+                        "`retryCount` INTEGER NOT NULL, " +
                         "PRIMARY KEY(`id`))",
                 )
-                db.execSQL("CREATE INDEX IF NOT EXISTS `index_pending_cloud_analyses_createdAt` " +
-                    "ON `pending_cloud_analyses` (`createdAtEpochMs`)")
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS " +
+                        "`index_pending_cloud_analyses_createdAtEpochMs` " +
+                        "ON `pending_cloud_analyses` (`createdAtEpochMs`)",
+                )
                 db.execSQL("CREATE INDEX IF NOT EXISTS `index_pending_cloud_analyses_caseId` " +
                     "ON `pending_cloud_analyses` (`caseId`)")
             }
         }
-}
+    }
 }

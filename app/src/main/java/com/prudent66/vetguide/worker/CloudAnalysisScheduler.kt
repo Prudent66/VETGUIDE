@@ -3,71 +3,43 @@ package com.prudent66.vetguide.worker
 import android.content.Context
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequest
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.prudent66.vetguide.database.PendingCloudAnalysisEntity
 import java.util.concurrent.TimeUnit
 
 /**
- * Schedules and manages [CloudAnalysisWorker] requests for the store-and-forward
- * queue. All work is constrained to [NetworkType.CONNECTED] so retries only
- * run when the device has an active internet connection.
+ * Schedules [CloudAnalysisWorker] requests for the store-and-forward queue.
+ * Work is constrained to [NetworkType.CONNECTED] so retries only run once the
+ * device has an active internet connection. Retries use exponential back-off;
+ * the worker itself enforces the maximum attempt count via
+ * [PendingCloudAnalysisEntity.retryCount].
  */
 object CloudAnalysisScheduler {
 
-    /** Unique work tag for enqueueing/cancelling. */
     private const val WORK_TAG = "cloud_analysis_retry"
+    private const val BACKOFF_MINUTES = 15L
 
     /**
-     * Schedules a background retry for the given pending analysis ID.
-     * Uses exponential back-off (WorkManager default) with a minimum delay
-     * that grows with each retry attempt.
-     */
-    fun scheduleRetry(context: Context, workId: String) {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
-
-        val workRequest = OneTimeWorkRequest.Builder(CloudAnalysisWorker::class.java)
-            .setConstraints(constraints)
-            .setInitialDelay(calculateBackoffDelay(workId), TimeUnit.MILLISECONDS)
-            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 15, TimeUnit.MINUTES)
-            .addTag(WORK_TAG)
-            .setInputData(androidx.work.Data.Builder().putString("workId", workId).build())
-            .build()
-
-        WorkManager.getInstance(context)
-            .enqueueUniqueWork(workId, androidx.work.ExistingWorkPolicy.KEEP, workRequest)
-    }
-
-    /**
-     * Enqueues a new pending analysis for background retry when connectivity
-     * returns. Called when an image upload times out or the device is offline.
+     * Enqueues a queued analysis for background retry. A unique work name per
+     * pending row keeps repeated taps from stacking duplicate requests.
      */
     fun enqueueNewAnalysis(context: Context, pending: PendingCloudAnalysisEntity) {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
-
-        val workRequest = OneTimeWorkRequest.Builder(CloudAnalysisWorker::class.java)
-            .setConstraints(constraints)
-            .setInputData(androidx.work.Data.Builder().putString("workId", pending.id).build())
+        val request = OneTimeWorkRequestBuilder<CloudAnalysisWorker>()
+            .setConstraints(
+                Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build(),
+            )
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, BACKOFF_MINUTES, TimeUnit.MINUTES)
+            .setInputData(workDataOf("workId" to pending.id))
+            .addTag(WORK_TAG)
             .build()
 
         WorkManager.getInstance(context)
-            .enqueueUniqueWork(pending.id, androidx.work.ExistingWorkPolicy.KEEP, workRequest)
-    }
-
-    /** Cancels any pending retry for the given work ID. */
-    fun cancelRetry(context: Context, workId: String) {
-        WorkManager.getInstance(context).cancelUniqueWork(workId)
-    }
-
-    /** Calculates a simple back-off delay based on retry count encoded in the work ID hash. */
-    private fun calculateBackoffDelay(workId: String): Long {
-        // Simple deterministic delay based on workId hash for demonstration.
-        // In practice, the retry count is stored in the entity and passed via input data.
-        return (workId.hashCode().absoluteValue % 5 + 1) * 60_000L // 1-5 minutes
+            .enqueueUniqueWork(pending.id, ExistingWorkPolicy.KEEP, request)
     }
 }

@@ -1,6 +1,5 @@
 package com.prudent66.vetguide.data.ai
 
-import com.prudent66.vetguide.data.ai.ImageEncoder
 import com.prudent66.vetguide.domain.ai.AiAnalysisData
 import com.prudent66.vetguide.domain.ai.AiAnalysisRequest
 import com.prudent66.vetguide.domain.ai.AiAttempt
@@ -9,6 +8,7 @@ import com.prudent66.vetguide.domain.ai.AiProvider
 import com.prudent66.vetguide.domain.ai.AiRequest
 import com.prudent66.vetguide.domain.ai.toNarrativeText
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -71,14 +71,19 @@ class CloudAiProvider(
         // Defense in depth: e.g. a build without the INTERNET permission must
         // degrade to the failover ladder, never crash the app (§5.2).
         AiAttempt.Failure("[$id] network access unavailable: ${e.message}")
-    } catch (e: SocketTimeoutException) {
-        // Socket timeout (read/write) on slow upload — attempt one compact retry
-        // (512px / 50% quality / ~30 KB) before giving up to the failover ladder.
-        return tryCompactRetry(request, e)
     } catch (e: IOException) {
-        // UnknownHostException / connection resets / other I/O errors surface
-        // as failures so the orchestrator ladder can proceed (§5.2).
-        AiAttempt.Failure("[$id] network failure reaching the backend: ${e.message}")
+        // Socket/write timeouts on a slow upload (java.net.SocketTimeoutException,
+        // Ktor's request timeout, or an engine-specific timeout message) get one
+        // compact retry (512px / 50% quality / ~30 KB) before the failover ladder.
+        // Other I/O errors (UnknownHostException, resets) surface as failures.
+        val timedOut = e is SocketTimeoutException ||
+            e is HttpRequestTimeoutException ||
+            e.message?.contains("timeout", ignoreCase = true) == true
+        if (timedOut) {
+            tryCompactRetry(request, e)
+        } else {
+            AiAttempt.Failure("[$id] network failure reaching the backend: ${e.message}")
+        }
     } catch (e: SerializationException) {
         AiAttempt.Failure("[$id] backend response failed schema validation: ${e.message}")
     }
@@ -100,9 +105,17 @@ class CloudAiProvider(
      */
     private suspend fun tryCompactRetry(
         request: AiRequest,
-        originalError: SocketTimeoutException,
+        originalError: IOException,
     ): AiAttempt {
-        val compactBase64 = ImageEncoder.recompressForCompactRetry(request.imageBase64)
+        val primaryBase64 = request.imageBase64
+            ?: return AiAttempt.Failure("[$id] network failure reaching the backend: ${originalError.message}")
+        val compactBase64 = try {
+            ImageEncoder.recompressForCompactRetry(primaryBase64)
+        } catch (e: IllegalArgumentException) {
+            // Corrupt payload cannot be re-encoded — let the ladder fail over.
+            android.util.Log.w("CloudAiProvider", "Compact retry re-compress failed", e)
+            return AiAttempt.Failure("[$id] network failure reaching the backend: ${originalError.message}")
+        }
         return try {
             val response = client.post("$baseUrl/analyze") {
                 contentType(ContentType.Application.Json)
@@ -119,24 +132,23 @@ class CloudAiProvider(
             val body = response.bodyAsText()
             when (response.status) {
                 HttpStatusCode.OK -> decodeAttempt(body)
-                HttpStatusCode.TooManyRequests -> throw AiQuotaExceededException(
-                    "[$id] AI service at maximum capacity — all provider keys exhausted",
-                )
+                HttpStatusCode.TooManyRequests ->
+                    AiAttempt.Failure("[$id] AI service at maximum capacity — all provider keys exhausted")
                 else -> AiAttempt.Failure(
                     "[$id] compact retry backend returned HTTP ${response.status.value}",
                 )
             }
         } catch (e: CancellationException) {
             throw e
-        } catch (e: AiQuotaExceededException) {
-            throw e
         } catch (e: SecurityException) {
             AiAttempt.Failure("[$id] compact retry network access unavailable: ${e.message}")
         } catch (e: IOException) {
             // Compact retry also failed — propagate the original timeout so the
             // orchestrator ladder (on-device → deterministic-offline) proceeds.
+            android.util.Log.w("CloudAiProvider", "Compact retry failed", e)
             AiAttempt.Failure("[$id] network failure reaching the backend: ${originalError.message}")
         } catch (e: SerializationException) {
+            android.util.Log.w("CloudAiProvider", "Compact retry schema validation failed", e)
             AiAttempt.Failure("[$id] compact retry backend response failed schema validation: ${e.message}")
         }
     }

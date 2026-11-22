@@ -16,6 +16,20 @@ fun fallbackReason(diagnostics: List<String>): String {
         ?: "Cloud AI unavailable"
 }
 
+/**
+ * True when the fallback was caused by transient connectivity (timeout, no
+ * route, host resolution). Those are the cases a store-and-forward queue can
+ * resolve once the network improves; provider-side outages are not queued.
+ */
+fun isTransientNetworkReason(reason: String?): Boolean =
+    reason != null && reason in transientNetworkReasons
+
+private val transientNetworkReasons: Set<String> = setOf(
+    "Network timeout",
+    "No internet connection",
+    "Network unreachable",
+)
+
 /** Ordered cause → short banner reason; the first matching marker wins. */
 private val reasonMarkers: List<Pair<List<String>, String>> = listOf(
     listOf("timed out", "timeout") to "Network timeout",

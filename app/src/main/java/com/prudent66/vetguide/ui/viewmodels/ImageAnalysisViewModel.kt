@@ -1,19 +1,23 @@
 package com.prudent66.vetguide.ui.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prudent66.vetguide.data.ai.AiQuotaExceededException
 import com.prudent66.vetguide.data.ai.ImageEncoder
+import com.prudent66.vetguide.database.PendingCloudAnalysisEntity
 import com.prudent66.vetguide.domain.ai.AiAnalysisData
 import com.prudent66.vetguide.domain.ai.AiOrchestrator
 import com.prudent66.vetguide.domain.ai.AiRequest
 import com.prudent66.vetguide.domain.ai.AiResult
 import com.prudent66.vetguide.domain.ai.fallbackReason
+import com.prudent66.vetguide.domain.ai.isTransientNetworkReason
 import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.domain.repository.PendingCloudAnalysisRepository
 import com.prudent66.vetguide.worker.CloudAnalysisScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.UUID
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -161,10 +165,6 @@ class ImageAnalysisViewModel @Inject constructor(
                     clinicalContext = clinicalContext,
                     fallbackReason = reason,
                 )
-                // Queue for background retry if the failure was a network issue.
-                if (reason != null && shouldQueueForRetry(reason)) {
-                    queueForBackgroundRetry(review, clinicalContext, reason)
-                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: AiQuotaExceededException) {
@@ -213,45 +213,37 @@ class ImageAnalysisViewModel @Inject constructor(
     }
 
     /**
-     * Determines if the fallback reason indicates a transient network issue
-     * that warrants queuing for background retry when connectivity improves.
+     * Persists a network-failed analysis to the store-and-forward queue and
+     * schedules a WorkManager retry constrained to a connected network.
+     * Triggered by the "Queue for Cloud AI (Auto-Sync)" button on the result
+     * screen; only transient-connectivity reasons qualify.
      */
-    private fun shouldQueueForRetry(reason: String): Boolean =
-        reason == "Network timeout" || reason == "No internet connection" || reason == "Network unreachable"
+    fun queueForRetry(result: ImageAnalysisUiState.Result) {
+        if (!isTransientNetworkReason(result.fallbackReason)) return
+        val imageBase64 = result.imageBase64 ?: return
+        enqueuePendingAnalysis(imageBase64, result.species, result.clinicalContext)
+    }
 
-    /**
-     * Persists the failed analysis to the store-and-forward queue and
-     * schedules a WorkManager retry with NetworkType.CONNECTED constraint.
-     */
-    private fun queueForBackgroundRetry(
-        review: ImageAnalysisUiState.Review,
+    private fun enqueuePendingAnalysis(
+        imageBase64: String,
+        species: Species?,
         clinicalContext: String?,
-        reason: String,
     ) {
         viewModelScope.launch {
-            val entity = com.prudent66.vetguide.database.PendingCloudAnalysisEntity(
-                id = java.util.UUID.randomUUID().toString(),
-                imageBase64 = review.imageBase64,
-                species = review.species?.name,
+            val entity = PendingCloudAnalysisEntity(
+                id = UUID.randomUUID().toString(),
+                imageBase64 = imageBase64,
+                species = species?.name,
                 clinicalContext = clinicalContext,
-                caseId = null, // Will be linked if user saves to case later
+                caseId = null, // Linked to a case if the vet saves it later
                 patientId = null,
                 createdAtEpochMs = System.currentTimeMillis(),
-                compactRetryAttempted = false, // The compact retry already happened in CloudAiProvider
+                // The primary attempt already tried the compact payload.
+                compactRetryAttempted = true,
                 retryCount = 0,
             )
             pendingAnalysisRepository.add(entity)
             CloudAnalysisScheduler.enqueueNewAnalysis(context, entity)
-        }
-    }
-
-    /** Public entry for the "Queue for Cloud AI (Auto-Sync)" button. */
-    fun queueForRetry(result: ImageAnalysisUiState.Result) {
-        val review = mut.value as? ImageAnalysisUiState.Review
-            ?: return
-        val reason = result.fallbackReason ?: return
-        if (shouldQueueForRetry(reason)) {
-            queueForBackgroundRetry(review, result.clinicalContext, reason)
         }
     }
 

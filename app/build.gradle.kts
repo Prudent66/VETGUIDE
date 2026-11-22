@@ -140,6 +140,7 @@ dependencies {
     // Background work (Phase 9): store-and-forward for cloud AI retry
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
 
     // Image capture (Phase 6): CameraX preview + still capture
     implementation(libs.androidx.camera.core)

@@ -28,13 +28,4 @@ interface PendingCloudAnalysisDao {
 
     @Query("SELECT * FROM pending_cloud_analyses ORDER BY createdAtEpochMs ASC")
     fun observeAll(): Flow<List<PendingCloudAnalysisEntity>>
-
-    @Query("SELECT * FROM pending_cloud_analyses WHERE caseId = :caseId ORDER BY createdAtEpochMs ASC")
-    fun observeByCase(caseId: String): Flow<List<PendingCloudAnalysisEntity>>
-
-    @Query("SELECT * FROM pending_cloud_analyses WHERE compactRetryAttempted = 0 ORDER BY createdAtEpochMs ASC LIMIT 1")
-    suspend fun getNextForCompactRetry(): PendingCloudAnalysisEntity?
-
-    @Query("SELECT * FROM pending_cloud_analyses WHERE retryCount < 5 ORDER BY createdAtEpochMs ASC LIMIT 1")
-    suspend fun getNextForBackgroundRetry(): PendingCloudAnalysisEntity?
 }

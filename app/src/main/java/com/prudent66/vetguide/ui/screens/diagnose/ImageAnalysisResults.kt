@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.prudent66.vetguide.domain.ai.OFFLINE_PROVIDER_ID
+import com.prudent66.vetguide.domain.ai.isTransientNetworkReason
 import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.ui.screens.knowledge.speciesLabel
 import com.prudent66.vetguide.ui.viewmodels.ImageAnalysisUiState
@@ -101,13 +102,10 @@ fun ImageResultPhase(
         // Show "Queue for Cloud AI (Auto-Sync)" button for offline results
         // that failed due to transient network issues (§9 resilience).
         val shouldShowQueueButton = result.providerId == OFFLINE_PROVIDER_ID &&
-            result.fallbackReason != null &&
-            (result.fallbackReason == "Network timeout" ||
-             result.fallbackReason == "No internet connection" ||
-             result.fallbackReason == "Network unreachable")
-        if (shouldShowQueueButton) {
+            isTransientNetworkReason(result.fallbackReason)
+        if (shouldShowQueueButton && onQueueForRetry != null) {
             OutlinedButton(
-                onClick = onQueueForRetry ?: { },
+                onClick = onQueueForRetry,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("Queue for Cloud AI (Auto-Sync)")
