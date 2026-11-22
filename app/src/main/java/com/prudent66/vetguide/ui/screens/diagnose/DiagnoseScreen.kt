@@ -172,7 +172,7 @@ private fun title(state: DiagnosticUiState, imageState: ImageAnalysisUiState): S
             is ImageAnalysisUiState.Capture -> "Photo analysis"
             is ImageAnalysisUiState.Review -> "Confirm image"
             is ImageAnalysisUiState.Analyzing -> "Analyzing"
-            is ImageAnalysisUiState.Result -> "AI analysis"
+            is ImageAnalysisUiState.Result -> "Analysis Finding:"
             is ImageAnalysisUiState.ImageError -> "Photo analysis"
             is ImageAnalysisUiState.QuotaExceeded -> "AI service busy"
             ImageAnalysisUiState.Idle -> "Diagnose"

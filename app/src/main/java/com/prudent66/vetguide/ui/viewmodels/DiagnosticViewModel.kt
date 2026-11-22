@@ -92,7 +92,13 @@ class DiagnosticViewModel @Inject constructor(
         mut.value = start.copy(species = species, patientId = null, error = null)
     }
 
-    /** Null patient clears the link; a real patient locks the species. */
+    /**
+     * Selecting a registered patient adopts that patient's species as the
+     * default so the species selector and the patient record cannot drift
+     * apart. The vet can still override it manually via [selectSpecies],
+     * which clears the patient link; choosing "Not recorded" keeps the
+     * current species and only clears the link.
+     */
     fun selectPatient(patient: Patient?) {
         val start = mut.value as? DiagnosticUiState.Start ?: return
         mut.value = start.copy(

@@ -38,6 +38,9 @@ object SoapPdfDocument {
     private const val MARGIN = 48f
     private const val CONTENT_WIDTH = PAGE_WIDTH - 2 * MARGIN
 
+    /** Single source for the header subtitle — rendered exactly once per report. */
+    private const val HEADER_SUBTITLE = "Veterinary clinical assistant - clinical report"
+
     fun build(data: SoapReportData): PdfDocument {
         val document = PdfDocument()
         val body = Paint().apply {
@@ -77,7 +80,7 @@ object SoapPdfDocument {
             },
         )
         cursor.y += 24f
-        cursor.line("Veterinary clinical assistant — clinical report", cursor.smallPaint)
+        cursor.line(HEADER_SUBTITLE, cursor.smallPaint)
         data.clinicName?.takeIf { it.isNotBlank() }?.let {
             cursor.line("Clinic: $it", cursor.smallPaint)
         }
