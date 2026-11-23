@@ -30,3 +30,7 @@ secrets.properties
 .DS_Store
 Thumbs.db
 *.swp
+
+# Node tooling for the Cloudflare Worker (backend/)
+node_modules/
+backend/.test-build/

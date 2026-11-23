@@ -2,10 +2,15 @@
   "name": "vetguide-api",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "test": "tsc -p tsconfig.json && node test/cascade.test.mjs"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261122.2",
+    "typescript": "^5.9.3",
     "wrangler": "^3.0.0"
   }
 }

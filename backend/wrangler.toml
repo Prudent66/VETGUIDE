@@ -2,8 +2,21 @@ name = "vetguide-api"
 main = "src/index.ts"
 compatibility_date = "2026-11-01"
 
+[ai]
+# Tier-4 fallback: Cloudflare Workers AI (llama-3.2-11b-vision-instruct).
+# Binding is non-secret; requires Workers AI to be enabled on the account.
+binding = "AI"
+
 [vars]
 # Non-secret configuration only (roadmap §8 / docs/SECURITY.md). Provider
 # credentials are NEVER stored here — set them via `wrangler secret put`
-# (e.g. GEMINI_API_KEY), which stores them encrypted server-side.
+# (GEMINI_API_KEY, GROQ_API_KEY, OPENROUTER_API_KEY, MISTRAL_API_KEY), which
+# stores them encrypted server-side.
 ENVIRONMENT = "mock"
+
+# Optional model overrides (comma-separated, non-secret). Omit to use the
+# built-in cascades in src/index.ts.
+# GEMINI_MODEL = "gemini-2.5-flash,gemini-2.0-flash,gemini-2.5-flash-lite"
+# GROQ_MODEL = "qwen/qwen3.8-27b"
+# OPENROUTER_MODEL = "nvidia/nemotron-3.5-super-vl:free"
+# MISTRAL_MODEL = "pixtral-12b-2409"
