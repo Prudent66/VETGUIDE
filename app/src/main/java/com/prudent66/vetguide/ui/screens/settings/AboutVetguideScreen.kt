@@ -110,10 +110,13 @@ private fun CapabilitiesSection() {
         findings, suspected conditions with confidence scores, and structured
         field guidance.
 
-        Separated Prescriptions & Dosages Sheet: Drug and injection protocols
-        (with dosing and routes) are presented on their own dedicated
-        Prescriptions & Dosages sheet, kept distinct from general supportive
-        care and follow-up steps.
+        Separated Prescriptions & Dosages Sheet & Syringe Calculator: Drug and
+        injection protocols are presented on their own dedicated sheet, kept
+        distinct from general supportive care. Using the animal's recorded
+        species and weight, VETGUIDE automatically calculates exact milligram
+        doses, syringe draw volumes (mL) for the selected bottle concentration,
+        meat and milk withdrawal periods, and species safety alerts, so the
+        clinician can verify everything before administering treatment.
 
         Offline Resilience & Auto-Sync: Works reliably offline using built-in
         clinical questionnaires and an offline veterinary knowledge base, and
@@ -140,9 +143,10 @@ private fun HowToSection() {
         or observations to sharpen results.
 
         Step 3 — Review Analysis & Prescriptions: Inspect the findings and
-        suspected conditions, tap Open Prescriptions & Dosages to review
-        suggested drug/injection regimens separately from supportive care,
-        and adjust as needed.
+        suspected conditions, then tap Open Prescriptions & Dosages. The sheet
+        is pre-filled with the animal's species and recorded weight — adjust
+        the weight or bottle concentration if needed, and verify the calculated
+        mL syringe volume and withdrawal period before administering treatment.
 
         Step 4 — Save SOAP Note & Export PDF: Save the case to the patient's
         clinical record, review or edit the auto-populated SOAP plan, and

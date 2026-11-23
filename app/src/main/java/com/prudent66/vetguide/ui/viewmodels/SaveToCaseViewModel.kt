@@ -167,12 +167,22 @@ class SaveToCaseViewModel @Inject constructor(
 
     fun selectPatient(patientId: String?) {
         val visible = mut.value as? SaveToCaseUiState.Visible ?: return
-        mut.value = visible.copy(selectedPatientId = patientId, error = null)
+        mut.value = visible.copy(
+            selectedPatientId = patientId,
+            // Choosing a registered patient discards any half-typed new name.
+            quickAddName = if (patientId == null) visible.quickAddName else "",
+            error = null,
+        )
     }
 
     fun setQuickAddName(name: String) {
         val visible = mut.value as? SaveToCaseUiState.Visible ?: return
-        mut.value = visible.copy(quickAddName = name, error = null)
+        mut.value = visible.copy(
+            quickAddName = name,
+            // A non-blank new name unselects the existing-patient radio.
+            selectedPatientId = if (name.isBlank()) visible.selectedPatientId else null,
+            error = null,
+        )
     }
 
     fun setQuickAddSpecies(species: Species) {

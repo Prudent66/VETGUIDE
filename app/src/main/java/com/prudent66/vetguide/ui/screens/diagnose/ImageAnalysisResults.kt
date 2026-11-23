@@ -109,7 +109,11 @@ private fun ResultBody(result: ImageAnalysisUiState.Result) {
         if (result.degraded) {
             ReducedReliabilityLine()
         }
-        StructuredReport(analysisData)
+        StructuredReport(
+            analysisData,
+            species = result.species,
+            weightKg = result.weightKg,
+        )
     } else {
         // Offline/rule-based output keeps its §10 "never AI" labeling and has
         // no structured payload — scan the narrative for prescription lines.
@@ -124,7 +128,12 @@ private fun ResultBody(result: ImageAnalysisUiState.Result) {
         val prescriptions = remember(result.narrative) {
             buildPrescriptionPlan(analysisData = null, narrative = result.narrative).prescriptions
         }
-        PrescriptionCard(prescriptions, Modifier.fillMaxWidth())
+        PrescriptionCard(
+            prescriptions,
+            species = result.species,
+            weightKg = result.weightKg,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 

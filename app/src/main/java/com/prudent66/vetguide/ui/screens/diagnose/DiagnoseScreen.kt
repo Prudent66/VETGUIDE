@@ -118,7 +118,7 @@ private fun QuestionnairePhase(
         is DiagnosticUiState.Start -> StartPhase(
             start = s,
             viewModel = viewModel,
-            onAnalyzeImage = { ageLabel -> imageViewModel.start(s.species, ageLabel, s.patientId) },
+            onAnalyzeImage = { ageLabel, weight -> imageViewModel.start(s.species, ageLabel, s.patientId, weight) },
         )
         is DiagnosticUiState.Wizard -> WizardPhase(wizard = s, viewModel = viewModel)
         is DiagnosticUiState.Results -> ResultsPhase(
@@ -233,7 +233,7 @@ private fun ErrorPhase(
 private fun StartPhase(
     start: DiagnosticUiState.Start,
     viewModel: DiagnosticViewModel,
-    onAnalyzeImage: (String?) -> Unit,
+    onAnalyzeImage: (String?, Double?) -> Unit,
 ) {
     val patients by viewModel.patients.collectAsState()
     val selectedPatient = patients.firstOrNull { it.id == start.patientId }
@@ -253,7 +253,7 @@ private fun StartPhase(
         SpeciesSelection(start, viewModel)
         PatientSelection(start, patients, viewModel)
         OutlinedButton(
-            onClick = { onAnalyzeImage(selectedPatient?.ageLabel()) },
+            onClick = { onAnalyzeImage(selectedPatient?.ageLabel(), selectedPatient?.weightKg) },
             modifier = Modifier.fillMaxWidth(),
         ) { Text("Analyze a photo") }
         Button(

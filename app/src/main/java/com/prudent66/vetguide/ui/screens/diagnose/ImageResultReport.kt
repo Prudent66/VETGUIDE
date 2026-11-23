@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.prudent66.vetguide.domain.ai.AiAnalysisData
 import com.prudent66.vetguide.domain.ai.SuspectedCondition
+import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.domain.ai.buildPrescriptionPlan
 import com.prudent66.vetguide.ui.components.PrescriptionCard
 import kotlin.math.roundToInt
@@ -27,12 +28,21 @@ import kotlin.math.roundToInt
  * differentials, prescriptions, and non-drug supportive care.
  */
 @Composable
-internal fun StructuredReport(data: AiAnalysisData) {
+internal fun StructuredReport(
+    data: AiAnalysisData,
+    species: Species? = null,
+    weightKg: Double? = null,
+) {
     val plan = remember(data) { buildPrescriptionPlan(data) }
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         FindingsSection(data.findings)
         DifferentialSection(data.suspectedConditions)
-        PrescriptionCard(plan.prescriptions, Modifier.fillMaxWidth())
+        PrescriptionCard(
+            plan.prescriptions,
+            species = species,
+            weightKg = weightKg,
+            modifier = Modifier.fillMaxWidth(),
+        )
         SupportiveCareSection(plan.supportiveCare)
     }
 }

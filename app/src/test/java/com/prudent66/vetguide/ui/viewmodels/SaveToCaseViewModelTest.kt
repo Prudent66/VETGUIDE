@@ -89,6 +89,39 @@ class SaveToCaseViewModelTest {
         assertEquals(Species.CAT, visible.quickAddSpecies)
     }
 
+    @Test
+    fun `new patient name and existing patient radio are mutually exclusive`() {
+        val viewModel = viewModel()
+        viewModel.openForImage(
+            ImageAnalysisUiState.Result(
+                species = Species.POULTRY,
+                patientId = "p1",
+                providerId = "test",
+                narrative = "findings",
+                degraded = false,
+            ),
+        )
+        val selected = viewModel.uiState.value as SaveToCaseUiState.Visible
+        assertEquals("p1", selected.selectedPatientId)
+
+        // Typing a new name clears the existing-patient radio.
+        viewModel.setQuickAddName("New chick")
+        val typed = viewModel.uiState.value as SaveToCaseUiState.Visible
+        assertEquals("New chick", typed.quickAddName)
+        assertEquals(null, typed.selectedPatientId)
+
+        // Tapping an existing patient clears the typed name.
+        viewModel.selectPatient("p2")
+        val picked = viewModel.uiState.value as SaveToCaseUiState.Visible
+        assertEquals("p2", picked.selectedPatientId)
+        assertEquals("", picked.quickAddName)
+
+        // Blank name leaves a valid existing selection untouched.
+        viewModel.setQuickAddName("")
+        val blank = viewModel.uiState.value as SaveToCaseUiState.Visible
+        assertEquals("p2", blank.selectedPatientId)
+    }
+
     private fun patient(id: String, name: String, species: Species) = Patient(
         id = id,
         name = name,

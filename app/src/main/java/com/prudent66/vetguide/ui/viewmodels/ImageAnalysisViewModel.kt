@@ -58,6 +58,8 @@ sealed interface ImageAnalysisUiState {
          * photo flow so Save-to-Case can pre-select it (Build 15 fix).
          */
         val patientId: String? = null,
+        /** Patient weight from the selected record, for the dosage calculator. */
+        val weightKg: Double? = null,
         val providerId: String,
         val narrative: String,
         val degraded: Boolean,
@@ -104,10 +106,19 @@ class ImageAnalysisViewModel @Inject constructor(
     /** Patient selected at Start, forwarded to Save-to-Case for pre-selection. */
     private var patientId: String? = null
 
+    /** Patient weight, pre-filled into the dosage calculator on the result. */
+    private var weightKg: Double? = null
+
     /** Entry point from the questionnaire Start phase, carrying the species. */
-    fun start(species: Species?, ageLabel: String? = null, patientId: String? = null) {
+    fun start(
+        species: Species?,
+        ageLabel: String? = null,
+        patientId: String? = null,
+        weightKg: Double? = null,
+    ) {
         this.ageLabel = ageLabel
         this.patientId = patientId
+        this.weightKg = weightKg
         mut.value = ImageAnalysisUiState.Capture(species)
     }
 
@@ -136,6 +147,7 @@ class ImageAnalysisViewModel @Inject constructor(
     fun reset() {
         ageLabel = null
         patientId = null
+        weightKg = null
         mut.value = ImageAnalysisUiState.Idle
     }
 
@@ -166,6 +178,7 @@ class ImageAnalysisViewModel @Inject constructor(
                 mut.value = ImageAnalysisUiState.Result(
                     species = review.species,
                     patientId = patientId,
+                    weightKg = weightKg,
                     providerId = result.providerId,
                     narrative = resultNarrative(result),
                     degraded = result is AiResult.ProviderSuccess && result.degraded,

@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import com.prudent66.vetguide.domain.ai.buildPrescriptionPlan
 import com.prudent66.vetguide.domain.ai.sanitizeAiItem
 import com.prudent66.vetguide.domain.model.AiArtifactPayload
+import com.prudent66.vetguide.domain.model.Patient
 import com.prudent66.vetguide.domain.model.SoapPayload
 import com.prudent66.vetguide.domain.model.ageLabel
 import com.prudent66.vetguide.domain.model.clinicalAnalysisText
@@ -74,7 +75,7 @@ internal fun CaseDetailContent(
         state.imageBase64?.let { base64 ->
             Base64Image(base64 = base64, contentDescription = "Saved case image")
         }
-        state.ai?.let { ai -> AiAnalysisCard(ai) }
+        state.ai?.let { ai -> AiAnalysisCard(ai, state.patient) }
         HorizontalDivider()
         SoapEditor(soap = state.soap, onSave = viewModel::saveSoap)
         Button(
@@ -94,7 +95,7 @@ internal fun CaseDetailContent(
 }
 
 @Composable
-private fun AiAnalysisCard(ai: AiArtifactPayload) {
+private fun AiAnalysisCard(ai: AiArtifactPayload, patient: Patient?) {
     val plan = remember(ai) { buildPrescriptionPlan(ai.analysisData, ai.narrative) }
     ArtifactCard("Analysis Finding:") {
         Text(clinicalAnalysisText(ai.narrative), style = MaterialTheme.typography.bodyMedium)
@@ -111,7 +112,12 @@ private fun AiAnalysisCard(ai: AiArtifactPayload) {
             }
         }
     }
-    PrescriptionCard(plan.prescriptions, Modifier.fillMaxWidth())
+    PrescriptionCard(
+        plan.prescriptions,
+        species = patient?.species,
+        weightKg = patient?.weightKg,
+        modifier = Modifier.fillMaxWidth(),
+    )
 }
 
 @Composable
