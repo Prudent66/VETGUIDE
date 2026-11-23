@@ -125,8 +125,18 @@ jobs:
             echo "::notice::No keystore configured — APK is unsigned; add the four secrets to sign."
             exit 0
           fi
-          jarsigner -verify "$APK" | tee /tmp/apk-verify.txt
-          grep -q "jar verified" /tmp/apk-verify.txt
+          # Release APKs carry APK Signature Scheme v2/v3 (no JAR manifest),
+          # so jarsigner would report "unsigned". Verify with apksigner from
+          # the Android build-tools instead — it checks the v2/v3 blocks that
+          # Android actually uses for in-place updates.
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          APKSIGNER="$(ls "$SDK"/build-tools/*/apksigner 2>/dev/null | sort -V | tail -n1)"
+          if [ -z "$APKSIGNER" ]; then
+            echo "::error::apksigner not found under $SDK/build-tools"
+            exit 1
+          fi
+          "$APKSIGNER" verify --print-certs "$APK" | tee /tmp/apk-verify.txt
+          grep -Eq "Verified using v[23] scheme.*: true" /tmp/apk-verify.txt
           ls -lh "$APK"
 
       # room.schemaLocation is written by the Room processor outside the KSP
