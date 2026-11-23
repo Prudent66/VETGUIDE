@@ -23,7 +23,7 @@ class SeedCompletenessTest {
         val payload = QuestionnaireSeedParser.parse(asset("questionnaire_seed.json"))
         val bySpecies = payload.questions.groupBy { it.species }
 
-        Species.entries.forEach { species ->
+        Species.entries.filter { it != Species.OTHER }.forEach { species ->
             val questions = bySpecies[species.name].orEmpty()
             assertTrue("$species has no seeded questions", questions.isNotEmpty())
             assertTrue("$species has fewer than four questions", questions.size >= 4)

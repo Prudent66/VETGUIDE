@@ -66,7 +66,9 @@ class KbSeeder @Inject constructor(
     /** True when every supported species has at least one seeded question. */
     private suspend fun allSpeciesQuestionnairesPresent(
         dao: QuestionnaireDao,
-    ): Boolean = Species.entries.all { species -> dao.getQuestions(species.name).isNotEmpty() }
+    ): Boolean = Species.entries
+        .filter { it != Species.OTHER }
+        .all { species -> dao.getQuestions(species.name).isNotEmpty() }
 
     /** Returns null (with a log) when the asset is unreadable or invalid. */
     private inline fun <T> parseSeed(asset: String, parse: (String) -> T): T? = try {
