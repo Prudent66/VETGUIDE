@@ -39,7 +39,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -258,18 +257,21 @@ private fun VetguideNavHost(navController: NavHostController, modifier: Modifier
                 onEditPatientClick = { navController.navigate(Destinations.patientEdit(it)) },
             )
         }
-        composable(Destinations.KNOWLEDGE) {
-            KnowledgeScreen(
-                onConditionClick = { navController.navigate(Destinations.knowledgeDetail(it)) },
+        composable(Destinations.KNOWLEDGE) { KnowledgeScreen(onConditionClick = { navController.navigate(Destinations.knowledgeDetail(it)) }) }
+        composable(Destinations.SETTINGS) { SettingsScreen(onOpenAbout = { navController.navigate(Destinations.ABOUT) }) }
+        composable(Destinations.ABOUT) { AboutVetguideScreen(onBack = navController::popBackStack) }
+        composable(Destinations.PATIENTS_ADD) {
+            PatientFormScreen(
+                onSaved = navController::popBackStack,
+                onDismiss = navController::popBackStack,
             )
         }
-        composable(Destinations.SETTINGS) {
-            SettingsScreen(onOpenAbout = { navController.navigate(Destinations.ABOUT) })
+        composable(Destinations.PATIENT_EDIT) {
+            PatientFormScreen(
+                onSaved = navController::popBackStack,
+                onDismiss = navController::popBackStack,
+            )
         }
-        composable(Destinations.ABOUT) {
-            AboutVetguideScreen(onBack = navController::popBackStack)
-        }
-        patientFormRoutes(navController)
         composable(Destinations.CASES_FOR_PATIENT) {
             CaseListScreen(
                 onBack = navController::popBackStack,
@@ -283,22 +285,6 @@ private fun VetguideNavHost(navController: NavHostController, modifier: Modifier
         composable(Destinations.KB_CONDITION_DETAIL) {
             KnowledgeDetailScreen(onBack = navController::popBackStack)
         }
-    }
-}
-
-@Composable
-private fun NavGraphBuilder.patientFormRoutes(navController: NavHostController) {
-    composable(Destinations.PATIENTS_ADD) {
-        PatientFormScreen(
-            onSaved = navController::popBackStack,
-            onDismiss = navController::popBackStack,
-        )
-    }
-    composable(Destinations.PATIENT_EDIT) {
-        PatientFormScreen(
-            onSaved = navController::popBackStack,
-            onDismiss = navController::popBackStack,
-        )
     }
 }
 
