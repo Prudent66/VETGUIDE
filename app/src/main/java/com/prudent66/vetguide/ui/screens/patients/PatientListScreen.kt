@@ -67,19 +67,7 @@ fun PatientListScreen(
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = { TopAppBar(title = { Text("Patients") }) },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onAddPatientClick,
-                // NavHost runs flush to the footer, so lift the FAB above it.
-                modifier = Modifier.padding(bottom = LocalBottomBarClearance.current),
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.nav_add),
-                    contentDescription = "Add patient",
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
-        },
+        floatingActionButton = { AddPatientFab(onClick = onAddPatientClick) },
     ) { padding ->
         Column(
             modifier = Modifier
@@ -92,12 +80,14 @@ fun PatientListScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
             ) { Text("Herd / Flock Mode") }
-            PatientStateContent(
-                state = state,
-                onPatientClick = onPatientClick,
-                onEditPatientClick = onEditPatientClick,
-                onDeletePatient = { pendingDelete = it },
-            )
+            Box(modifier = Modifier.fillMaxSize().weight(1f)) {
+                PatientStateContent(
+                    state = state,
+                    onPatientClick = onPatientClick,
+                    onEditPatientClick = onEditPatientClick,
+                    onDeletePatient = { pendingDelete = it },
+                )
+            }
         }
     }
 
@@ -121,29 +111,42 @@ fun PatientListScreen(
 
 
 @Composable
+private fun AddPatientFab(onClick: () -> Unit) {
+    FloatingActionButton(
+        onClick = onClick,
+        // NavHost runs flush to the footer, so lift the FAB above it.
+        modifier = Modifier.padding(bottom = LocalBottomBarClearance.current),
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.nav_add),
+            contentDescription = "Add patient",
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
+    }
+}
+
+@Composable
 private fun PatientStateContent(
     state: PatientListUiState,
     onPatientClick: (String) -> Unit,
     onEditPatientClick: (String) -> Unit,
     onDeletePatient: (Patient) -> Unit,
 ) {
-    Box(modifier = Modifier.fillMaxSize().weight(1f)) {
-        when (val s = state) {
-            PatientListUiState.Loading -> LoadingBox()
-            is PatientListUiState.Success ->
-                if (s.patients.isEmpty()) {
-                    EmptyState()
-                } else {
-                    PatientList(
-                        patients = s.patients,
-                        modifier = Modifier.fillMaxSize(),
-                        onPatientClick = onPatientClick,
-                        onEditPatient = onEditPatientClick,
-                        onDeletePatient = onDeletePatient,
-                    )
-                }
-            is PatientListUiState.Error -> ErrorBox(s.message)
-        }
+    when (val s = state) {
+        PatientListUiState.Loading -> LoadingBox()
+        is PatientListUiState.Success ->
+            if (s.patients.isEmpty()) {
+                EmptyState()
+            } else {
+                PatientList(
+                    patients = s.patients,
+                    modifier = Modifier.fillMaxSize(),
+                    onPatientClick = onPatientClick,
+                    onEditPatient = onEditPatientClick,
+                    onDeletePatient = onDeletePatient,
+                )
+            }
+        is PatientListUiState.Error -> ErrorBox(s.message)
     }
 }
 
