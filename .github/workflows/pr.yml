@@ -135,8 +135,12 @@ jobs:
             echo "::error::apksigner not found under $SDK/build-tools"
             exit 1
           fi
-          "$APKSIGNER" verify --print-certs "$APK" | tee /tmp/apk-verify.txt
-          grep -Eq "Verified using v[23] scheme.*: true" /tmp/apk-verify.txt
+          # apksigner exits non-zero if verification fails. Capture to a file
+          # (not a pipe) so bash -e sees its real exit code; output wording
+          # differs across build-tools versions, so just confirm a signer cert.
+          "$APKSIGNER" verify --print-certs "$APK" > /tmp/apk-verify.txt 2>&1
+          cat /tmp/apk-verify.txt
+          grep -q "Signer" /tmp/apk-verify.txt
           ls -lh "$APK"
 
       # room.schemaLocation is written by the Room processor outside the KSP
