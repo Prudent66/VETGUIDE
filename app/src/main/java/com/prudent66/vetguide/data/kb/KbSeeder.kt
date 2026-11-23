@@ -3,7 +3,9 @@ package com.prudent66.vetguide.data.kb
 import android.content.Context
 import android.database.sqlite.SQLiteException
 import androidx.room.withTransaction
+import com.prudent66.vetguide.database.QuestionnaireDao
 import com.prudent66.vetguide.database.VetguideDatabase
+import com.prudent66.vetguide.domain.model.Species
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.IOException
 import javax.inject.Inject
@@ -47,8 +49,11 @@ class KbSeeder @Inject constructor(
         val payload = parseSeed(QUESTIONNAIRE_ASSET) { QuestionnaireSeedParser.parse(it) } ?: return false
 
         val dao = db.questionnaireDao()
+        // Version bump is the normal upgrade path; the completeness check also
+        // repairs installs whose marker advanced but some species never seeded.
         val needsImport =
-            dao.getSettingValue(QuestionnaireSeedMarker.SEED_VERSION_KEY) != payload.version.toString()
+            dao.getSettingValue(QuestionnaireSeedMarker.SEED_VERSION_KEY) != payload.version.toString() ||
+                !allSpeciesQuestionnairesPresent(dao)
         return if (needsImport) {
             runTransaction("questionnaire seed") {
                 QuestionnaireSeedApplier.apply(payload, dao)
@@ -57,6 +62,11 @@ class KbSeeder @Inject constructor(
             false
         }
     }
+
+    /** True when every supported species has at least one seeded question. */
+    private suspend fun allSpeciesQuestionnairesPresent(
+        dao: QuestionnaireDao,
+    ): Boolean = Species.entries.all { species -> dao.getQuestions(species.name).isNotEmpty() }
 
     /** Returns null (with a log) when the asset is unreadable or invalid. */
     private inline fun <T> parseSeed(asset: String, parse: (String) -> T): T? = try {

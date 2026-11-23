@@ -23,6 +23,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -60,6 +62,7 @@ fun PatientListScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     var pendingDelete by remember { mutableStateOf<Patient?>(null) }
+    var showHerd by remember { mutableStateOf(false) }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -78,27 +81,41 @@ fun PatientListScreen(
             }
         },
     ) { padding ->
-        Box(
+        Column(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize(),
         ) {
-            when (val s = state) {
-                PatientListUiState.Loading -> LoadingBox()
-                is PatientListUiState.Success ->
-                    if (s.patients.isEmpty()) {
-                        EmptyState()
-                    } else {
-                        PatientList(
-                            patients = s.patients,
-                            modifier = Modifier.fillMaxSize(),
-                            onPatientClick = onPatientClick,
-                            onEditPatient = onEditPatientClick,
-                            onDeletePatient = { pendingDelete = it },
-                        )
-                    }
-                is PatientListUiState.Error -> ErrorBox(s.message)
+            OutlinedButton(
+                onClick = { showHerd = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+            ) { Text("Herd / Flock Mode") }
+            Box(modifier = Modifier.fillMaxSize().weight(1f)) {
+                when (val s = state) {
+                    PatientListUiState.Loading -> LoadingBox()
+                    is PatientListUiState.Success ->
+                        if (s.patients.isEmpty()) {
+                            EmptyState()
+                        } else {
+                            PatientList(
+                                patients = s.patients,
+                                modifier = Modifier.fillMaxSize(),
+                                onPatientClick = onPatientClick,
+                                onEditPatient = onEditPatientClick,
+                                onDeletePatient = { pendingDelete = it },
+                            )
+                        }
+                    is PatientListUiState.Error -> ErrorBox(s.message)
+                }
             }
+        }
+    }
+
+    if (showHerd) {
+        ModalBottomSheet(onDismissRequest = { showHerd = false }) {
+            HerdOutbreakScreen(onDismiss = { showHerd = false })
         }
     }
 

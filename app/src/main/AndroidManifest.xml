@@ -5,6 +5,8 @@
     <!-- Phase 6 (§4.2): camera capture + gallery image pick for AI analysis. -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <!-- Hands-free clinical dictation via the device speech service. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- Phase 7: legacy direct writes to the public Downloads folder for PDF export. -->
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"

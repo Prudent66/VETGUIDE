@@ -39,6 +39,7 @@ import com.prudent66.vetguide.domain.model.SoapPayload
 import com.prudent66.vetguide.domain.model.ageLabel
 import com.prudent66.vetguide.domain.model.clinicalAnalysisText
 import com.prudent66.vetguide.ui.components.PrescriptionCard
+import com.prudent66.vetguide.ui.components.VoiceDictationButton
 import com.prudent66.vetguide.ui.screens.knowledge.speciesLabel
 import com.prudent66.vetguide.ui.viewmodels.CaseDetailUiState
 import com.prudent66.vetguide.ui.viewmodels.CaseDetailViewModel
@@ -214,16 +215,19 @@ internal fun SoapEditor(
             onValueChange = { subjective = it },
             label = "Subjective (history / anamnesis)",
             placeholder = SUBJECTIVE_HINT,
+            onDictate = { spoken -> subjective = appendDictated(subjective, spoken) },
         )
         SoapField(
             value = objective,
             onValueChange = { objective = it },
             label = "Objective (findings)",
+            onDictate = { spoken -> objective = appendDictated(objective, spoken) },
         )
         SoapField(
             value = assessment,
             onValueChange = { assessment = it },
             label = "Assessment (differentials & final diagnosis)",
+            onDictate = { spoken -> assessment = appendDictated(assessment, spoken) },
         )
         SoapField(
             value = plan,
@@ -231,6 +235,7 @@ internal fun SoapEditor(
             label = "Plan (treatment & follow-up)",
             placeholder = PLAN_HINT,
             minLines = 2,
+            onDictate = { spoken -> plan = appendDictated(plan, spoken) },
         )
         Button(
             onClick = {
@@ -250,15 +255,29 @@ private fun SoapField(
     label: String,
     placeholder: String = "",
     minLines: Int = 3,
+    onDictate: ((String) -> Unit)? = null,
 ) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(label) },
-        placeholder = { Text(placeholder) },
-        modifier = Modifier.fillMaxWidth(),
-        minLines = minLines,
-    )
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            label = { Text(label) },
+            placeholder = { Text(placeholder) },
+            modifier = Modifier.fillMaxWidth(),
+            minLines = minLines,
+        )
+        if (onDictate != null) {
+            VoiceDictationButton(
+                onResult = { spoken -> onDictate(appendDictated(value, spoken)) },
+            )
+        }
+    }
+}
+
+/** Appends dictated text as a new sentence without dropping what is already there. */
+private fun appendDictated(existing: String, spoken: String): String {
+    val addition = spoken.trim()
+    return if (addition.isEmpty()) existing else "$existing ${addition}".trim()
 }
 
 private const val SUBJECTIVE_HINT =

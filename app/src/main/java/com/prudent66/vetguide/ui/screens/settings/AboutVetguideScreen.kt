@@ -125,6 +125,16 @@ private fun CapabilitiesSection() {
         Patient Records, SOAP Notes & PDF Export: Manage patient profiles,
         auto-populate structured SOAP clinical notes, export clean PDF case
         reports, and back up or restore all records locally via JSON.
+
+        Herd & Flock Outbreak Mode: Track morbidity and case-fatality rates,
+        calculate whole-herd/flock medication totals and bottle counts, and
+        follow contagious-disease quarantine checklists.
+
+        Hands-Free Voice Dictation: Speak clinical signs and SOAP notes directly
+        into assessments and patient records during field examinations.
+
+        Full Multi-Species Offline Questionnaires: Structured offline clinical
+        triage across Cattle, Goat, Sheep, Poultry, Pig, Equine, Dog and Cat.
         """,
     )
 }

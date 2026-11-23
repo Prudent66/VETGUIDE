@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "questions": [
     {
       "id": "q-dog-vomiting",
@@ -7,8 +7,18 @@
       "orderIndex": 0,
       "text": "Has the animal been vomiting?",
       "options": [
-        {"id": "opt-dog-vomiting-yes", "label": "Yes", "symptomId": "vomiting", "orderIndex": 0},
-        {"id": "opt-dog-vomiting-no", "label": "No", "symptomId": null, "orderIndex": 1}
+        {
+          "id": "opt-dog-vomiting-yes",
+          "label": "Yes",
+          "symptomId": "vomiting",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-dog-vomiting-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
       ]
     },
     {
@@ -17,9 +27,24 @@
       "orderIndex": 1,
       "text": "Stool appearance?",
       "options": [
-        {"id": "opt-dog-stool-bloody", "label": "Bloody / hemorrhagic", "symptomId": "hemorrhagic-diarrhea", "orderIndex": 0},
-        {"id": "opt-dog-stool-watery", "label": "Watery", "symptomId": "diarrhea", "orderIndex": 1},
-        {"id": "opt-dog-stool-normal", "label": "Normal", "symptomId": null, "orderIndex": 2}
+        {
+          "id": "opt-dog-stool-bloody",
+          "label": "Bloody / hemorrhagic",
+          "symptomId": "hemorrhagic-diarrhea",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-dog-stool-watery",
+          "label": "Watery",
+          "symptomId": "diarrhea",
+          "orderIndex": 1
+        },
+        {
+          "id": "opt-dog-stool-normal",
+          "label": "Normal",
+          "symptomId": null,
+          "orderIndex": 2
+        }
       ]
     },
     {
@@ -28,8 +53,18 @@
       "orderIndex": 2,
       "text": "Energy level?",
       "options": [
-        {"id": "opt-dog-energy-lethargic", "label": "Lethargic", "symptomId": "lethargy", "orderIndex": 0},
-        {"id": "opt-dog-energy-normal", "label": "Normal", "symptomId": null, "orderIndex": 1}
+        {
+          "id": "opt-dog-energy-lethargic",
+          "label": "Lethargic",
+          "symptomId": "lethargy",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-dog-energy-normal",
+          "label": "Normal",
+          "symptomId": null,
+          "orderIndex": 1
+        }
       ]
     },
     {
@@ -38,8 +73,18 @@
       "orderIndex": 3,
       "text": "Appetite?",
       "options": [
-        {"id": "opt-dog-appetite-reduced", "label": "Reduced / absent", "symptomId": "anorexia", "orderIndex": 0},
-        {"id": "opt-dog-appetite-normal", "label": "Normal", "symptomId": null, "orderIndex": 1}
+        {
+          "id": "opt-dog-appetite-reduced",
+          "label": "Reduced / absent",
+          "symptomId": "anorexia",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-dog-appetite-normal",
+          "label": "Normal",
+          "symptomId": null,
+          "orderIndex": 1
+        }
       ]
     },
     {
@@ -48,8 +93,18 @@
       "orderIndex": 0,
       "text": "Breathing appearance?",
       "options": [
-        {"id": "opt-pou-resp-distress", "label": "Distress / gasping", "symptomId": "respiratory-distress", "orderIndex": 0},
-        {"id": "opt-pou-resp-normal", "label": "Normal", "symptomId": null, "orderIndex": 1}
+        {
+          "id": "opt-pou-resp-distress",
+          "label": "Distress / gasping",
+          "symptomId": "respiratory-distress",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-pou-resp-normal",
+          "label": "Normal",
+          "symptomId": null,
+          "orderIndex": 1
+        }
       ]
     },
     {
@@ -58,8 +113,18 @@
       "orderIndex": 1,
       "text": "Egg production?",
       "options": [
-        {"id": "opt-pou-eggs-drop", "label": "Notable drop", "symptomId": "reduced-egg-production", "orderIndex": 0},
-        {"id": "opt-pou-eggs-normal", "label": "Normal", "symptomId": null, "orderIndex": 1}
+        {
+          "id": "opt-pou-eggs-drop",
+          "label": "Notable drop",
+          "symptomId": "reduced-egg-production",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-pou-eggs-normal",
+          "label": "Normal",
+          "symptomId": null,
+          "orderIndex": 1
+        }
       ]
     },
     {
@@ -68,8 +133,18 @@
       "orderIndex": 2,
       "text": "Any sudden deaths in the flock?",
       "options": [
-        {"id": "opt-pou-mortality-yes", "label": "Yes", "symptomId": "sudden-death", "orderIndex": 0},
-        {"id": "opt-pou-mortality-no", "label": "No", "symptomId": null, "orderIndex": 1}
+        {
+          "id": "opt-pou-mortality-yes",
+          "label": "Yes",
+          "symptomId": "sudden-death",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-pou-mortality-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
       ]
     },
     {
@@ -78,22 +153,836 @@
       "orderIndex": 3,
       "text": "General demeanor?",
       "options": [
-        {"id": "opt-pou-demeanor-depressed", "label": "Depressed / lethargic", "symptomId": "lethargy", "orderIndex": 0},
-        {"id": "opt-pou-demeanor-alert", "label": "Alert", "symptomId": null, "orderIndex": 1}
+        {
+          "id": "opt-pou-demeanor-depressed",
+          "label": "Depressed / lethargic",
+          "symptomId": "lethargy",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-pou-demeanor-alert",
+          "label": "Alert",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-cat-resp",
+      "species": "CAT",
+      "orderIndex": 0,
+      "text": "Sneezing or nasal discharge?",
+      "options": [
+        {
+          "id": "opt-cat-resp-sneeze",
+          "label": "Sneezing / discharge",
+          "symptomId": "sneezing",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-cat-resp-none",
+          "label": "None",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-cat-eyes",
+      "species": "CAT",
+      "orderIndex": 1,
+      "text": "Eye discharge or squinting?",
+      "options": [
+        {
+          "id": "opt-cat-eyes-yes",
+          "label": "Yes",
+          "symptomId": "ocular-discharge",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-cat-eyes-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-cat-appetite",
+      "species": "CAT",
+      "orderIndex": 2,
+      "text": "Appetite?",
+      "options": [
+        {
+          "id": "opt-cat-appetite-low",
+          "label": "Reduced / absent",
+          "symptomId": "anorexia",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-cat-appetite-ok",
+          "label": "Normal",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-cat-demeanor",
+      "species": "CAT",
+      "orderIndex": 3,
+      "text": "General demeanor?",
+      "options": [
+        {
+          "id": "opt-cat-demeanor-dull",
+          "label": "Dull / lethargic",
+          "symptomId": "lethargy",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-cat-demeanor-active",
+          "label": "Active",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-cat-cough",
+      "species": "CAT",
+      "orderIndex": 4,
+      "text": "Any coughing?",
+      "options": [
+        {
+          "id": "opt-cat-cough-yes",
+          "label": "Yes",
+          "symptomId": "coughing",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-cat-cough-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-bov-cough",
+      "species": "CATTLE",
+      "orderIndex": 0,
+      "text": "Coughing or respiratory signs?",
+      "options": [
+        {
+          "id": "opt-bov-cough-yes",
+          "label": "Yes",
+          "symptomId": "coughing",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-bov-cough-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-bov-milk",
+      "species": "CATTLE",
+      "orderIndex": 1,
+      "text": "Milk yield?",
+      "options": [
+        {
+          "id": "opt-bov-milk-drop",
+          "label": "Noticeable drop",
+          "symptomId": "reduced-milk-yield",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-bov-milk-normal",
+          "label": "Normal",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-bov-fever",
+      "species": "CATTLE",
+      "orderIndex": 2,
+      "text": "Fever or high temperature?",
+      "options": [
+        {
+          "id": "opt-bov-fever-yes",
+          "label": "Yes",
+          "symptomId": "fever",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-bov-fever-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-bov-lesions",
+      "species": "CATTLE",
+      "orderIndex": 3,
+      "text": "Blisters or raw sores on mouth/feet?",
+      "options": [
+        {
+          "id": "opt-bov-lesions-yes",
+          "label": "Yes",
+          "symptomId": "vesicular-lesions",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-bov-lesions-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-bov-wasting",
+      "species": "CATTLE",
+      "orderIndex": 4,
+      "text": "Progressive weight loss?",
+      "options": [
+        {
+          "id": "opt-bov-wasting-yes",
+          "label": "Yes",
+          "symptomId": "wasting",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-bov-wasting-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-goat-fever",
+      "species": "GOAT",
+      "orderIndex": 0,
+      "text": "Fever or high temperature?",
+      "options": [
+        {
+          "id": "opt-goat-fever-yes",
+          "label": "Yes",
+          "symptomId": "fever",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-goat-fever-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-goat-nasal",
+      "species": "GOAT",
+      "orderIndex": 1,
+      "text": "Nasal discharge?",
+      "options": [
+        {
+          "id": "opt-goat-nasal-yes",
+          "label": "Yes",
+          "symptomId": "nasal-discharge",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-goat-nasal-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-goat-mouth",
+      "species": "GOAT",
+      "orderIndex": 2,
+      "text": "Mouth sores or erosions?",
+      "options": [
+        {
+          "id": "opt-goat-mouth-yes",
+          "label": "Yes",
+          "symptomId": "mouth-erosions",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-goat-mouth-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-goat-diarrhea",
+      "species": "GOAT",
+      "orderIndex": 3,
+      "text": "Diarrhea?",
+      "options": [
+        {
+          "id": "opt-goat-diarrhea-yes",
+          "label": "Yes",
+          "symptomId": "diarrhea",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-goat-diarrhea-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-goat-breath",
+      "species": "GOAT",
+      "orderIndex": 4,
+      "text": "Laboured breathing?",
+      "options": [
+        {
+          "id": "opt-goat-breath-yes",
+          "label": "Yes",
+          "symptomId": "respiratory-distress",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-goat-breath-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-sheep-fever",
+      "species": "SHEEP",
+      "orderIndex": 0,
+      "text": "Fever or high temperature?",
+      "options": [
+        {
+          "id": "opt-sheep-fever-yes",
+          "label": "Yes",
+          "symptomId": "fever",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-sheep-fever-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-sheep-breath",
+      "species": "SHEEP",
+      "orderIndex": 1,
+      "text": "Laboured breathing?",
+      "options": [
+        {
+          "id": "opt-sheep-breath-yes",
+          "label": "Yes",
+          "symptomId": "respiratory-distress",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-sheep-breath-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-sheep-wasting",
+      "species": "SHEEP",
+      "orderIndex": 2,
+      "text": "Weight loss or poor condition?",
+      "options": [
+        {
+          "id": "opt-sheep-wasting-yes",
+          "label": "Yes",
+          "symptomId": "wasting",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-sheep-wasting-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-sheep-diarrhea",
+      "species": "SHEEP",
+      "orderIndex": 3,
+      "text": "Diarrhea?",
+      "options": [
+        {
+          "id": "opt-sheep-diarrhea-yes",
+          "label": "Yes",
+          "symptomId": "diarrhea",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-sheep-diarrhea-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-pig-fever",
+      "species": "PIG",
+      "orderIndex": 0,
+      "text": "Fever or high temperature?",
+      "options": [
+        {
+          "id": "opt-pig-fever-yes",
+          "label": "Yes",
+          "symptomId": "fever",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-pig-fever-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-pig-skin",
+      "species": "PIG",
+      "orderIndex": 1,
+      "text": "Red or purple skin lesions?",
+      "options": [
+        {
+          "id": "opt-pig-skin-yes",
+          "label": "Yes",
+          "symptomId": "skin-reddening",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-pig-skin-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-pig-appetite",
+      "species": "PIG",
+      "orderIndex": 2,
+      "text": "Appetite?",
+      "options": [
+        {
+          "id": "opt-pig-appetite-low",
+          "label": "Reduced / absent",
+          "symptomId": "anorexia",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-pig-appetite-ok",
+          "label": "Normal",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-pig-mortality",
+      "species": "PIG",
+      "orderIndex": 3,
+      "text": "Any sudden deaths?",
+      "options": [
+        {
+          "id": "opt-pig-mortality-yes",
+          "label": "Yes",
+          "symptomId": "sudden-death",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-pig-mortality-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-equine-colic",
+      "species": "EQUINE",
+      "orderIndex": 0,
+      "text": "Signs of abdominal pain?",
+      "options": [
+        {
+          "id": "opt-equine-colic-yes",
+          "label": "Yes",
+          "symptomId": "colic-signs",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-equine-colic-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-equine-rolling",
+      "species": "EQUINE",
+      "orderIndex": 1,
+      "text": "Rolling or pawing the ground?",
+      "options": [
+        {
+          "id": "opt-equine-rolling-yes",
+          "label": "Yes",
+          "symptomId": "rolling-pawing",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-equine-rolling-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-equine-fecal",
+      "species": "EQUINE",
+      "orderIndex": 2,
+      "text": "Reduced fecal output?",
+      "options": [
+        {
+          "id": "opt-equine-fecal-yes",
+          "label": "Yes",
+          "symptomId": "reduced-fecal-output",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-equine-fecal-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-equine-restless",
+      "species": "EQUINE",
+      "orderIndex": 3,
+      "text": "Restlessness or sweating?",
+      "options": [
+        {
+          "id": "opt-equine-restless-yes",
+          "label": "Yes",
+          "symptomId": "restlessness",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-equine-restless-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
       ]
     }
   ],
   "weights": [
-    {"conditionId": "canine-parvovirus", "symptomId": "vomiting", "weight": 10.0},
-    {"conditionId": "canine-parvovirus", "symptomId": "hemorrhagic-diarrhea", "weight": 10.0},
-    {"conditionId": "canine-parvovirus", "symptomId": "lethargy", "weight": 6.0},
-    {"conditionId": "canine-parvovirus", "symptomId": "anorexia", "weight": 4.0},
-    {"conditionId": "newcastle-disease", "symptomId": "respiratory-distress", "weight": 10.0},
-    {"conditionId": "newcastle-disease", "symptomId": "reduced-egg-production", "weight": 10.0},
-    {"conditionId": "newcastle-disease", "symptomId": "lethargy", "weight": 6.0},
-    {"conditionId": "newcastle-disease", "symptomId": "sudden-death", "weight": 4.0},
-    {"conditionId": "anthrax-multi-species", "symptomId": "sudden-death", "weight": 10.0},
-    {"conditionId": "anthrax-multi-species", "symptomId": "fever", "weight": 6.0},
-    {"conditionId": "anthrax-multi-species", "symptomId": "lethargy", "weight": 2.0}
+    {
+      "conditionId": "canine-parvovirus",
+      "symptomId": "vomiting",
+      "weight": 10.0
+    },
+    {
+      "conditionId": "canine-parvovirus",
+      "symptomId": "hemorrhagic-diarrhea",
+      "weight": 10.0
+    },
+    {
+      "conditionId": "canine-parvovirus",
+      "symptomId": "lethargy",
+      "weight": 6.0
+    },
+    {
+      "conditionId": "canine-parvovirus",
+      "symptomId": "anorexia",
+      "weight": 4.0
+    },
+    {
+      "conditionId": "newcastle-disease",
+      "symptomId": "respiratory-distress",
+      "weight": 10.0
+    },
+    {
+      "conditionId": "newcastle-disease",
+      "symptomId": "reduced-egg-production",
+      "weight": 10.0
+    },
+    {
+      "conditionId": "newcastle-disease",
+      "symptomId": "lethargy",
+      "weight": 6.0
+    },
+    {
+      "conditionId": "newcastle-disease",
+      "symptomId": "sudden-death",
+      "weight": 4.0
+    },
+    {
+      "conditionId": "anthrax-multi-species",
+      "symptomId": "sudden-death",
+      "weight": 10.0
+    },
+    {
+      "conditionId": "anthrax-multi-species",
+      "symptomId": "fever",
+      "weight": 6.0
+    },
+    {
+      "conditionId": "anthrax-multi-species",
+      "symptomId": "lethargy",
+      "weight": 2.0
+    },
+    {
+      "conditionId": "feline-upper-respiratory-infection",
+      "symptomId": "sneezing",
+      "weight": 10.0
+    },
+    {
+      "conditionId": "feline-upper-respiratory-infection",
+      "symptomId": "nasal-discharge",
+      "weight": 10.0
+    },
+    {
+      "conditionId": "feline-upper-respiratory-infection",
+      "symptomId": "ocular-discharge",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "feline-upper-respiratory-infection",
+      "symptomId": "anorexia",
+      "weight": 4.0
+    },
+    {
+      "conditionId": "feline-upper-respiratory-infection",
+      "symptomId": "lethargy",
+      "weight": 3.0
+    },
+    {
+      "conditionId": "feline-upper-respiratory-infection",
+      "symptomId": "coughing",
+      "weight": 2.0
+    },
+    {
+      "conditionId": "contagious-bovine-pleuropneumonia",
+      "symptomId": "coughing",
+      "weight": 12.0
+    },
+    {
+      "conditionId": "contagious-bovine-pleuropneumonia",
+      "symptomId": "fever",
+      "weight": 10.0
+    },
+    {
+      "conditionId": "contagious-bovine-pleuropneumonia",
+      "symptomId": "nasal-discharge",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "contagious-bovine-pleuropneumonia",
+      "symptomId": "respiratory-distress",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "contagious-bovine-pleuropneumonia",
+      "symptomId": "wasting",
+      "weight": 4.0
+    },
+    {
+      "conditionId": "foot-and-mouth-disease",
+      "symptomId": "vesicular-lesions",
+      "weight": 14.0
+    },
+    {
+      "conditionId": "foot-and-mouth-disease",
+      "symptomId": "mouth-erosions",
+      "weight": 12.0
+    },
+    {
+      "conditionId": "foot-and-mouth-disease",
+      "symptomId": "fever",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "foot-and-mouth-disease",
+      "symptomId": "lameness",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "foot-and-mouth-disease",
+      "symptomId": "reduced-milk-yield",
+      "weight": 6.0
+    },
+    {
+      "conditionId": "bovine-helminthosis",
+      "symptomId": "wasting",
+      "weight": 10.0
+    },
+    {
+      "conditionId": "bovine-helminthosis",
+      "symptomId": "diarrhea",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "mastitis",
+      "symptomId": "udder-swelling",
+      "weight": 14.0
+    },
+    {
+      "conditionId": "mastitis",
+      "symptomId": "abnormal-milk",
+      "weight": 14.0
+    },
+    {
+      "conditionId": "mastitis",
+      "symptomId": "reduced-milk-yield",
+      "weight": 10.0
+    },
+    {
+      "conditionId": "mastitis",
+      "symptomId": "fever",
+      "weight": 4.0
+    },
+    {
+      "conditionId": "peste-des-petits-ruminants",
+      "symptomId": "fever",
+      "weight": 12.0
+    },
+    {
+      "conditionId": "peste-des-petits-ruminants",
+      "symptomId": "nasal-discharge",
+      "weight": 10.0
+    },
+    {
+      "conditionId": "peste-des-petits-ruminants",
+      "symptomId": "mouth-erosions",
+      "weight": 10.0
+    },
+    {
+      "conditionId": "peste-des-petits-ruminants",
+      "symptomId": "respiratory-distress",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "peste-des-petits-ruminants",
+      "symptomId": "diarrhea",
+      "weight": 4.0
+    },
+    {
+      "conditionId": "helminthosis-multi-species",
+      "symptomId": "wasting",
+      "weight": 10.0
+    },
+    {
+      "conditionId": "helminthosis-multi-species",
+      "symptomId": "diarrhea",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "helminthosis-multi-species",
+      "symptomId": "pale-membranes",
+      "weight": 6.0
+    },
+    {
+      "conditionId": "fowl-pox",
+      "symptomId": "facial-swelling",
+      "weight": 12.0
+    },
+    {
+      "conditionId": "fowl-pox",
+      "symptomId": "skin-scabs",
+      "weight": 12.0
+    },
+    {
+      "conditionId": "fowl-pox",
+      "symptomId": "ocular-discharge",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "fowl-pox",
+      "symptomId": "reduced-egg-production",
+      "weight": 6.0
+    },
+    {
+      "conditionId": "newcastle-disease",
+      "symptomId": "diarrhea",
+      "weight": 4.0
+    },
+    {
+      "conditionId": "newcastle-disease",
+      "symptomId": "neurologic-signs",
+      "weight": 6.0
+    },
+    {
+      "conditionId": "african-swine-fever",
+      "symptomId": "fever",
+      "weight": 12.0
+    },
+    {
+      "conditionId": "african-swine-fever",
+      "symptomId": "skin-reddening",
+      "weight": 10.0
+    },
+    {
+      "conditionId": "african-swine-fever",
+      "symptomId": "anorexia",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "african-swine-fever",
+      "symptomId": "sudden-death",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "equine-colic",
+      "symptomId": "colic-signs",
+      "weight": 14.0
+    },
+    {
+      "conditionId": "equine-colic",
+      "symptomId": "rolling-pawing",
+      "weight": 10.0
+    },
+    {
+      "conditionId": "equine-colic",
+      "symptomId": "reduced-fecal-output",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "equine-colic",
+      "symptomId": "restlessness",
+      "weight": 6.0
+    }
   ]
 }

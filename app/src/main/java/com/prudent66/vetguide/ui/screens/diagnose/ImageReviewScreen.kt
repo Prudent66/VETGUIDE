@@ -1,5 +1,6 @@
 package com.prudent66.vetguide.ui.screens.diagnose
 import com.prudent66.vetguide.ui.components.LocalBottomBarClearance
+import com.prudent66.vetguide.ui.components.VoiceDictationButton
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -71,7 +72,6 @@ fun ImageReviewScreen(
             .padding(bottom = LocalBottomBarClearance.current),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text("Confirm image", style = MaterialTheme.typography.titleMedium)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -119,27 +119,32 @@ fun ImageReviewScreen(
  */
 @Composable
 private fun ContextInput(value: String, onValueChange: (String) -> Unit) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = Modifier.fillMaxWidth(),
-        label = { Text("Add Clinical Context (Optional)") },
-        placeholder = {
-            Text(
-                "e.g. Suspected bottle jaw · Vomiting for 2 days · Sudden death in herd",
-                style = MaterialTheme.typography.bodySmall,
-            )
-        },
-        supportingText = {
-            Text(
-                "Helps prioritize findings aligned with your observation.",
-                style = MaterialTheme.typography.bodySmall,
-            )
-        },
-        singleLine = false,
-        maxLines = 3,
-        minLines = 1,
-    )
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text("Add Clinical Context (Optional)") },
+            placeholder = {
+                Text(
+                    "e.g. Suspected bottle jaw · Vomiting for 2 days · Sudden death in herd",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            },
+            supportingText = {
+                Text(
+                    "Helps prioritize findings aligned with your observation.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            },
+            singleLine = false,
+            maxLines = 3,
+            minLines = 1,
+        )
+        VoiceDictationButton(
+            onResult = { spoken -> onValueChange("$value ${spoken.trim()}".trim()) },
+        )
+    }
 }
 
 @Composable
