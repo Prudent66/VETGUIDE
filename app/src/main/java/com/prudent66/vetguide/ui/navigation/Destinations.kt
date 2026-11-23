@@ -22,6 +22,7 @@ object Destinations {
     const val PATIENTS = "patients"
     const val KNOWLEDGE = "knowledge"
     const val SETTINGS = "settings"
+    const val ABOUT = "about"
 
     /** Drill-in routes (no bottom bar). */
     const val PATIENTS_ADD = "patients/new"

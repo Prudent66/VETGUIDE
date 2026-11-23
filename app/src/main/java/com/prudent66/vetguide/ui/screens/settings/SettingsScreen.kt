@@ -57,7 +57,10 @@ import java.util.Locale
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
+fun SettingsScreen(
+    onOpenAbout: () -> Unit,
+    viewModel: SettingsViewModel = hiltViewModel(),
+) {
     val profile by viewModel.profile.collectAsState()
     val connection by viewModel.connection.collectAsState()
     val busy by viewModel.backupBusy.collectAsState()
@@ -96,6 +99,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
                 onImport = { confirmImport = true },
             )
             AboutCard()
+            AboutGuideCard(onOpenAbout = onOpenAbout)
         }
     }
 
@@ -263,6 +267,28 @@ private fun AboutCard() {
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+    }
+}
+
+/** Prominent entry point to the dedicated About VETGUIDE guide screen. */
+@Composable
+private fun AboutGuideCard(onOpenAbout: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text("About VETGUIDE", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "What the app does, a step-by-step field guide, and clinical " +
+                    "responsibility information.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Button(onClick = onOpenAbout, modifier = Modifier.fillMaxWidth()) {
+                Text("Open About VETGUIDE")
+            }
+        }
     }
 }
 

@@ -1,12 +1,12 @@
 package com.prudent66.vetguide.ui.screens.patients
 import com.prudent66.vetguide.ui.components.LocalBottomBarClearance
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -279,6 +279,11 @@ private fun AgeFields(form: PatientFormState) {
     }
 }
 
+/**
+ * Exposed-dropdown-style unit selector rendered as an outlined text field so
+ * it matches the adjacent "Age value" field's height, floating label and
+ * top/bottom borders exactly.
+ */
 @Composable
 private fun AgeUnitField(
     selected: AgeUnit,
@@ -286,33 +291,40 @@ private fun AgeUnitField(
     modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    OutlinedButton(
-        onClick = { expanded = true },
-        modifier = modifier,
-        shape = RoundedCornerShape(4.dp),
-        contentPadding = PaddingValues(horizontal = 12.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
+    Box(modifier) {
+        OutlinedTextField(
+            value = selected.label,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Unit") },
+            trailingIcon = {
+                IconButton(onClick = { expanded = true }) {
+                    Icon(
+                        painter = painterResource(R.drawable.nav_chevron_down),
+                        contentDescription = "Select age unit",
+                    )
+                }
+            },
+            singleLine = true,
+            shape = RoundedCornerShape(4.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .clickable { expanded = true },
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
         ) {
-            Text(text = selected.label, modifier = Modifier.weight(1f))
-            Icon(
-                painter = painterResource(R.drawable.nav_chevron_down),
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-            )
-        }
-    }
-    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-        AgeUnit.entries.forEach { unit ->
-            DropdownMenuItem(
-                text = { Text(unit.label) },
-                onClick = {
-                    onSelect(unit)
-                    expanded = false
-                },
-            )
+            AgeUnit.entries.forEach { unit ->
+                DropdownMenuItem(
+                    text = { Text(unit.label) },
+                    onClick = {
+                        onSelect(unit)
+                        expanded = false
+                    },
+                )
+            }
         }
     }
 }
