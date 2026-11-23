@@ -25,7 +25,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -56,28 +55,23 @@ import com.prudent66.vetguide.ui.screens.patients.PatientFormScreen
 import com.prudent66.vetguide.ui.screens.patients.PatientListScreen
 import com.prudent66.vetguide.ui.screens.settings.AboutVetguideScreen
 import com.prudent66.vetguide.ui.screens.settings.SettingsScreen
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 /** Extra breathing room so bottom-most buttons clear the resting footer. */
 private val bottomScrollClearance = 16.dp
 
 /**
- * Debounces nested-scroll activity from any screen so the copyright footer
- * hides only while the user is actively scrolling and returns shortly after
- * scrolling stops.
+ * Direction-aware nested-scroll tracker: a downward drag (finger up, content
+ * moving up) hides the copyright footer to free reading space; an upward drag
+ * (finger down — including back to the top of the list) reveals it again.
  */
 private class FooterScrollTracker(
-    private val scope: CoroutineScope,
-    private val onActivity: (Boolean) -> Unit,
+    private val onHiddenChange: (Boolean) -> Unit,
 ) : NestedScrollConnection {
 
-    private var debounceJob: Job? = null
+    private var hidden = false
 
     override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-        if (available.y != 0f) notifyActive()
+        if (available.y != 0f) applyDirection(available.y)
         return Offset.Zero
     }
 
@@ -86,21 +80,16 @@ private class FooterScrollTracker(
         available: Offset,
         source: NestedScrollSource,
     ): Offset {
-        if (consumed.y != 0f || available.y != 0f) notifyActive()
+        if (consumed.y != 0f) applyDirection(consumed.y)
         return Offset.Zero
     }
 
-    private fun notifyActive() {
-        onActivity(true)
-        debounceJob?.cancel()
-        debounceJob = scope.launch {
-            delay(SCROLL_IDLE_DEBOUNCE_MS)
-            onActivity(false)
+    private fun applyDirection(deltaY: Float) {
+        val shouldHide = deltaY < 0f
+        if (shouldHide != hidden) {
+            hidden = shouldHide
+            onHiddenChange(shouldHide)
         }
-    }
-
-    private companion object {
-        const val SCROLL_IDLE_DEBOUNCE_MS = 350L
     }
 }
 
@@ -119,10 +108,9 @@ fun VetguideApp() {
     val currentRoute = backStackEntry?.destination?.route
     val topLevel = Destinations.isTopLevel(currentRoute)
 
-    val scrolling = remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    val scrollTracker = remember(scope, scrolling) {
-        FooterScrollTracker(scope) { active -> scrolling.value = active }
+    val footerHidden = remember { mutableStateOf(false) }
+    val scrollTracker = remember {
+        FooterScrollTracker { hidden -> footerHidden.value = hidden }
     }
 
     // Resting bottom height of footer + bottom nav + system bars, measured
@@ -137,7 +125,7 @@ fun VetguideApp() {
                 topLevel = topLevel,
                 currentRoute = currentRoute,
                 navController = navController,
-                scrolling = scrolling.value,
+                scrolling = footerHidden.value,
                 onRestingHeight = { measured ->
                     restingBottom.value = maxOf(restingBottom.value, measured)
                 },

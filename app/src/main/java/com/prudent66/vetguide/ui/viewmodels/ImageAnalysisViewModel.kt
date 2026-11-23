@@ -53,6 +53,11 @@ sealed interface ImageAnalysisUiState {
      */
     data class Result(
         val species: Species?,
+        /**
+         * Patient selected on the Diagnose start screen, carried through the
+         * photo flow so Save-to-Case can pre-select it (Build 15 fix).
+         */
+        val patientId: String? = null,
         val providerId: String,
         val narrative: String,
         val degraded: Boolean,
@@ -96,9 +101,13 @@ class ImageAnalysisViewModel @Inject constructor(
     /** Patient age ("3 Days") forwarded as one-line clinical context. */
     private var ageLabel: String? = null
 
+    /** Patient selected at Start, forwarded to Save-to-Case for pre-selection. */
+    private var patientId: String? = null
+
     /** Entry point from the questionnaire Start phase, carrying the species. */
-    fun start(species: Species?, ageLabel: String? = null) {
+    fun start(species: Species?, ageLabel: String? = null, patientId: String? = null) {
         this.ageLabel = ageLabel
+        this.patientId = patientId
         mut.value = ImageAnalysisUiState.Capture(species)
     }
 
@@ -126,6 +135,7 @@ class ImageAnalysisViewModel @Inject constructor(
     /** Abandon the image flow — the questionnaire Start phase reappears. */
     fun reset() {
         ageLabel = null
+        patientId = null
         mut.value = ImageAnalysisUiState.Idle
     }
 
@@ -155,6 +165,7 @@ class ImageAnalysisViewModel @Inject constructor(
                 val reason = fallback?.let { fallbackReason(it.diagnostics) }
                 mut.value = ImageAnalysisUiState.Result(
                     species = review.species,
+                    patientId = patientId,
                     providerId = result.providerId,
                     narrative = resultNarrative(result),
                     degraded = result is AiResult.ProviderSuccess && result.degraded,

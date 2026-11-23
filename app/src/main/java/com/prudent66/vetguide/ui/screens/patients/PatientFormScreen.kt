@@ -261,7 +261,7 @@ private fun AgeFields(form: PatientFormState) {
         OutlinedTextField(
             value = form.ageValueText,
             onValueChange = { form.ageValueText = it },
-            label = { Text("Age value") },
+            label = { Text("Age") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             singleLine = true,
             shape = RoundedCornerShape(4.dp),

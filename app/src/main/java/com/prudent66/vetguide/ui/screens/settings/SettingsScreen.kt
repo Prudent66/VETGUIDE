@@ -38,11 +38,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.prudent66.vetguide.BuildConfig
-import com.prudent66.vetguide.R
 import com.prudent66.vetguide.domain.model.ClinicProfile
 import com.prudent66.vetguide.ui.viewmodels.CloudConnectionUiState
 import com.prudent66.vetguide.ui.viewmodels.SettingsViewModel
@@ -52,8 +49,9 @@ import java.util.Locale
 
 /**
  * Settings (Phase 4 + Phase 9 polish): clinic profile (existing app_settings
- * key/value table), cloud connectivity probe, JSON backup/restore, and the
- * About/clinical-disclaimer card. No schema change; backup URIs come from SAF.
+ * key/value table), cloud connectivity probe, JSON backup/restore, and a single
+ * entry point to the dedicated About guide. No schema change; backup URIs come
+ * from SAF.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -98,8 +96,7 @@ fun SettingsScreen(
                 onExport = { exportLauncher.launch(backupFileName()) },
                 onImport = { confirmImport = true },
             )
-            AboutCard()
-            AboutGuideCard(onOpenAbout = onOpenAbout)
+            AboutButton(onOpenAbout = onOpenAbout)
         }
     }
 
@@ -250,45 +247,11 @@ private fun BackupRestoreCard(busy: Boolean, onExport: () -> Unit, onImport: () 
     }
 }
 
+/** Single clean entry point to the dedicated About VETGUIDE guide screen. */
 @Composable
-private fun AboutCard() {
-    SettingsCard(title = "About & Clinical Disclaimer") {
-        Text(
-            text = stringResource(R.string.disclaimer),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            "Version ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
-            style = MaterialTheme.typography.labelMedium,
-        )
-        Text(
-            "© 2026 Veloxdigitalforge - All Rights Reserved",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-/** Prominent entry point to the dedicated About VETGUIDE guide screen. */
-@Composable
-private fun AboutGuideCard(onOpenAbout: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text("About VETGUIDE", style = MaterialTheme.typography.titleMedium)
-            Text(
-                "What the app does, a step-by-step field guide, and clinical " +
-                    "responsibility information.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Button(onClick = onOpenAbout, modifier = Modifier.fillMaxWidth()) {
-                Text("Open About VETGUIDE")
-            }
-        }
+private fun AboutButton(onOpenAbout: () -> Unit) {
+    Button(onClick = onOpenAbout, modifier = Modifier.fillMaxWidth()) {
+        Text("About VETGUIDE")
     }
 }
 

@@ -118,7 +118,7 @@ private fun QuestionnairePhase(
         is DiagnosticUiState.Start -> StartPhase(
             start = s,
             viewModel = viewModel,
-            onAnalyzeImage = { ageLabel -> imageViewModel.start(s.species, ageLabel) },
+            onAnalyzeImage = { ageLabel -> imageViewModel.start(s.species, ageLabel, s.patientId) },
         )
         is DiagnosticUiState.Wizard -> WizardPhase(wizard = s, viewModel = viewModel)
         is DiagnosticUiState.Results -> ResultsPhase(

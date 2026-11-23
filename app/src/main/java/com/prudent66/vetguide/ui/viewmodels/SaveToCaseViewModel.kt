@@ -79,9 +79,21 @@ class SaveToCaseViewModel @Inject constructor(
         }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
+            started = SharingStarted.Eagerly,
             initialValue = emptyList(),
         )
+
+    init {
+        // Room emits asynchronously; keep the visible sheet in sync whenever
+        // the patient list changes (e.g. a patient added from another screen).
+        viewModelScope.launch {
+            patients.collect { loaded ->
+                (mut.value as? SaveToCaseUiState.Visible)?.let { visible ->
+                    mut.value = visible.copy(patients = loaded)
+                }
+            }
+        }
+    }
 
     /** Assessment payload captured when the sheet opens (results are transient). */
     private data class PendingAssessment(
@@ -118,13 +130,14 @@ class SaveToCaseViewModel @Inject constructor(
         mut.value = SaveToCaseUiState.Visible(
             patients = patients.value,
             selectedPatientId = pending?.defaultPatientId,
+            quickAddSpecies = results.species ?: Species.DOG,
         )
     }
 
     fun openForImage(result: ImageAnalysisUiState.Result) {
         pending = PendingAssessment(
             presentingComplaint = "Photo analysis — ${result.species.displayName()}",
-            defaultPatientId = null,
+            defaultPatientId = result.patientId,
             subjectiveSeed = result.clinicalContext?.trim().orEmpty(),
             objectiveSeed = result.analysisData?.findings
                 ?.map { sanitizeAiItem(it) }
@@ -145,7 +158,11 @@ class SaveToCaseViewModel @Inject constructor(
             ),
             questionnaireContent = null,
         )
-        mut.value = SaveToCaseUiState.Visible(patients = patients.value, selectedPatientId = null)
+        mut.value = SaveToCaseUiState.Visible(
+            patients = patients.value,
+            selectedPatientId = result.patientId,
+            quickAddSpecies = result.species ?: Species.DOG,
+        )
     }
 
     fun selectPatient(patientId: String?) {
