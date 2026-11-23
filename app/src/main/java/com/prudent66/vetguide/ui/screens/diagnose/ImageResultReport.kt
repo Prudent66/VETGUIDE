@@ -10,25 +10,30 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.prudent66.vetguide.domain.ai.AiAnalysisData
 import com.prudent66.vetguide.domain.ai.SuspectedCondition
+import com.prudent66.vetguide.domain.ai.buildPrescriptionPlan
+import com.prudent66.vetguide.ui.components.PrescriptionCard
 import kotlin.math.roundToInt
 
 /**
  * Structured medical report for a fully decoded cloud analysis (§10): the
  * sectioned layout replaces the single-narrative dump. The provider/model
  * provenance stays in the banner above — the body carries findings,
- * differentials, and next steps only.
+ * differentials, prescriptions, and non-drug supportive care.
  */
 @Composable
 internal fun StructuredReport(data: AiAnalysisData) {
+    val plan = remember(data) { buildPrescriptionPlan(data) }
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         FindingsSection(data.findings)
         DifferentialSection(data.suspectedConditions)
-        NextStepsSection(data.recommendedNextSteps)
+        PrescriptionCard(plan.prescriptions, Modifier.fillMaxWidth())
+        SupportiveCareSection(plan.supportiveCare)
     }
 }
 
@@ -94,10 +99,10 @@ private fun ConditionCard(condition: SuspectedCondition) {
 }
 
 @Composable
-private fun NextStepsSection(steps: List<String>) {
+private fun SupportiveCareSection(steps: List<String>) {
     if (steps.isEmpty()) return
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SectionHeader("Practical Field Treatments & Next Steps")
+        SectionHeader("Supportive Field Care & Follow-up")
         steps.forEachIndexed { index, step ->
             Text(
                 text = "${index + 1}. $step",

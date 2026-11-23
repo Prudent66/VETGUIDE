@@ -1,0 +1,102 @@
+package com.prudent66.vetguide.domain.ai
+
+/**
+ * Clinical split used by the results screen, the case view and the SOAP/PDF
+ * exports: drug/injection prescriptions (with dosages) stay in their own
+ * surface, while non-pharmacological field management remains supportive care.
+ */
+data class PrescriptionPlan(
+    val prescriptions: List<String> = emptyList(),
+    val supportiveCare: List<String> = emptyList(),
+) {
+    val hasPrescriptions: Boolean get() = prescriptions.isNotEmpty()
+}
+
+/** A number + unit ("500 mg", "10 ml", "1 tablet", …) anywhere in a line. */
+private val DOSAGE_UNIT_REGEX = Regex(
+    """\b\d+(?:[.,]\d+)?\s*(?:mg|ml|mcg|µg|g|iu|units?|tabs?|tablets?|caps?|capsules?|drops?|puffs?)\b""",
+    RegexOption.IGNORE_CASE,
+)
+
+/** A weight-normalised dose ("50 mg/kg", "10 ml/kg") is a strong signal. */
+private val WEIGHT_DOSE_REGEX = Regex(
+    """\b\d+(?:[.,]\d+)?\s*(?:mg|ml|mcg|µg|iu)\s*/\s*kg\b""",
+    RegexOption.IGNORE_CASE,
+)
+
+/** Route/frequency abbreviations that only make sense for drug therapy. */
+private val ROUTE_REGEX = Regex(
+    """\b(?:po|p\.o\.|sc|s\.c\.|sq|im|i\.m\.|iv|i\.v\.|orally?|oral|""" +
+        """subcut(?:aneous(?:ly)?)?|intramuscular(?:ly)?|intravenous(?:ly)?|""" +
+        """topical(?:ly)?|bid|tid|sid|q\d+\s*h)\b""",
+    RegexOption.IGNORE_CASE,
+)
+
+/** Injectable/drug/medication vocabulary (including common field drug stems). */
+private val MEDICATION_REGEX = Regex(
+    """\b(?:inject(?:ion|able|ed)?|prescri(?:be|ption)|dose|dosage|drug|medication|""" +
+        """antibiotic|anthelmintic|antiparasitic|deworm(?:er|ing)?|vaccin(?:e|ate|ation)|""" +
+        """tablet|capsule|syrup|suspension|ointment|cream|""" +
+        """\w+(?:cillin|mycin|cycline|floxacin|azole|profen|oxicam|sone|olone)|""" +
+        """ivermectin|tylosin|penicillin|amoxicillin|enrofloxacin|meloxicam|""" +
+        """metronidazole|doxycycline|praziquantel|albendazole|fenbendazole|""" +
+        """dexamethasone|prednisolone|ketamine|xylazine|atropine|furosemide|""" +
+        """gentamicin|ceftriaxone|sulfadimidine|trimethoprim|toltrazuril|""" +
+        """amprolium|closantel|levamisole|doramectin|moxidectin|selamectin)\b""",
+    RegexOption.IGNORE_CASE,
+)
+
+private val SENTENCE_BOUNDARY_REGEX = Regex("""(?<=[.;])\s+""")
+private val BULLET_PREFIX_REGEX = Regex("""^[\s\-•*–—]+""")
+
+/**
+ * True when a single plan line describes a drug/injection prescription rather
+ * than supportive care (isolation, hygiene, feeding, follow-up, …).
+ */
+internal fun isPrescriptionLine(line: String): Boolean {
+    val text = line.trim()
+    if (text.length < 3) return false
+    return WEIGHT_DOSE_REGEX.containsMatchIn(text) ||
+        MEDICATION_REGEX.containsMatchIn(text) ||
+        (DOSAGE_UNIT_REGEX.containsMatchIn(text) && ROUTE_REGEX.containsMatchIn(text))
+}
+
+/**
+ * Pulls prescription sentences out of free-form narrative (offline fallback or
+ * legacy saved analyses that only carried a single text blob).
+ */
+fun extractPrescriptionLines(text: String): List<String> =
+    text.lineSequence()
+        .flatMap { line -> line.split(SENTENCE_BOUNDARY_REGEX) }
+        .map { it.replace(BULLET_PREFIX_REGEX, "").trim() }
+        .filter { isPrescriptionLine(it) }
+        .map { sanitizeAiItem(it) }
+        .filter { it.isNotEmpty() }
+        .distinct()
+        .toList()
+
+/**
+ * Builds the dedicated prescription plan for a structured analysis. When the
+ * backend supplied explicit `prescriptions` they win; otherwise drug lines are
+ * partitioned out of the legacy `recommendedNextSteps` so no dosage is lost or
+ * duplicated. Narrative-only results (offline mode) are scanned as a fallback.
+ */
+fun buildPrescriptionPlan(
+    analysisData: AiAnalysisData?,
+    narrative: String? = null,
+): PrescriptionPlan {
+    val explicit = analysisData?.prescriptions.orEmpty()
+        .map { sanitizeAiItem(it) }
+        .filter { it.isNotEmpty() }
+        .distinct()
+    val steps = analysisData?.recommendedNextSteps.orEmpty()
+        .map { sanitizeAiItem(it) }
+        .filter { it.isNotEmpty() }
+    val extractedFromSteps = steps.filter { isPrescriptionLine(it) }
+    return PrescriptionPlan(
+        prescriptions = explicit.ifEmpty {
+            if (steps.isNotEmpty()) extractedFromSteps else extractPrescriptionLines(narrative.orEmpty())
+        },
+        supportiveCare = if (explicit.isNotEmpty()) steps else steps.filterNot { isPrescriptionLine(it) },
+    )
+}

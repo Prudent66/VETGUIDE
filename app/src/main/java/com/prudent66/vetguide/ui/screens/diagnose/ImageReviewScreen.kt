@@ -132,7 +132,7 @@ private fun ContextInput(value: String, onValueChange: (String) -> Unit) {
         },
         supportingText = {
             Text(
-                "Helps the AI prioritize findings aligned with your observation.",
+                "Helps prioritize findings aligned with your observation.",
                 style = MaterialTheme.typography.bodySmall,
             )
         },

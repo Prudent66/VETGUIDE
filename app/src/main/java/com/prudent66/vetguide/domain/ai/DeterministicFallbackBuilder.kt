@@ -9,7 +9,7 @@ package com.prudent66.vetguide.domain.ai
 object DeterministicFallbackBuilder {
 
     fun build(request: AiRequest): String = buildString {
-        append("Offline mode — AI providers unavailable. ")
+        append("Offline mode — cloud analysis unavailable. ")
         append("Rule-based summary of the recorded findings (questionnaire + offline ")
         append("Knowledge Base) for: ")
         append(request.headline)

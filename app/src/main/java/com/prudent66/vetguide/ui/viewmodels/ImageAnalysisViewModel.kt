@@ -248,6 +248,6 @@ class ImageAnalysisViewModel @Inject constructor(
     private companion object {
         /** §4.2: findings text submitted with the image payload. */
         const val IMAGE_FINDINGS =
-            "Photograph of the animal's presenting condition submitted for AI image analysis."
+            "Photograph of the animal's presenting condition submitted for cloud image analysis."
     }
 }

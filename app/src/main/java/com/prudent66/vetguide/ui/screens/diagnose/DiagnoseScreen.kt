@@ -179,7 +179,7 @@ private fun title(state: DiagnosticUiState, imageState: ImageAnalysisUiState): S
             is ImageAnalysisUiState.Analyzing -> "Analyzing"
             is ImageAnalysisUiState.Result -> "Analysis Finding:"
             is ImageAnalysisUiState.ImageError -> "Photo analysis"
-            is ImageAnalysisUiState.QuotaExceeded -> "AI service busy"
+            is ImageAnalysisUiState.QuotaExceeded -> "Cloud analysis busy"
             ImageAnalysisUiState.Idle -> "Diagnose"
         }
     } else {
@@ -352,7 +352,7 @@ private fun QuotaExceededPhase(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            "The AI service is currently at maximum capacity. " +
+            "Cloud analysis is currently at maximum capacity. " +
                 "Please try again later or use the offline questionnaire.",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
@@ -369,7 +369,7 @@ private fun QuotaExceededPhase(
             Text("Use Offline Questionnaire")
         }
         OutlinedButton(onClick = onRetry, modifier = Modifier.fillMaxWidth()) {
-            Text("Retry AI Analysis")
+            Text("Retry Analysis")
         }
         if (!detail.isNullOrBlank()) {
             Text(

@@ -98,7 +98,7 @@ class CloudAiProvider(
     private fun analyzeStatus(status: HttpStatusCode, body: String): AiAttempt = when (status) {
         HttpStatusCode.OK -> decodeAttempt(body)
         HttpStatusCode.TooManyRequests -> throw AiQuotaExceededException(
-            "[$id] AI service at maximum capacity — all provider keys exhausted",
+            "[$id] cloud analysis at maximum capacity — all provider keys exhausted",
         )
         else -> {
             val code = status.value
@@ -170,7 +170,7 @@ class CloudAiProvider(
         when (response.status) {
             HttpStatusCode.OK -> decodeAttempt(body)
             HttpStatusCode.TooManyRequests ->
-                AiAttempt.Failure("[$id] AI service at maximum capacity — all provider keys exhausted")
+                AiAttempt.Failure("[$id] cloud analysis at maximum capacity — all provider keys exhausted")
             else -> {
                 val status = response.status.value
                 AiAttempt.Failure(

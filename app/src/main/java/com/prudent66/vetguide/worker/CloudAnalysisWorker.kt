@@ -132,7 +132,7 @@ class CloudAnalysisWorker @AssistedInject constructor(
         val newCase = Case(
             id = UUID.randomUUID().toString(),
             patientId = patientId,
-            presentingComplaint = "AI image analysis (queued)",
+            presentingComplaint = "Cloud image analysis (queued)",
             status = CaseStatus.OPEN,
             createdAtEpochMs = now,
             updatedAtEpochMs = now,
@@ -148,7 +148,7 @@ class CloudAnalysisWorker @AssistedInject constructor(
             .format(Date(pending.createdAtEpochMs))
         val patient = Patient(
             id = UUID.randomUUID().toString(),
-            name = "AI Analysis $label",
+            name = "Analysis $label",
             species = species,
             breed = null,
             sex = PatientSex.UNKNOWN,
@@ -160,7 +160,7 @@ class CloudAnalysisWorker @AssistedInject constructor(
             weightUpdatedAtEpochMs = null,
             ownerName = null,
             ownerPhone = null,
-            ownerNotes = "Created for queued AI analysis",
+            ownerNotes = "Created for queued cloud analysis",
             createdAtEpochMs = now,
             updatedAtEpochMs = now,
         )
@@ -171,7 +171,7 @@ class CloudAnalysisWorker @AssistedInject constructor(
     private fun postCompletionNotification(pending: PendingCloudAnalysisEntity) {
         postNotification(
             pending,
-            title = "Cloud AI analysis complete",
+            title = "Cloud analysis complete",
             text = "Your queued image analysis is ready. Open the case to review.",
         )
     }
@@ -179,7 +179,7 @@ class CloudAnalysisWorker @AssistedInject constructor(
     private fun postFailureNotification(pending: PendingCloudAnalysisEntity) {
         postNotification(
             pending,
-            title = "Cloud AI analysis failed",
+            title = "Cloud analysis failed",
             text = "Automatic retry exhausted. Try again manually from the case.",
         )
     }
@@ -193,7 +193,7 @@ class CloudAnalysisWorker @AssistedInject constructor(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Cloud AI Analysis",
+                "Cloud Analysis",
                 NotificationManager.IMPORTANCE_DEFAULT,
             )
             manager.createNotificationChannel(channel)
@@ -212,7 +212,7 @@ class CloudAnalysisWorker @AssistedInject constructor(
         findings = buildString {
             append(
                 "Photograph of the animal's presenting condition submitted " +
-                    "for AI image analysis.",
+                    "for cloud image analysis.",
             )
             clinicalContext?.let { contextText -> append(" $contextText") }
         },

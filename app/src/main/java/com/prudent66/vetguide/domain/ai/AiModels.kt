@@ -126,6 +126,13 @@ data class AiAnalysisData(
     val findings: List<String>,
     val suspectedConditions: List<SuspectedCondition>,
     val recommendedNextSteps: List<String> = emptyList(),
+    /**
+     * Drug/injection prescriptions with dosages, kept separate from the
+     * non-pharmacological [recommendedNextSteps] so the UI and SOAP/PDF
+     * exports can present them in a dedicated prescription sheet. Defaults
+     * to empty so responses from older backends still decode.
+     */
+    val prescriptions: List<String> = emptyList(),
 ) {
     /** Serializes the full structured analysis for persistence as a CaseArtifact. */
     fun toJson(): String = Json { ignoreUnknownKeys = true }.encodeToString(this)
@@ -145,7 +152,7 @@ fun sanitizeAiItem(item: String): String =
  * provider/model provenance and the standing "not a diagnosis" framing.
  */
 fun AiAnalysisData.toNarrativeText(): String = buildString {
-    append("[AI prediction — $provider/$model] ")
+    append("[Cloud analysis — $provider/$model] ")
     append("Findings: ")
     append(findings.joinToString("; ") { sanitizeAiItem(it) })
     append(". ")
@@ -156,6 +163,10 @@ fun AiAnalysisData.toNarrativeText(): String = buildString {
                 "(confidence ${(condition.confidence * 100).roundToInt()}%)"
         },
     ).append(". ")
+    if (prescriptions.isNotEmpty()) {
+        append("Prescriptions & dosages: ")
+        append(prescriptions.joinToString("; ") { sanitizeAiItem(it) }).append(". ")
+    }
     if (recommendedNextSteps.isNotEmpty()) {
         append("Recommended next steps: ")
         append(recommendedNextSteps.joinToString("; ") { sanitizeAiItem(it) }).append(". ")

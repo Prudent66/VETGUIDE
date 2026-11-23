@@ -31,11 +31,13 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import com.prudent66.vetguide.domain.ai.buildPrescriptionPlan
 import com.prudent66.vetguide.domain.ai.sanitizeAiItem
 import com.prudent66.vetguide.domain.model.AiArtifactPayload
 import com.prudent66.vetguide.domain.model.SoapPayload
 import com.prudent66.vetguide.domain.model.ageLabel
 import com.prudent66.vetguide.domain.model.clinicalAnalysisText
+import com.prudent66.vetguide.ui.components.PrescriptionCard
 import com.prudent66.vetguide.ui.screens.knowledge.speciesLabel
 import com.prudent66.vetguide.ui.viewmodels.CaseDetailUiState
 import com.prudent66.vetguide.ui.viewmodels.CaseDetailViewModel
@@ -93,15 +95,15 @@ internal fun CaseDetailContent(
 
 @Composable
 private fun AiAnalysisCard(ai: AiArtifactPayload) {
+    val plan = remember(ai) { buildPrescriptionPlan(ai.analysisData, ai.narrative) }
     ArtifactCard("Analysis Finding:") {
         Text(clinicalAnalysisText(ai.narrative), style = MaterialTheme.typography.bodyMedium)
-        val steps = ai.analysisData?.recommendedNextSteps.orEmpty()
-        if (steps.isNotEmpty()) {
+        if (plan.supportiveCare.isNotEmpty()) {
             Text(
-                "Practical field treatments suggested:",
+                "Supportive field care suggested:",
                 style = MaterialTheme.typography.titleSmall,
             )
-            steps.forEachIndexed { index, step ->
+            plan.supportiveCare.forEachIndexed { index, step ->
                 Text(
                     "${index + 1}. ${sanitizeAiItem(step)}",
                     style = MaterialTheme.typography.bodyMedium,
@@ -109,6 +111,7 @@ private fun AiAnalysisCard(ai: AiArtifactPayload) {
             }
         }
     }
+    PrescriptionCard(plan.prescriptions, Modifier.fillMaxWidth())
 }
 
 @Composable

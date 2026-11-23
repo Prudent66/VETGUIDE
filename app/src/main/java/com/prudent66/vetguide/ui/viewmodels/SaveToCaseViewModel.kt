@@ -133,7 +133,7 @@ class SaveToCaseViewModel @Inject constructor(
                 ?.joinToString("\n") { finding -> "• $finding" }
                 ?: result.narrative,
             assessmentSeed = renderSuspectedConditionsSeed(result.analysisData).orEmpty(),
-            planSeed = renderPlanSeed(result.analysisData).orEmpty(),
+            planSeed = renderPlanSeed(result.analysisData, result.narrative).orEmpty(),
             imageBase64 = result.imageBase64,
             aiContent = CasePayloadCodec.encode(
                 AiArtifactPayload(

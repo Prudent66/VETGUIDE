@@ -158,6 +158,7 @@ interface AiAnalysisData {
   findings: string[];
   suspectedConditions: SuspectedCondition[];
   recommendedNextSteps: string[];
+  prescriptions: string[];
 }
 
 interface AnalyzeRequestBody {
@@ -257,7 +258,7 @@ function buildPrompt(findings: string, clinicalContext?: string): string {
     "Respond ONLY with JSON exactly matching this schema:",
     '{"provider":string,"model":string,"findings":string[],' +
       '"suspectedConditions":[{"name":string,"confidence":number}],' +
-      '"recommendedNextSteps":string[]}',
+      '"recommendedNextSteps":string[],"prescriptions":string[]}',
     "- provider/model: identify yourself.",
     "- confidence: a 0..1 estimate; it is NOT a validated diagnostic probability.",
     "- suspectedConditions: ranked, max 5, keep names general (e.g. species-level).",
@@ -270,9 +271,13 @@ function buildPrompt(findings: string, clinicalContext?: string): string {
     "3. Prioritize practical, locally available treatments and prescriptions. " +
       "Assume the vet has basic field equipment (stethoscope, thermometer, syringes) " +
       "but NO advanced lab or imaging equipment.",
-    "4. In the recommendedNextSteps array, provide actionable, field-ready treatments, " +
-      "drug names (if applicable), and management advice, rather than advanced " +
-      "diagnostic tests.",
+    "4. In the recommendedNextSteps array, provide ONLY non-pharmacological " +
+      "supportive care and follow-up (isolation, hygiene, feeding, re-check). " +
+      "Never repeat drug dosages there. Put every drug/injection prescription in " +
+      "the prescriptions array instead.",
+    "5. Each prescriptions item must include drug name, dose (prefer mg/kg and " +
+      "total dose), route, frequency and duration. Use an empty array when no " +
+      "medication is indicated. Never invent a prescription.",
     "",
     "Dosage rules (strict):",
     "1. If a treatment requires oral/systemic medication, provide standard veterinary " +
@@ -329,10 +334,12 @@ function normalizeAnalysis(raw: unknown, provider: string, model: string): AiAna
   const findings = asStringArray(candidate.findings);
   const suspectedConditions = normalizeConditions(candidate.suspectedConditions);
   const recommendedNextSteps = asStringArray(candidate.recommendedNextSteps);
+  const prescriptions = asStringArray(candidate.prescriptions);
   if (
     findings.length === 0 &&
     suspectedConditions.length === 0 &&
-    recommendedNextSteps.length === 0
+    recommendedNextSteps.length === 0 &&
+    prescriptions.length === 0
   ) {
     return null;
   }
@@ -342,6 +349,7 @@ function normalizeAnalysis(raw: unknown, provider: string, model: string): AiAna
     findings,
     suspectedConditions,
     recommendedNextSteps,
+    prescriptions,
   };
 }
 
@@ -425,6 +433,7 @@ function mockAnalysis(prompt: string): AiAnalysisData {
       "Mock backend response — no provider keys configured on this Worker",
       "Seed output — requires veterinary review; not a diagnosis",
     ],
+    prescriptions: [],
   };
 }
 
@@ -747,7 +756,7 @@ function isQuotaFailure(failure: AttemptFailure): boolean {
 function failureResponse(context: AttemptContext): Response {
   const failures = context.failures;
   if (failures.length === 0) {
-    return json({ error: "Cloud AI unavailable — no provider answered" }, 502);
+    return json({ error: "Cloud analysis unavailable — no provider answered" }, 502);
   }
   const providers = unique(failures.map((failure) => failure.provider)).join(", ");
   const detail = failures
@@ -757,7 +766,7 @@ function failureResponse(context: AttemptContext): Response {
   if (failures.every(isQuotaFailure)) {
     return json(
       {
-        error: "AI service at maximum capacity — all provider keys exhausted",
+        error: "Cloud analysis at maximum capacity — all provider keys exhausted",
         providers,
         detail,
       },
@@ -766,7 +775,7 @@ function failureResponse(context: AttemptContext): Response {
   }
   return json(
     {
-      error: `Cloud AI unavailable — every provider failed (${providers})`,
+      error: `Cloud analysis unavailable — every provider failed (${providers})`,
       providers,
       detail,
     },

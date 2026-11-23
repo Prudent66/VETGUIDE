@@ -13,7 +13,7 @@ fun fallbackReason(diagnostics: List<String>): String {
     return reasonMarkers
         .firstOrNull { (markers, _) -> markers.any(text::contains) }
         ?.second
-        ?: "Cloud AI unavailable"
+        ?: "Cloud Analysis unavailable"
 }
 
 /**
@@ -35,8 +35,8 @@ private val transientNetworkReasons: Set<String> = setOf(
  * True for any fallback a store-and-forward background retry can plausibly
  * resolve: transient connectivity PLUS temporary upstream capacity limits
  * (HTTP 429 / 503, "maximum capacity", exhausted keys, or an unspecified
- * "Cloud AI unavailable"). Rate limits clear after a cooldown, so the
- * "Queue for Cloud AI (Auto-Sync)" action must stay available for them.
+ * "Cloud Analysis unavailable"). Rate limits clear after a cooldown, so the
+ * "Queue for Cloud Analysis (Auto-Sync)" action must stay available for them.
  */
 fun isQueueableFallbackReason(reason: String?): Boolean =
     reason != null && reason in queueableReasons
@@ -44,7 +44,7 @@ fun isQueueableFallbackReason(reason: String?): Boolean =
 private val queueableReasons: Set<String> = transientNetworkReasons + setOf(
     "Cloud API HTTP 429 (rate limited)",
     "Cloud API HTTP 5xx",
-    "Cloud AI unavailable",
+    "Cloud Analysis unavailable",
 )
 
 /** Ordered cause → short banner reason; the first matching marker wins. */
@@ -63,5 +63,5 @@ private val reasonMarkers: List<Pair<List<String>, String>> = listOf(
     listOf("insufficient information") to "Cloud response was inconclusive",
     listOf("schema validation") to "Cloud response was invalid",
     listOf("network failure") to "Network unreachable",
-    listOf("cooling down", "benched") to "Cloud AI temporarily paused",
+    listOf("cooling down", "benched") to "Cloud Analysis temporarily paused",
 )

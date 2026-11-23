@@ -1,6 +1,7 @@
 package com.prudent66.vetguide.domain.model
 
 import com.prudent66.vetguide.domain.ai.AiAnalysisData
+import com.prudent66.vetguide.domain.ai.buildPrescriptionPlan
 import com.prudent66.vetguide.domain.ai.sanitizeAiItem
 import kotlin.math.roundToInt
 import kotlinx.serialization.Serializable
@@ -90,8 +91,8 @@ fun renderDifferentialsSeed(matches: List<DiagnosticMatch>): String = if (matche
     }
 }
 
-/** Strips the "[AI prediction — provider/model]" provenance tag for clinical views. */
-private val AI_TAG_REGEX = Regex("""^\[AI prediction[^\]]*\]\s*""")
+/** Strips the "[Cloud analysis — provider/model]" provenance tag for clinical views. */
+private val AI_TAG_REGEX = Regex("""^\[(?:AI prediction|Cloud analysis)[^\]]*\]\s*""")
 
 /** Collapses repeated sentence punctuation ("..", ".;", ". .") to the first mark. */
 private val REPEATED_PUNCTUATION_REGEX = Regex("""([.;])\s*[.;]+""")
@@ -130,14 +131,31 @@ fun renderSuspectedConditionsSeed(analysisData: AiAnalysisData?): String? =
         }
 
 /**
- * Plan seed: the assessment's practical field treatments as a numbered list,
- * matching the Objective/Assessment pre-fill. Null when the AI tier returned
- * no structured next steps (offline results or a degraded response).
+ * Plan seed: prescriptions with dosages first, then the assessment's
+ * non-pharmacological supportive care as a numbered list, matching the
+ * Objective/Assessment pre-fill. Keeping both blocks in the persisted SOAP
+ * plan is what preserves every prescription detail in the PDF export. Null
+ * when the tier returned no structured plan (offline or degraded response).
  */
-fun renderPlanSeed(analysisData: AiAnalysisData?): String? =
-    analysisData?.recommendedNextSteps
-        ?.map { sanitizeAiItem(it) }
-        ?.filter { it.isNotEmpty() }
-        ?.takeIf { it.isNotEmpty() }
-        ?.mapIndexed { index, step -> "${index + 1}. $step." }
-        ?.joinToString("\n")
+fun renderPlanSeed(
+    analysisData: AiAnalysisData?,
+    narrative: String? = null,
+): String? {
+    val plan = buildPrescriptionPlan(analysisData, narrative)
+    if (!plan.hasPrescriptions && plan.supportiveCare.isEmpty()) return null
+    return buildString {
+        if (plan.hasPrescriptions) {
+            append("Prescriptions & dosages:\n")
+            plan.prescriptions.forEachIndexed { index, item ->
+                append("${index + 1}. $item.\n")
+            }
+        }
+        if (plan.supportiveCare.isNotEmpty()) {
+            if (isNotEmpty()) append("\n")
+            append("Supportive care & next steps:\n")
+            plan.supportiveCare.forEachIndexed { index, item ->
+                append("${index + 1}. $item.\n")
+            }
+        }
+    }.trim()
+}

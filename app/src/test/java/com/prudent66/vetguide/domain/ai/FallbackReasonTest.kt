@@ -51,7 +51,7 @@ class FallbackReasonTest {
             fallbackReason(listOf("[cloud-backend] insufficient information")),
         )
         assertEquals(
-            "Cloud AI temporarily paused",
+            "Cloud Analysis temporarily paused",
             fallbackReason(listOf("[cloud-backend] skipped — cooling down after failures")),
         )
     }
@@ -83,12 +83,12 @@ class FallbackReasonTest {
         )
         assertTrue(isQueueableFallbackReason("Cloud API HTTP 429 (rate limited)"))
         assertTrue(isQueueableFallbackReason("Cloud API HTTP 5xx"))
-        assertTrue(isQueueableFallbackReason("Cloud AI unavailable"))
+        assertTrue(isQueueableFallbackReason("Cloud Analysis unavailable"))
     }
 
     @Test
     fun `unknown failures fall back to a generic reason`() {
-        assertEquals("Cloud AI unavailable", fallbackReason(emptyList()))
-        assertEquals("Cloud AI unavailable", fallbackReason(listOf("scripted failure")))
+        assertEquals("Cloud Analysis unavailable", fallbackReason(emptyList()))
+        assertEquals("Cloud Analysis unavailable", fallbackReason(listOf("scripted failure")))
     }
 }

@@ -16,20 +16,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.prudent66.vetguide.domain.ai.OFFLINE_PROVIDER_ID
+import com.prudent66.vetguide.domain.ai.buildPrescriptionPlan
 import com.prudent66.vetguide.domain.ai.isQueueableFallbackReason
 import com.prudent66.vetguide.domain.model.Species
+import com.prudent66.vetguide.ui.components.PrescriptionCard
 import com.prudent66.vetguide.ui.screens.knowledge.speciesLabel
 import com.prudent66.vetguide.ui.viewmodels.ImageAnalysisUiState
 
 /**
  * Phase 6 (§4.2) analyzing + result phases. Provenance is always surfaced
- * (§5.2/§10): a provider id means "AI prediction" with the provider named;
+ * (§5.2/§10): a provider id means a cloud prediction with the provider named;
  * [OFFLINE_PROVIDER_ID] means deterministic rule-based output and is
- * visually distinguished (§10) — it is never presented as AI.
+ * visually distinguished (§10) — it is never presented as an AI result.
  */
 @Composable
 fun ImageAnalyzingPhase(analysis: ImageAnalysisUiState.Analyzing) {
@@ -70,28 +73,7 @@ fun ImageResultPhase(
             .padding(bottom = LocalBottomBarClearance.current),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        if (result.analysisData != null) {
-            // Cloud results start directly with the report (§10 provenance is
-            // in the consent flow and the model itself, per product decision).
-            if (result.degraded) {
-                Text(
-                    text = "Reduced reliability: this result came from a degraded tier.",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-            StructuredReport(result.analysisData)
-        } else {
-            // Offline/rule-based output keeps its §10 "never AI" labeling.
-            ProvenanceBanner(result)
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = result.narrative,
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-        }
+        ResultBody(result)
         Text(
             text = "This output is decision support only — not a diagnosis. The " +
                 "attending veterinarian remains responsible for all clinical decisions.",
@@ -101,8 +83,8 @@ fun ImageResultPhase(
         Button(onClick = onSaveToCase, modifier = Modifier.fillMaxWidth()) {
             Text("Save to Case")
         }
-        // Show "Queue for Cloud AI (Auto-Sync)" for transient network faults
-        // AND temporary upstream capacity/rate-limit responses (§9 resilience).
+        // Show "Queue for Cloud Analysis (Auto-Sync)" for transient network
+        // faults AND temporary upstream capacity/rate-limit responses (§9).
         val shouldShowQueueButton = result.providerId == OFFLINE_PROVIDER_ID &&
             isQueueableFallbackReason(result.fallbackReason)
         if (shouldShowQueueButton && onQueueForRetry != null) {
@@ -110,13 +92,49 @@ fun ImageResultPhase(
                 onClick = onQueueForRetry,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Queue for Cloud AI (Auto-Sync)")
+                Text("Queue for Cloud Analysis (Auto-Sync)")
             }
         }
         OutlinedButton(onClick = onRestart, modifier = Modifier.fillMaxWidth()) {
             Text("New assessment")
         }
     }
+}
+
+/** Result body: structured cloud report or narrative-only offline output. */
+@Composable
+private fun ResultBody(result: ImageAnalysisUiState.Result) {
+    val analysisData = result.analysisData
+    if (analysisData != null) {
+        if (result.degraded) {
+            ReducedReliabilityLine()
+        }
+        StructuredReport(analysisData)
+    } else {
+        // Offline/rule-based output keeps its §10 "never AI" labeling and has
+        // no structured payload — scan the narrative for prescription lines.
+        ProvenanceBanner(result)
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = result.narrative,
+                modifier = Modifier.padding(16.dp),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+        val prescriptions = remember(result.narrative) {
+            buildPrescriptionPlan(analysisData = null, narrative = result.narrative).prescriptions
+        }
+        PrescriptionCard(prescriptions, Modifier.fillMaxWidth())
+    }
+}
+
+@Composable
+private fun ReducedReliabilityLine() {
+    Text(
+        text = "Reduced reliability: this result came from a degraded tier.",
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.error,
+    )
 }
 
 @Composable
@@ -128,7 +146,7 @@ private fun ProvenanceBanner(result: ImageAnalysisUiState.Result) {
                     text = if (result.providerId == OFFLINE_PROVIDER_ID) {
                         "Rule-based result"
                     } else {
-                        "AI prediction"
+                        "Cloud prediction"
                     },
                     style = MaterialTheme.typography.titleSmall,
                     color = if (result.providerId == OFFLINE_PROVIDER_ID) {

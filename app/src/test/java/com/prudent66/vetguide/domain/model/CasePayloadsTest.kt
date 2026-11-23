@@ -103,6 +103,15 @@ class CasePayloadsTest {
     }
 
     @Test
+    fun `clinical analysis text drops the current cloud analysis tag`() {
+        val narrative = "[Cloud analysis — gemini/gemini-3.5-flash] Findings: redness."
+
+        val cleaned = clinicalAnalysisText(narrative)
+
+        assertEquals("Findings: redness.", cleaned)
+    }
+
+    @Test
     fun `clinical analysis text keeps untagged narrative untouched`() {
         assertEquals("Findings: redness.", clinicalAnalysisText("Findings: redness."))
     }
@@ -129,9 +138,29 @@ class CasePayloadsTest {
             recommendedNextSteps = listOf("Isolate affected birds.;", " Disinfect drinkers.. ", "   "),
         )
 
-        assertEquals("1. Isolate affected birds.\n2. Disinfect drinkers.", renderPlanSeed(data))
+        assertEquals(
+            "Supportive care & next steps:\n1. Isolate affected birds.\n2. Disinfect drinkers.",
+            renderPlanSeed(data),
+        )
         assertNull(renderPlanSeed(null))
         assertNull(renderPlanSeed(data.copy(recommendedNextSteps = emptyList())))
+    }
+
+    @Test
+    fun `plan seed keeps prescriptions ahead of non-drug supportive care`() {
+        val data = AiAnalysisData(
+            provider = "p",
+            model = "m",
+            findings = listOf("lesion"),
+            suspectedConditions = emptyList(),
+            recommendedNextSteps = listOf("Isolate affected birds"),
+            prescriptions = listOf("Tylosin 50 mg/kg PO for 3 days."),
+        )
+
+        val seed = renderPlanSeed(data)!!
+
+        assertTrue(seed.startsWith("Prescriptions & dosages:\n1. Tylosin 50 mg/kg PO for 3 days."))
+        assertTrue(seed.contains("Supportive care & next steps:\n1. Isolate affected birds."))
     }
 
     @Test

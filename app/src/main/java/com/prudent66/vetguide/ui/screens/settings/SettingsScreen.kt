@@ -157,13 +157,13 @@ private fun ConnectivityCard(
     connection: CloudConnectionUiState,
     onTest: () -> Unit,
 ) {
-    SettingsCard(title = "Cloud AI & Connectivity") {
+    SettingsCard(title = "Cloud Connectivity") {
         Text(
-            "Cloud AI Analysis is always on",
+            "Cloud Analysis is always on",
             style = MaterialTheme.typography.titleSmall,
         )
         Text(
-            "AI-assisted analysis is used automatically whenever connectivity allows. " +
+            "Cloud-assisted analysis is used automatically whenever connectivity allows. " +
                 "When offline or slow, the app falls back to deterministic questionnaire " +
                 "and offline knowledge-base results.",
             style = MaterialTheme.typography.bodySmall,
@@ -218,7 +218,7 @@ private fun ConnectionStatus(connection: CloudConnectionUiState) {
 private fun BackupRestoreCard(busy: Boolean, onExport: () -> Unit, onImport: () -> Unit) {
     SettingsCard(title = "Data Backup & Restore") {
         Text(
-            "Export patients, cases, and SOAP/AI notes as a JSON file, or restore one " +
+            "Export patients, cases, and SOAP/analysis notes as a JSON file, or restore one " +
                 "after reinstalling or moving to a new device. Restoring is additive: " +
                 "existing records with the same IDs are updated, never deleted.",
             style = MaterialTheme.typography.bodySmall,

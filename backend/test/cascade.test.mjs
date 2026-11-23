@@ -32,6 +32,7 @@ function validBody(provider) {
       { name: "bad", confidence: "nope" },
     ],
     recommendedNextSteps: ["Clean ear canal", ""],
+    prescriptions: [" Tylosin 50 mg/kg PO once daily for 3 days ", 7],
   });
 }
 
@@ -97,6 +98,9 @@ test("falls back from exhausted Gemini to Groq and normalizes", async () => {
     { name: "bad", confidence: 0 },
   ]);
   assert.deepEqual(data.recommendedNextSteps, ["Clean ear canal"]);
+  assert.deepEqual(data.prescriptions, [
+    "Tylosin 50 mg/kg PO once daily for 3 days",
+  ]);
 
   const geminiCalls = calls.filter((c) => c.url.startsWith(ALL_GEMINI));
   assert.equal(geminiCalls.length, 9, "3 unique keys x 3 models");
@@ -256,7 +260,7 @@ test("rejects unusable model output instead of guessing", async () => {
   const res = await worker.fetch(req(), { GEMINI_API_KEY: "k1" }, {});
   assert.equal(res.status, 502);
   const data = await res.json();
-  assert.match(data.error, /Cloud AI unavailable/);
+  assert.match(data.error, /Cloud analysis unavailable/);
 });
 
 let failed = 0;
