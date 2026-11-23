@@ -92,24 +92,12 @@ fun PatientListScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
             ) { Text("Herd / Flock Mode") }
-            Box(modifier = Modifier.fillMaxSize().weight(1f)) {
-                when (val s = state) {
-                    PatientListUiState.Loading -> LoadingBox()
-                    is PatientListUiState.Success ->
-                        if (s.patients.isEmpty()) {
-                            EmptyState()
-                        } else {
-                            PatientList(
-                                patients = s.patients,
-                                modifier = Modifier.fillMaxSize(),
-                                onPatientClick = onPatientClick,
-                                onEditPatient = onEditPatientClick,
-                                onDeletePatient = { pendingDelete = it },
-                            )
-                        }
-                    is PatientListUiState.Error -> ErrorBox(s.message)
-                }
-            }
+            PatientStateContent(
+                state = state,
+                onPatientClick = onPatientClick,
+                onEditPatientClick = onEditPatientClick,
+                onDeletePatient = { pendingDelete = it },
+            )
         }
     }
 
@@ -128,6 +116,34 @@ fun PatientListScreen(
             },
             onDismiss = { pendingDelete = null },
         )
+    }
+}
+
+
+@Composable
+private fun PatientStateContent(
+    state: PatientListUiState,
+    onPatientClick: (String) -> Unit,
+    onEditPatientClick: (String) -> Unit,
+    onDeletePatient: (Patient) -> Unit,
+) {
+    Box(modifier = Modifier.fillMaxSize().weight(1f)) {
+        when (val s = state) {
+            PatientListUiState.Loading -> LoadingBox()
+            is PatientListUiState.Success ->
+                if (s.patients.isEmpty()) {
+                    EmptyState()
+                } else {
+                    PatientList(
+                        patients = s.patients,
+                        modifier = Modifier.fillMaxSize(),
+                        onPatientClick = onPatientClick,
+                        onEditPatient = onEditPatientClick,
+                        onDeletePatient = onDeletePatient,
+                    )
+                }
+            is PatientListUiState.Error -> ErrorBox(s.message)
+        }
     }
 }
 

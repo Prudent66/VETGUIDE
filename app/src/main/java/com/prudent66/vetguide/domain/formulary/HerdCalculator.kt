@@ -66,15 +66,11 @@ fun batchTreatment(
     bottleSizeMl: Double = 100.0,
 ): BatchTreatment? {
     val range = drug.doseBySpecies[snapshot.species]
-    if (
-        range == null ||
-        snapshot.headcount <= 0 ||
+    val invalid = snapshot.headcount <= 0 ||
         snapshot.averageWeightKg <= 0.0 ||
         concentrationMgPerMl <= 0.0 ||
         bottleSizeMl <= 0.0
-    ) {
-        return null
-    }
+    if (range == null || invalid) return null
     val perKg = range.recommended()
     val totalMg = perKg * snapshot.averageWeightKg * snapshot.headcount
     val totalMl = totalMg / concentrationMgPerMl

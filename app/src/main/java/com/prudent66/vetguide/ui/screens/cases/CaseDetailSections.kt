@@ -234,7 +234,6 @@ internal fun SoapEditor(
             onValueChange = { plan = it },
             label = "Plan (treatment & follow-up)",
             placeholder = PLAN_HINT,
-            minLines = 2,
             onDictate = { spoken -> plan = appendDictated(plan, spoken) },
         )
         Button(
@@ -254,7 +253,6 @@ private fun SoapField(
     onValueChange: (String) -> Unit,
     label: String,
     placeholder: String = "",
-    minLines: Int = 3,
     onDictate: ((String) -> Unit)? = null,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -264,7 +262,7 @@ private fun SoapField(
             label = { Text(label) },
             placeholder = { Text(placeholder) },
             modifier = Modifier.fillMaxWidth(),
-            minLines = minLines,
+            minLines = 3,
         )
         if (onDictate != null) {
             VoiceDictationButton(
