@@ -59,7 +59,13 @@ jobs:
         run: gradle assembleDebug
 
       # ---------------------------------------------------------------------
-      # Signed release bundle for Google Play.
+      # Signed release bundle (Google Play) + release APK (tester updates).
+      #
+      # bundleRelease and assembleRelease share the SAME release signing
+      # config, so the release APK installs in-place over any previous
+      # release-signed build — no uninstall, Room database data survives.
+      # (The debug APK uses a fresh ephemeral runner keystore and therefore
+      # cannot update a release-signed installation.)
       #
       # Secrets (Settings → Secrets and variables → Actions):
       #   KEYSTORE_BASE64     base64 of vetguide-release.jks
@@ -67,15 +73,15 @@ jobs:
       #   KEY_ALIAS           key alias inside the keystore
       #   KEY_PASSWORD        key password
       #
-      # Without KEYSTORE_BASE64 the same task still runs and produces an
-      # unsigned AAB, so R8/resource-shrinking is validated on every push.
+      # Without KEYSTORE_BASE64 the same tasks still run and produce an
+      # unsigned AAB/APK, so R8/resource-shrinking is validated on every push.
       # ---------------------------------------------------------------------
       - name: Decode release keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
           if [ -z "$KEYSTORE_BASE64" ]; then
-            echo "::notice::KEYSTORE_BASE64 is not set — building an unsigned AAB for now."
+            echo "::notice::KEYSTORE_BASE64 is not set — building an unsigned AAB/APK for now."
             exit 0
           fi
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/vetguide-release.jks"
@@ -89,6 +95,14 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: gradle bundleRelease
 
+      - name: Build release APK (signed when keystore secrets exist)
+        env:
+          VETGUIDE_KEYSTORE_PATH: ${{ runner.temp }}/vetguide-release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: gradle assembleRelease
+
       - name: Verify AAB signature
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -101,6 +115,19 @@ jobs:
           jarsigner -verify "$AAB" | tee /tmp/aab-verify.txt
           grep -q "jar verified" /tmp/aab-verify.txt
           ls -lh "$AAB"
+
+      - name: Verify APK signature
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          APK=app/build/outputs/apk/release/app-release.apk
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::notice::No keystore configured — APK is unsigned; add the four secrets to sign."
+            exit 0
+          fi
+          jarsigner -verify "$APK" | tee /tmp/apk-verify.txt
+          grep -q "jar verified" /tmp/apk-verify.txt
+          ls -lh "$APK"
 
       # room.schemaLocation is written by the Room processor outside the KSP
       # task's declared outputs, so a FROM-CACHE kspDebugKotlin hit never
@@ -127,6 +154,16 @@ jobs:
         with:
           name: vetguide-release-aab
           path: app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+
+      # Signed with the same vetguide-release.jks as the AAB, so testers can
+      # install it in-place over a previous release build (Room data kept).
+      # The glob also matches app-release-unsigned.apk when no keystore is set.
+      - name: Upload release APK (signed when keystore secrets are set)
+        uses: actions/upload-artifact@v4
+        with:
+          name: vetguide-release-apk
+          path: app/build/outputs/apk/release/app-release*.apk
           if-no-files-found: error
 
 # TODO: Re-enable connectedAndroidTest for release branches or manual triggers to save CI time

@@ -18,8 +18,8 @@ android {
         applicationId = "com.prudent66.vetguide"
         minSdk = 26
         targetSdk = 36
-        versionCode = 12
-        versionName = "1.0.0"
+        versionCode = 13
+        versionName = "1.0.13"
     }
 
     /**
@@ -27,8 +27,9 @@ android {
      * a .jks file inside the runner and exports:
      *   VETGUIDE_KEYSTORE_PATH, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD
      * Local builds can export the same four variables. When any is missing the
-     * release bundle is still built — unsigned — so the pipeline can validate
-     * R8/shrinking without the keystore.
+     * release AAB/APK are still built — unsigned — so the pipeline can validate
+     * R8/shrinking without the keystore. Both bundleRelease and assembleRelease
+     * use this config, so the signed APK updates a release install in-place.
      */
     val releaseKeystorePath: String? = System.getenv("VETGUIDE_KEYSTORE_PATH")
         ?.takeIf { it.isNotBlank() }
