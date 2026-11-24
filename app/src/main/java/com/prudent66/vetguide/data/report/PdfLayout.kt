@@ -1,5 +1,6 @@
 package com.prudent66.vetguide.data.report
 
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
@@ -29,20 +30,24 @@ internal fun wrap(text: String, paint: Paint, maxWidth: Float): List<String> = b
     }
 }
 
-/** Collects pages so footers can carry an accurate "Page X of Y". */
-internal class PdfCursor(private val document: PdfDocument) {
+/**
+ * Draws onto one active PdfDocument page at a time. The previous page is
+ * always finished (footer drawn, finishPage called) before a new one starts.
+ */
+internal class PdfCursor(
+    private val document: PdfDocument,
+    private val totalPages: Int = 1,
+) {
+    private val lifecycle = PdfPageLifecycle()
+    private var active: PdfDocument.Page? = null
 
-    val canvas: Canvas get() = pages.last().canvas
+    val canvas: Canvas get() = checkNotNull(active) { "No active PDF page" }.canvas
+    val pageCount: Int get() = lifecycle.pageCount
     var y = EDGE + 20f
-
-    private val pages = mutableListOf<PdfDocument.Page>()
 
     fun text(value: String, x: Float, baseline: Float, p: Paint) {
         canvas.drawText(value, x, baseline, p)
     }
-
-    fun rect(left: Float, top: Float, right: Float, bottom: Float, fill: Int) =
-        rect(RectF(left, top, right, bottom), fill)
 
     fun rect(bounds: RectF, fill: Int, border: Int? = null) {
         canvas.drawRect(bounds, Paint().apply {
@@ -56,6 +61,10 @@ internal class PdfCursor(private val document: PdfDocument) {
                 strokeWidth = 1f
             })
         }
+    }
+
+    fun image(bitmap: Bitmap, bounds: RectF) {
+        canvas.drawBitmap(bitmap, null, bounds, paint(INK, 11f))
     }
 
     fun box(title: String, lines: List<String>, accent: Int, fill: Int) {
@@ -76,40 +85,41 @@ internal class PdfCursor(private val document: PdfDocument) {
         if (y + required > PAGE_H - 56f) startPage()
     }
 
-    fun line(value: String, p: Paint) {
-        ensure(p.textSize + 6f)
-        text(value, EDGE, y, p)
-        y += p.textSize + 6f
-    }
-
+    /** Must be called exactly once, before writeTo/close, to finish the last page. */
     fun finish() {
-        val total = pages.size
-        pages.forEachIndexed { index, page ->
-            val footer = paint(MUTED, 9f)
-            page.canvas.drawText(
-                "VETGUIDE Clinical Decision Support — Not a Substitute for Veterinary Examination • © 2026 Veloxdigitalforge",
-                EDGE,
-                PAGE_H - 24f,
-                footer,
-            )
-            page.canvas.drawText(
-                "Page ${index + 1} of $total",
-                PAGE_W - EDGE - 80f,
-                PAGE_H - 24f,
-                footer,
-            )
-            document.finishPage(page)
-        }
-        pages.clear()
+        finishActive()
+        lifecycle.finishAll()
     }
 
     private fun startPage() {
-        pages.add(
-            document.startPage(
-                PdfDocument.PageInfo.Builder(PAGE_W, PAGE_H, pages.size + 1).create(),
-            ),
+        finishActive()
+        val number = lifecycle.start()
+        active = document.startPage(
+            PdfDocument.PageInfo.Builder(PAGE_W, PAGE_H, number).create(),
         )
         y = EDGE + 20f
+    }
+
+    /** Draws the branded footer then finishes the current page. */
+    private fun finishActive() {
+        val page = active ?: return
+        val number = lifecycle.activePage ?: 1
+        val footer = paint(MUTED, 9f)
+        page.canvas.drawText(
+            "VETGUIDE Clinical Decision Support — Not a Substitute for Veterinary Examination • © 2026 Veloxdigitalforge",
+            EDGE,
+            PAGE_H - 24f,
+            footer,
+        )
+        page.canvas.drawText(
+            "Page $number of $totalPages",
+            PAGE_W - EDGE - 80f,
+            PAGE_H - 24f,
+            footer,
+        )
+        document.finishPage(page)
+        active = null
+        lifecycle.finish()
     }
 
     init {

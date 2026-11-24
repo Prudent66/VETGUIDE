@@ -83,6 +83,15 @@ class HerdCalculatorTest {
     }
 
     @Test
+    fun `wildlife quarantine checklist is biosafety first`() {
+        val steps = wildlifeQuarantineChecklist()
+
+        assertTrue(steps.any { it.contains("PPE", ignoreCase = true) })
+        assertTrue(steps.any { it.contains("anthrax", ignoreCase = true) })
+        assertTrue(steps.any { it.contains("domestic animals", ignoreCase = true) })
+    }
+
+    @Test
     fun `quarantine checklist includes universal and disease specific steps`() {
         val checklist = quarantineChecklist(listOf("foot-and-mouth-disease", "newcastle-disease"))
 

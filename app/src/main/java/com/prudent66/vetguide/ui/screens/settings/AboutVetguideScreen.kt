@@ -136,9 +136,10 @@ private fun CapabilitiesSection() {
         Full Multi-Species Offline Questionnaires: Structured offline clinical
         triage across Cattle, Goat, Sheep, Poultry, Pig, Equine, Dog and Cat.
 
-        Domestic & Wildlife Clinical Modes: Switch between Domestic and Wild
-        to link wildlife species directly to wildlife diseases, zoonotic
-        precautions and tailored clinical questionnaires.
+        Domestic & Wildlife Clinical Modes: Switch seamlessly between Domestic
+        and Wild across patient profiles, Herd/Flock Outbreak Mode, Diagnose and
+        the Knowledge Base. Wild species link directly to wildlife diseases,
+        zoonotic precautions and tailored clinical questionnaires.
 
         Hospital-Grade PDF Clinical Reports & Owner Care Sheets: Structured,
         color-accented SOAP PDF exports plus plain-language owner handouts with

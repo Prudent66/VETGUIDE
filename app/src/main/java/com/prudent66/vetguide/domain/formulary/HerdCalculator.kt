@@ -113,3 +113,13 @@ private val diseaseSteps = mapOf(
 /** Quarantine checklist: universal steps plus disease-specific actions. */
 fun quarantineChecklist(suspectedConditionIds: List<String>): List<String> =
     baseChecklist + diseaseSteps.filterKeys { it in suspectedConditionIds }.values.toList()
+
+/** Biosafety-first checklist for suspected contagious wildlife outbreaks. */
+fun wildlifeQuarantineChecklist(): List<String> = listOf(
+    "Stop all animal movement; notify wildlife and livestock authorities immediately.",
+    "Use PPE and dedicated equipment — several wildlife diseases are zoonotic.",
+    "Do not handle or open carcasses suspected of anthrax; leave them undisturbed.",
+    "Isolate affected animals and minimise capture/restraint stress.",
+    "Disinfect boots, vehicles and equipment between pens and sites.",
+    "Keep domestic animals away from the affected wildlife group.",
+)

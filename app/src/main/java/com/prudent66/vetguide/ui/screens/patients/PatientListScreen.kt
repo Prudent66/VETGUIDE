@@ -42,6 +42,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.prudent66.vetguide.R
+import com.prudent66.vetguide.domain.model.ClinicalSpeciesCatalog
 import com.prudent66.vetguide.domain.model.Patient
 import com.prudent66.vetguide.domain.model.ageLabel
 import com.prudent66.vetguide.ui.viewmodels.PatientListUiState
@@ -222,8 +223,8 @@ private fun PatientRow(
                 Text(patient.name, style = MaterialTheme.typography.titleMedium)
                 Text(
                     text = listOfNotNull(
-                        patient.species.name.lowercase().replaceFirstChar { it.uppercase() },
-                        patient.breed ?: "Breed unknown",
+                        ClinicalSpeciesCatalog.display(patient),
+                        patient.breed?.takeIf { it.isNotBlank() } ?: "Breed unknown",
                         patient.ageLabel(),
                     ).joinToString(" · "),
                     style = MaterialTheme.typography.bodyMedium,

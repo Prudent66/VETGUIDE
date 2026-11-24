@@ -84,6 +84,7 @@ class PatientViewModel @Inject constructor(
             val patient = existing?.copy(
                 name = draft.name,
                 animalCategory = draft.animalCategory,
+                wildlifeGroup = draft.wildlifeGroup,
                 species = draft.species,
                 breed = draft.breed,
                 sex = draft.sex,
@@ -100,6 +101,7 @@ class PatientViewModel @Inject constructor(
                 id = UUID.randomUUID().toString(),
                 name = draft.name,
                 animalCategory = draft.animalCategory,
+                wildlifeGroup = draft.wildlifeGroup,
                 species = draft.species,
                 breed = draft.breed,
                 sex = draft.sex,

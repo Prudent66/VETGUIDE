@@ -44,17 +44,36 @@ data class HospitalReportData(
 object PdfReportExporter {
 
     fun build(data: HospitalReportData): PdfDocument {
+        // First pass counts pages so "Page X of Y" is accurate; the real pass
+        // finishes every page before starting the next one.
+        val total = countPages(data)
         val document = PdfDocument()
-        val cursor = PdfCursor(document)
-        drawHeader(cursor, data)
-        drawMetadata(cursor, data)
-        drawSoap(cursor, data)
-        if (data.differentials.isNotEmpty()) drawDifferentials(cursor, data.differentials)
-        drawPrescriptions(cursor, data)
-        drawImage(cursor, data.imageBase64)
-        drawDisclaimer(cursor)
+        val cursor = PdfCursor(document, total)
+        render(data, cursor)
         cursor.finish()
         return document
+    }
+
+    private fun countPages(data: HospitalReportData): Int {
+        val probe = PdfDocument()
+        return try {
+            val cursor = PdfCursor(probe)
+            render(data, cursor)
+            cursor.finish()
+            cursor.pageCount
+        } finally {
+            probe.close()
+        }
+    }
+
+    private fun render(data: HospitalReportData, c: PdfCursor) {
+        drawHeader(c, data)
+        drawMetadata(c, data)
+        drawSoap(c, data)
+        if (data.differentials.isNotEmpty()) drawDifferentials(c, data.differentials)
+        drawPrescriptions(c, data)
+        drawImage(c, data.imageBase64)
+        drawDisclaimer(c)
     }
 
     private fun drawHeader(c: PdfCursor, d: HospitalReportData) {
@@ -93,7 +112,13 @@ object PdfReportExporter {
     }
 
     private fun drawSoap(c: PdfCursor, d: HospitalReportData) {
-        val objective = dedupeObjective(d.soap.objective, d.narrative)
+        val objective = if (d.narrative.isNullOrBlank()) {
+            d.soap.objective
+        } else {
+            val marker = "Analysis Finding:"
+            val idx = d.soap.objective.indexOf(marker, ignoreCase = true)
+            if (idx >= 0) d.soap.objective.substring(0, idx).trim() else d.soap.objective
+        }
         val sections = listOf(
             "S — Subjective (History / Anamnesis)" to d.soap.subjective,
             "O — Objective (Clinical Findings)" to objective,
@@ -116,14 +141,6 @@ object PdfReportExporter {
             }
             c.y = top + boxH + 12f
         }
-    }
-
-    /** Removes any raw "Analysis Finding:" blob already carried inside Objective. */
-    private fun dedupeObjective(objective: String, narrative: String?): String {
-        if (narrative.isNullOrBlank()) return objective
-        val marker = "Analysis Finding:"
-        val idx = objective.indexOf(marker, ignoreCase = true)
-        return if (idx >= 0) objective.substring(0, idx).trim() else objective
     }
 
     private fun drawDifferentials(c: PdfCursor, items: List<Pair<String, Double>>) {
@@ -175,7 +192,7 @@ object PdfReportExporter {
         val top = c.y
         c.rect(RectF(EDGE, top, EDGE + WIDTH, top + h + 28f), Color.WHITE, BORDER)
         c.text("Clinical Case Photograph", EDGE + 12f, top + 18f, paint(ACCENT, 11f, Typeface.BOLD))
-        c.canvas.drawBitmap(bitmap, null, RectF(EDGE + 8f, top + 24f, EDGE + 8f + w, top + 24f + h), paint(INK, 11f))
+        c.image(bitmap, RectF(EDGE + 8f, top + 24f, EDGE + 8f + w, top + 24f + h))
         c.y = top + h + 40f
         bitmap.recycle()
     }

@@ -52,7 +52,7 @@ import com.prudent66.vetguide.domain.model.PatientDraft
 import com.prudent66.vetguide.domain.model.PatientSex
 import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.ui.components.AnimalCategoryToggle
-import com.prudent66.vetguide.ui.components.SpeciesField
+import com.prudent66.vetguide.ui.components.ClinicalSpeciesField
 import com.prudent66.vetguide.ui.viewmodels.PatientViewModel
 
 /**
@@ -131,17 +131,22 @@ private fun PatientFormBody(
     ) {
         AnimalCategoryToggle(
             selected = form.animalCategory,
-            onSelect = { form.animalCategory = it },
+            onSelect = { category -> form.switchCategory(category) },
         )
         Text("Species", style = MaterialTheme.typography.labelLarge)
-        SpeciesField(
-            selected = form.species,
-            onSelect = { species ->
-                val changed = species != form.species
+        ClinicalSpeciesField(
+            category = form.animalCategory,
+            selectedDomestic = form.species,
+            selectedWildlife = form.wildlifeGroup,
+            onDomestic = { species ->
                 form.species = species
-                if (changed) {
-                    form.breed = ""
-                }
+                form.wildlifeGroup = null
+                form.breed = ""
+            },
+            onWildlife = { group ->
+                form.wildlifeGroup = group
+                form.species = Species.OTHER
+                form.breed = ""
             },
             modifier = Modifier.fillMaxWidth(),
         )
@@ -180,6 +185,7 @@ private fun SaveButton(
                     name = form.name.trim(),
                     animalCategory = form.animalCategory,
                     species = form.species,
+                    wildlifeGroup = form.wildlifeGroup,
                     breed = form.breed.trim().ifBlank { null },
                     sex = form.sex,
                     ageValue = form.ageValue,
@@ -207,7 +213,7 @@ class PatientFormState(
     var weightText: String by mutableStateOf("")
     var species: Species by mutableStateOf(species)
     var animalCategory: AnimalCategory by mutableStateOf(AnimalCategory.DOMESTIC)
-    var sex: PatientSex by mutableStateOf(sex)
+    var wildlifeGroup: String? by mutableStateOf(null)
 
     /** Pre-fills every editable field from an existing patient (edit mode). */
     fun load(patient: Patient) {

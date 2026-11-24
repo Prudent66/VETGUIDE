@@ -105,6 +105,15 @@ class DosageCalculatorTest {
     }
 
     @Test
+    fun `generic ivermectin matches the one percent product`() {
+        assertEquals("ivermectin-1", matchDrugFromText("ivermectin")!!.id)
+        assertEquals("ivermectin-1", matchDrugFromText("Give IVERMECTIN 1% SC")!!.id)
+        assertEquals("oxytetracycline-5", matchDrugFromText("oxytetracycline 10 mg/kg")!!.id)
+        assertEquals("oxytetracycline-20", matchDrugFromText("oxytetracycline 20 mg/kg")!!.id)
+        assertEquals("penicillin-streptomycin", matchDrugFromText("penicillin streptomycin")!!.id)
+    }
+
+    @Test
     fun `all ten formulary entries are discoverable by id and name`() {
         assertEquals(10, formulary.size)
         assertEquals("Enrofloxacin", findDrugByName("enrofloxacin")!!.name)

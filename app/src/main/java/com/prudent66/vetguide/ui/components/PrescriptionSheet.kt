@@ -117,17 +117,16 @@ private fun DosageCalculatorSection(
         matchDrugFromText(prescriptions.joinToString(" "))
     }
     var speciesName by rememberSaveable { mutableStateOf((species ?: Species.CATTLE).name) }
-    var drugId by rememberSaveable {
-        mutableStateOf(matched?.id ?: formulary.first().id)
-    }
-    var concentration by rememberSaveable {
-        mutableStateOf(formulary.first().defaultConcentrationMgPerMl)
-    }
+    val matchedId = matched?.id ?: formulary.first().id
+    var selectedDrugId by rememberSaveable(matchedId) { mutableStateOf(matchedId) }
     var weightText by rememberSaveable {
         mutableStateOf(weightKg?.let(::formatAmount).orEmpty())
     }
 
-    val drug = remember(drugId) { findDrug(drugId) ?: formulary.first() }
+    val drug = remember(selectedDrugId) { findDrug(selectedDrugId) ?: formulary.first() }
+    var concentration by rememberSaveable(drug.id) {
+        mutableStateOf(drug.defaultConcentrationMgPerMl)
+    }
     val selectedSpecies = runCatching { Species.valueOf(speciesName) }.getOrNull() ?: Species.OTHER
     val result: DosageResult? = remember(drug, selectedSpecies, weightText, concentration) {
         calculateDosage(drug, selectedSpecies, weightText.toDoubleOrNull() ?: 0.0, concentration)
@@ -139,10 +138,7 @@ private fun DosageCalculatorSection(
             speciesName = it
         }
         SelectionDialogField("Drug", drug.name, formulary.map { it.name }) { name ->
-            findDrugByName(name)?.let { found ->
-                drugId = found.id
-                concentration = found.defaultConcentrationMgPerMl
-            }
+            findDrugByName(name)?.let { found -> selectedDrugId = found.id }
         }
         SelectionDialogField(
             label = "Bottle concentration",

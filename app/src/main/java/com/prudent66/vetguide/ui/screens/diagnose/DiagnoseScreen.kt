@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.prudent66.vetguide.domain.model.Patient
 import com.prudent66.vetguide.domain.model.AnimalCategory
+import com.prudent66.vetguide.domain.model.ClinicalSpeciesCatalog
 import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.ui.components.AnimalCategoryToggle
 import com.prudent66.vetguide.domain.model.ageLabel
@@ -332,7 +333,7 @@ private fun PatientSelection(
             })
             patients.forEach { patient ->
                 DropdownMenuItem(
-                    text = { Text("${patient.name} (${speciesLabel(patient.species)})") },
+                    text = { Text("${patient.name} (${ClinicalSpeciesCatalog.display(patient)})") },
                     onClick = {
                         viewModel.selectPatient(patient)
                         expanded = false

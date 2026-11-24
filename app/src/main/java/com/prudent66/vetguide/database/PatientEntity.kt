@@ -22,6 +22,7 @@ data class PatientEntity(
     @PrimaryKey val id: String,
     val name: String,
     val animalCategory: AnimalCategory = AnimalCategory.DOMESTIC,
+    val wildlifeGroup: String? = null,
     val species: Species,
     val breed: String?,
     val sex: PatientSex,

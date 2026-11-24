@@ -39,6 +39,7 @@ data class PatientBackup(
     val id: String,
     val name: String,
     val animalCategory: String = "DOMESTIC",
+    val wildlifeGroup: String? = null,
     val species: String,
     val breed: String? = null,
     val sex: String,
@@ -92,6 +93,7 @@ fun PatientEntity.toBackup(): PatientBackup = PatientBackup(
     id = id,
     name = name,
     animalCategory = animalCategory.name,
+    wildlifeGroup = wildlifeGroup,
     species = species.name,
     breed = breed,
     sex = sex.name,
@@ -113,6 +115,7 @@ fun PatientBackup.toEntity(): PatientEntity = PatientEntity(
     name = name,
     animalCategory = runCatching { enumValueOf<com.prudent66.vetguide.domain.model.AnimalCategory>(animalCategory) }
         .getOrDefault(com.prudent66.vetguide.domain.model.AnimalCategory.DOMESTIC),
+    wildlifeGroup = wildlifeGroup,
     species = enumValueOf<Species>(species),
     breed = breed,
     sex = enumValueOf<PatientSex>(sex),

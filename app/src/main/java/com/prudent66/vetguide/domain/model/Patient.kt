@@ -10,6 +10,8 @@ data class Patient(
     val name: String,
     /** Domestic / wildlife pathway; defaults for legacy records. */
     val animalCategory: AnimalCategory = AnimalCategory.DOMESTIC,
+    /** Wildlife group label when category is WILD; null for domestic patients. */
+    val wildlifeGroup: String? = null,
     val species: Species,
     val breed: String?,
     val sex: PatientSex,

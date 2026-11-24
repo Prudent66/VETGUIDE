@@ -29,7 +29,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ConditionWeightEntity::class,
         PendingCloudAnalysisEntity::class,
     ],
-    version = 6, // literal required by the Room processor
+    version = 7, // literal required by the Room processor
     exportSchema = true,
 )
 abstract class VetguideDatabase : RoomDatabase() {
@@ -44,7 +44,7 @@ abstract class VetguideDatabase : RoomDatabase() {
     abstract fun pendingCloudAnalysisDao(): PendingCloudAnalysisDao
 
     companion object {
-        const val VETGUIDE_DB_VERSION = 6
+        const val VETGUIDE_DB_VERSION = 7
         const val VETGUIDE_DB_NAME = "vetguide.db"
         const val KB_SEED_VERSION_KEY = "kb_seed_version"
 
@@ -148,6 +148,13 @@ abstract class VetguideDatabase : RoomDatabase() {
                     "ALTER TABLE `patients` ADD COLUMN `animalCategory` TEXT NOT NULL " +
                         "DEFAULT 'DOMESTIC'",
                 )
+            }
+        }
+
+        /** v7: wildlife group label for Wild patients. */
+        val migration6To7: Migration = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `patients` ADD COLUMN `wildlifeGroup` TEXT")
             }
         }
     }

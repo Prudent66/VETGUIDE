@@ -4,6 +4,7 @@ package com.prudent66.vetguide.domain.model
 data class PatientDraft(
     val name: String,
     val animalCategory: AnimalCategory = AnimalCategory.DOMESTIC,
+    val wildlifeGroup: String? = null,
     val species: Species,
     val breed: String?,
     val sex: PatientSex,

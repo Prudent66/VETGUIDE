@@ -275,14 +275,25 @@ fun calculateDosage(
 }
 
 /**
- * Picks the formulary drug mentioned in a prescription line, if any. Matching
- * is case-insensitive and uses both drug names and stable ids, so an analysis
- * line such as "Tylosin 50 mg/kg PO" selects the right entry immediately.
+ * Matches any prescription line case-insensitively. Generic names such as
+ * "ivermectin" or "oxytetracycline" select the matching product; the 20%
+ * product is preferred when the text mentions its concentration or 200 mg/mL.
  */
 fun matchDrugFromText(text: String): FormularyDrug? {
     val haystack = text.lowercase()
-    return formulary.firstOrNull { drug ->
-        haystack.contains(drug.name.lowercase()) ||
-            haystack.contains(drug.id.replace('-', ' '))
+    return when {
+        "oxytetracycline" in haystack && ("20" in haystack || "200" in haystack) ->
+            findDrug("oxytetracycline-20")
+        "oxytetracycline" in haystack -> findDrug("oxytetracycline-5")
+        "ivermectin" in haystack -> findDrug("ivermectin-1")
+        "penicillin" in haystack || "streptomycin" in haystack ->
+            findDrug("penicillin-streptomycin")
+        "albendazole" in haystack -> findDrug("albendazole")
+        "amprolium" in haystack -> findDrug("amprolium")
+        "tylosin" in haystack -> findDrug("tylosin")
+        "meloxicam" in haystack -> findDrug("meloxicam")
+        "enrofloxacin" in haystack -> findDrug("enrofloxacin")
+        "diminazene" in haystack -> findDrug("diminazene-aceturate")
+        else -> null
     }
 }

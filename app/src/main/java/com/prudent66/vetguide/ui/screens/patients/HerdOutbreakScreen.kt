@@ -38,8 +38,12 @@ import com.prudent66.vetguide.domain.formulary.findDrug
 import com.prudent66.vetguide.domain.formulary.formulary
 import com.prudent66.vetguide.domain.formulary.herdMetrics
 import com.prudent66.vetguide.domain.formulary.quarantineChecklist
+import com.prudent66.vetguide.domain.formulary.wildlifeQuarantineChecklist
+import com.prudent66.vetguide.domain.model.AnimalCategory
+import com.prudent66.vetguide.domain.model.ClinicalSpeciesCatalog
 import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.ui.components.AnimalCategoryToggle
+import com.prudent66.vetguide.ui.components.ClinicalSpeciesField
 
 /** Full-screen herd/flock triage: headcount, batch medication and quarantine. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,7 +81,7 @@ fun HerdOutbreakScreen(onDismiss: () -> Unit) {
         HerdFormFields(form)
         metrics?.let { MetricsPanel(it) }
         batch?.let { BatchPanel(it) }
-        QuarantinePanel(snapshot.species)
+        QuarantinePanel(snapshot.species, form.animalCategory)
         Spacer(Modifier.height(16.dp))
     }
 }
@@ -87,7 +91,7 @@ private fun HerdFormFields(form: HerdFormState) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         AnimalCategoryToggle(
             selected = form.animalCategory,
-            onSelect = { form.animalCategory = it },
+            onSelect = { form.switchCategory(it) },
         )
         OutlinedTextField(
             value = form.unitName,
@@ -96,9 +100,20 @@ private fun HerdFormFields(form: HerdFormState) {
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
-        SelectionField("Species", form.speciesName, Species.entries.map { it.name }) {
-            form.speciesName = it
-        }
+        ClinicalSpeciesField(
+            category = form.animalCategory,
+            selectedDomestic = form.domesticSpecies,
+            selectedWildlife = form.wildlifeGroup,
+            onDomestic = { species ->
+                form.speciesName = ClinicalSpeciesCatalog.label(species)
+                form.wildlifeGroup = null
+            },
+            onWildlife = { group ->
+                form.wildlifeGroup = group
+                form.speciesName = group
+            },
+            modifier = Modifier.fillMaxWidth(),
+        )
         OutlinedTextField(
             value = form.headcountText,
             onValueChange = { form.headcountText = it },
@@ -219,14 +234,19 @@ private fun BatchPanel(batch: BatchTreatment) {
 }
 
 @Composable
-private fun QuarantinePanel(species: Species) {
+private fun QuarantinePanel(species: Species, category: AnimalCategory) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text("Contagious outbreak quarantine checklist", style = MaterialTheme.typography.titleSmall)
-            quarantineChecklist(suspectedConditions(species)).forEach { step ->
+            val steps = if (category == AnimalCategory.WILD) {
+                wildlifeQuarantineChecklist()
+            } else {
+                quarantineChecklist(suspectedConditions(species))
+            }
+            steps.forEach { step ->
                 Text("• $step", style = MaterialTheme.typography.bodySmall)
             }
         }
