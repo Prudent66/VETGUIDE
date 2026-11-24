@@ -217,7 +217,7 @@ private fun DeletePatientDialog(
 }
 
 @Composable
-private fun CaseList(
+internal fun CaseList(
     cases: List<Case>,
     onCaseClick: (String) -> Unit,
     modifier: Modifier,

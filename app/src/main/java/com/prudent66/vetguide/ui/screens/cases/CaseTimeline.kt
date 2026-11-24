@@ -23,7 +23,7 @@ import java.util.Locale
 
 /** Chronological clinical timeline with a before/after comparison entry. */
 @Composable
-private fun TimelineContent(
+internal fun TimelineContent(
     cases: List<com.prudent66.vetguide.domain.model.Case>,
     onCaseClick: (String) -> Unit,
     modifier: Modifier = Modifier,
