@@ -45,6 +45,7 @@ private fun ConditionWithSpecies.toSummary(): KbConditionSummary = KbConditionSu
     name = condition.name.cleanKbTitle(),
     species = toSpeciesList(species.map { it.species }),
     urgency = urgencyOf(condition.urgency),
+    speciesTags = species.map { it.species },
 )
 
 private fun ConditionWithRelations.toDetail(): KbConditionDetail = KbConditionDetail(

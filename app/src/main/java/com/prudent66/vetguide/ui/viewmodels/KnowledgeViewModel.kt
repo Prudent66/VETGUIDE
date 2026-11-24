@@ -2,8 +2,9 @@ package com.prudent66.vetguide.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.prudent66.vetguide.domain.model.AnimalCategory
 import com.prudent66.vetguide.domain.model.KbConditionSummary
-import com.prudent66.vetguide.domain.model.Species
+import com.prudent66.vetguide.domain.model.KnowledgeFilters
 import com.prudent66.vetguide.domain.repository.KnowledgeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -22,13 +23,14 @@ sealed interface KnowledgeUiState {
 
     data class Ready(
         val query: String,
-        val species: Species?,
+        val category: AnimalCategory = AnimalCategory.DOMESTIC,
+        val speciesTag: String? = null,
         val conditions: List<KbConditionSummary>,
         val error: String? = null,
     ) : KnowledgeUiState
 }
 
-/** Search + species filter state for the offline knowledge base. */
+/** Search + strict Domestic/Wild species filtering for the offline knowledge base. */
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class KnowledgeViewModel @Inject constructor(
@@ -36,21 +38,33 @@ class KnowledgeViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val queryFlow = MutableStateFlow("")
-    private val speciesFlow = MutableStateFlow<Species?>(null)
+    private val categoryFlow = MutableStateFlow(AnimalCategory.DOMESTIC)
+    private val tagFlow = MutableStateFlow<String?>(null)
 
     val uiState: StateFlow<KnowledgeUiState> =
-        combine(queryFlow, speciesFlow) { query, species -> query to species }
-            .flatMapLatest { (query, species) ->
-                knowledgeRepository.observeConditions(query = query, species = species)
+        combine(queryFlow, categoryFlow, tagFlow) { query, category, tag ->
+            Triple(query, category, tag)
+        }
+            .flatMapLatest { (query, category, tag) ->
+                knowledgeRepository.observeConditions(query = query, species = null)
+                    .map { rows ->
+                        rows.filter { KnowledgeFilters.matches(it, category, tag) }
+                    }
                     .map<List<KbConditionSummary>, KnowledgeUiState> { conditions ->
-                        KnowledgeUiState.Ready(query = query, species = species, conditions = conditions)
+                        KnowledgeUiState.Ready(
+                            query = query,
+                            category = category,
+                            speciesTag = tag,
+                            conditions = conditions,
+                        )
                     }
             }
             .catch { e ->
                 emit(
                     KnowledgeUiState.Ready(
                         query = queryFlow.value,
-                        species = speciesFlow.value,
+                        category = categoryFlow.value,
+                        speciesTag = tagFlow.value,
                         conditions = emptyList(),
                         error = e.message ?: "Failed to load knowledge base",
                     ),
@@ -66,7 +80,12 @@ class KnowledgeViewModel @Inject constructor(
         queryFlow.value = query
     }
 
-    fun setSpecies(species: Species?) {
-        speciesFlow.value = species
+    fun setCategory(category: AnimalCategory) {
+        categoryFlow.value = category
+        tagFlow.value = null
+    }
+
+    fun setSpeciesTag(tag: String?) {
+        tagFlow.value = tag
     }
 }

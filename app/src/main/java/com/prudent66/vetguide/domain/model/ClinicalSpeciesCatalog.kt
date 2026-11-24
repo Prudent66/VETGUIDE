@@ -26,8 +26,9 @@ object ClinicalSpeciesCatalog {
     fun domesticSpecies(label: String): Species? =
         Species.entries.firstOrNull { it.name.equals(label, ignoreCase = true) }
 
-    fun wildlifeGroup(label: String?): WildlifeGroup? =
-        WildlifeGroup.entries.firstOrNull { it.label.equals(label, ignoreCase = true) }
+    fun wildlifeGroup(label: String?): WildlifeGroup? = WildlifeGroup.entries.firstOrNull {
+        it.label.equals(label, ignoreCase = true) || it.name.equals(label, ignoreCase = true)
+    }
 
     /** Human-readable species for a patient record in lists and pickers. */
     fun display(patient: Patient): String = when {

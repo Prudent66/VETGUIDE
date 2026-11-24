@@ -5,6 +5,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.prudent66.vetguide.domain.model.SoapPayload
 import java.io.ByteArrayOutputStream
 
 /**
@@ -48,6 +49,30 @@ class PdfReportExporterTest {
 
         assertEquals(2, lifecycle.pageCount)
         assertNull(lifecycle.activePage)
+    }
+
+    @Test
+    fun `plan is rendered once before the separated treatment boxes`() {
+        val data = HospitalReportData(
+            patientLine = "Nandi · Cattle",
+            caseId = "case-1",
+            complaint = "Fever",
+            status = "Investigating",
+            generatedAt = "24 Nov 2026",
+            soap = SoapPayload(
+                subjective = "Fever for two days",
+                objective = "Depressed",
+                assessment = "PPR suspected",
+                plan = "Oxytetracycline 15 mg/kg IM once daily\nIsolate affected animals",
+            ),
+        )
+
+        val titles = reportSectionTitles(data)
+
+        assertEquals(1, titles.count { it.startsWith("P —") })
+        assertEquals(PLAN_TITLE, titles.last())
+        assertEquals(listOf("Oxytetracycline 15 mg/kg IM once daily"), planPrescriptions(data))
+        assertEquals(listOf("Isolate affected animals"), planSupportiveCare(data))
     }
 
     @Test

@@ -1,6 +1,8 @@
 package com.prudent66.vetguide.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -167,8 +169,16 @@ private fun SelectionDialogField(
     onSelect: (String) -> Unit,
 ) {
     var open by remember { mutableStateOf(false) }
-    OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth()) {
-        Text("$label: $value", modifier = Modifier.weight(1f))
+    Box(modifier = Modifier.fillMaxWidth().clickable { open = true }) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = {},
+            label = { Text(label) },
+            readOnly = true,
+            enabled = false,
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
     if (open) {
         AlertDialog(

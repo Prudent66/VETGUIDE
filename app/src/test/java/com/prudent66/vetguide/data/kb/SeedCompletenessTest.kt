@@ -35,6 +35,22 @@ class SeedCompletenessTest {
     }
 
     @Test
+    fun `wildlife conditions carry an explicit emergency or urgent tag`() {
+        val payload = KbSeedParser.parse(asset("kb_seed.json"))
+        val wildlife = payload.conditions.filter { condition ->
+            condition.species.any { it.startsWith("WILD_") || it == "PRIMATES" || it == "REPTILES" }
+        }
+
+        assertTrue("expected wildlife conditions", wildlife.isNotEmpty())
+        wildlife.forEach { condition ->
+            assertTrue(
+                "${condition.id} has no usable urgency",
+                condition.urgency in setOf("EMERGENCY", "URGENT"),
+            )
+        }
+    }
+
+    @Test
     fun `knowledge base contains every named outbreak condition`() {
         val payload = KbSeedParser.parse(asset("kb_seed.json"))
         val ids = payload.conditions.map { it.id }.toSet()

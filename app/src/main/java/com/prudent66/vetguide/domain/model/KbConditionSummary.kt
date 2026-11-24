@@ -4,6 +4,8 @@ package com.prudent66.vetguide.domain.model
 data class KbConditionSummary(
     val id: String,
     val name: String,
-    val species: List<Species>,
-    val urgency: KbUrgency?,
+    val species: List<Species> = emptyList(),
+    val urgency: KbUrgency? = null,
+    /** Raw species tags from the seed, including wildlife group labels. */
+    val speciesTags: List<String> = emptyList(),
 )

@@ -120,10 +120,9 @@ object PdfReportExporter {
             if (idx >= 0) d.soap.objective.substring(0, idx).trim() else d.soap.objective
         }
         val sections = listOf(
-            "S — Subjective (History / Anamnesis)" to d.soap.subjective,
-            "O — Objective (Clinical Findings)" to objective,
-            "A — Assessment (Ranked Differentials)" to d.soap.assessment,
-            "P — Plan (Treatment & Supportive Care)" to d.soap.plan,
+            SUBJECTIVE_TITLE to d.soap.subjective,
+            OBJECTIVE_TITLE to objective,
+            ASSESSMENT_TITLE to d.soap.assessment,
         )
         sections.forEach { (title, body) ->
             if (body.isBlank()) return@forEach
@@ -163,15 +162,14 @@ object PdfReportExporter {
     }
 
     private fun drawPrescriptions(c: PdfCursor, d: HospitalReportData) {
-        val rx = (d.prescriptions + d.soap.plan.lines().filter { it.contains("mg/kg", ignoreCase = true) })
-            .distinct().filter { it.isNotBlank() }
-        if (rx.isEmpty() && d.supportiveCare.isEmpty()) return
-        val care = d.supportiveCare.ifEmpty {
-            d.soap.plan.lines().filterNot { it.contains("mg/kg", ignoreCase = true) }
-        }
+        val rx = planPrescriptions(d)
+        val care = planSupportiveCare(d)
+        if (rx.isEmpty() && care.isEmpty()) return
         val rxH = maxOf(46f, rx.size * 15f + 30f)
         val careH = maxOf(46f, care.size * 15f + 30f)
-        c.ensure(rxH + careH + 24f)
+        c.ensure(rxH + careH + 52f)
+        c.text(PLAN_TITLE, EDGE, c.y, paint(ACCENT, 12f, Typeface.BOLD))
+        c.y += 26f
         c.box("Prescriptions & Dosages", rx, FOREST, TINT)
         c.box("Supportive Care & Biosecurity", care, ACCENT, Color.WHITE)
     }

@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "conditions": [
     {
       "id": "canine-parvovirus",
@@ -162,7 +162,7 @@
     {
       "id": "contagious-bovine-pleuropneumonia",
       "name": "Contagious Bovine Pleuropneumonia (CBPP)",
-      "urgency": "HIGH",
+      "urgency": "EMERGENCY",
       "overview": "Field triage reference for Contagious Bovine Pleuropneumonia (CBPP). Decision support only \u2014 confirm with veterinary examination and local surveillance guidance.",
       "species": [
         "CATTLE"
@@ -181,7 +181,7 @@
     {
       "id": "foot-and-mouth-disease",
       "name": "Foot-and-Mouth Disease (FMD)",
-      "urgency": "HIGH",
+      "urgency": "EMERGENCY",
       "overview": "Field triage reference for Foot-and-Mouth Disease (FMD). Decision support only \u2014 confirm with veterinary examination and local surveillance guidance.",
       "species": [
         "CATTLE",
@@ -203,7 +203,7 @@
     {
       "id": "fowl-pox",
       "name": "Fowl Pox",
-      "urgency": "MEDIUM",
+      "urgency": "URGENT",
       "overview": "Field triage reference for Fowl Pox. Decision support only \u2014 confirm with veterinary examination and local surveillance guidance.",
       "species": [
         "POULTRY"
@@ -222,7 +222,7 @@
     {
       "id": "mastitis",
       "name": "Mastitis",
-      "urgency": "MEDIUM",
+      "urgency": "URGENT",
       "overview": "Field triage reference for Mastitis. Decision support only \u2014 confirm with veterinary examination and local surveillance guidance.",
       "species": [
         "CATTLE",
@@ -243,7 +243,7 @@
     {
       "id": "helminthosis-multi-species",
       "name": "Helminthosis (Multi-species)",
-      "urgency": "LOW",
+      "urgency": "ROUTINE",
       "overview": "Field triage reference for Helminthosis (Multi-species). Decision support only \u2014 confirm with veterinary examination and local surveillance guidance.",
       "species": [
         "GOAT",
@@ -264,7 +264,7 @@
     {
       "id": "rabies",
       "name": "Rabies (Wildlife)",
-      "urgency": "HIGH",
+      "urgency": "EMERGENCY",
       "overview": "Wildlife field triage reference for Rabies (Wildlife). Zoonotic and biosafety precautions apply \u2014 decision support only.",
       "species": [
         "WILD_CANIDS",
@@ -284,7 +284,7 @@
     {
       "id": "wildlife-anthrax",
       "name": "Anthrax (Wildlife)",
-      "urgency": "HIGH",
+      "urgency": "EMERGENCY",
       "overview": "Wildlife field triage reference for Anthrax (Wildlife). Zoonotic and biosafety precautions apply \u2014 decision support only.",
       "species": [
         "WILD_RUMINANTS",
@@ -303,7 +303,7 @@
     {
       "id": "capture-myopathy",
       "name": "Capture Myopathy",
-      "urgency": "HIGH",
+      "urgency": "EMERGENCY",
       "overview": "Wildlife field triage reference for Capture Myopathy. Zoonotic and biosafety precautions apply \u2014 decision support only.",
       "species": [
         "WILD_RUMINANTS",
@@ -326,7 +326,7 @@
     {
       "id": "wildlife-avian-influenza",
       "name": "Wildlife Avian Influenza / Newcastle",
-      "urgency": "HIGH",
+      "urgency": "EMERGENCY",
       "overview": "Wildlife field triage reference for Wildlife Avian Influenza / Newcastle. Zoonotic and biosafety precautions apply \u2014 decision support only.",
       "species": [
         "WILD_BIRDS"
@@ -343,7 +343,7 @@
     {
       "id": "wild-morbillivirus",
       "name": "PPR / Rinderpest-like Morbillivirus",
-      "urgency": "HIGH",
+      "urgency": "EMERGENCY",
       "overview": "Wildlife field triage reference for PPR / Rinderpest-like Morbillivirus. Zoonotic and biosafety precautions apply \u2014 decision support only.",
       "species": [
         "WILD_RUMINANTS"
@@ -360,7 +360,7 @@
     {
       "id": "canine-distemper-wild",
       "name": "Canine Distemper in Wild Carnivores",
-      "urgency": "HIGH",
+      "urgency": "EMERGENCY",
       "overview": "Wildlife field triage reference for Canine Distemper in Wild Carnivores. Zoonotic and biosafety precautions apply \u2014 decision support only.",
       "species": [
         "WILD_CANIDS",
@@ -378,7 +378,7 @@
     {
       "id": "sarcoptic-mange",
       "name": "Sarcoptic Mange",
-      "urgency": "MEDIUM",
+      "urgency": "URGENT",
       "overview": "Wildlife field triage reference for Sarcoptic Mange. Zoonotic and biosafety precautions apply \u2014 decision support only.",
       "species": [
         "WILD_CANIDS",
@@ -396,7 +396,7 @@
     {
       "id": "wildlife-trypanosomiasis",
       "name": "Wildlife Trypanosomiasis",
-      "urgency": "MEDIUM",
+      "urgency": "URGENT",
       "overview": "Wildlife field triage reference for Wildlife Trypanosomiasis. Zoonotic and biosafety precautions apply \u2014 decision support only.",
       "species": [
         "WILD_RUMINANTS",

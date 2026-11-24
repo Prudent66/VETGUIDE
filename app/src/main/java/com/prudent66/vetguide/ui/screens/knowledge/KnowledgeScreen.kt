@@ -16,12 +16,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -29,19 +26,13 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.prudent66.vetguide.R
 import com.prudent66.vetguide.domain.model.KbConditionSummary
 import com.prudent66.vetguide.domain.model.AnimalCategory
-import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.ui.components.AnimalCategoryToggle
 import com.prudent66.vetguide.ui.viewmodels.KnowledgeUiState
 import com.prudent66.vetguide.ui.viewmodels.KnowledgeViewModel
@@ -57,7 +48,6 @@ fun KnowledgeScreen(
     viewModel: KnowledgeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
-    var category by rememberSaveable { mutableStateOf(AnimalCategory.DOMESTIC) }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Knowledge Base") }) },
@@ -69,8 +59,8 @@ fun KnowledgeScreen(
                 .fillMaxSize(),
         ) {
             AnimalCategoryToggle(
-                selected = category,
-                onSelect = { category = it },
+                selected = categoryOf(state),
+                onSelect = viewModel::setCategory,
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
             SearchBar(
@@ -78,8 +68,9 @@ fun KnowledgeScreen(
                 onQueryChange = viewModel::setQuery,
             )
             SpeciesFilter(
-                selected = speciesOf(state),
-                onSelected = viewModel::setSpecies,
+                category = categoryOf(state),
+                selectedTag = tagOf(state),
+                onSelected = viewModel::setSpeciesTag,
             )
             Box(
                 modifier = Modifier
@@ -105,8 +96,13 @@ private fun queryOf(state: KnowledgeUiState): String = when (state) {
     KnowledgeUiState.Loading -> ""
 }
 
-private fun speciesOf(state: KnowledgeUiState): Species? = when (state) {
-    is KnowledgeUiState.Ready -> state.species
+private fun categoryOf(state: KnowledgeUiState): AnimalCategory = when (state) {
+    is KnowledgeUiState.Ready -> state.category
+    KnowledgeUiState.Loading -> AnimalCategory.DOMESTIC
+}
+
+private fun tagOf(state: KnowledgeUiState): String? = when (state) {
+    is KnowledgeUiState.Ready -> state.speciesTag
     KnowledgeUiState.Loading -> null
 }
 
@@ -124,41 +120,6 @@ private fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
 }
 
 /** "All species" + full Nigerian veterinary scope. */
-@Composable
-private fun SpeciesFilter(
-    selected: Species?,
-    onSelected: (Species?) -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
-    Box(modifier = Modifier.padding(16.dp)) {
-        OutlinedButton(onClick = { expanded = true }) {
-            Text(
-                text = "Species: " + speciesLabel(selected),
-            )
-            Icon(
-                painter = painterResource(R.drawable.nav_chevron_down),
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-            )
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            DropdownMenuItem(text = { Text("All species") }, onClick = {
-                onSelected(null)
-                expanded = false
-            })
-            Species.entries.forEach { species ->
-                DropdownMenuItem(
-                    text = { Text(speciesLabel(species)) },
-                    onClick = {
-                        onSelected(species)
-                        expanded = false
-                    },
-                )
-            }
-        }
-    }
-}
-
 @Composable
 private fun KnowledgeList(
     conditions: List<KbConditionSummary>,
@@ -198,7 +159,7 @@ private fun ConditionCard(
             Text(condition.name, style = MaterialTheme.typography.titleMedium)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    text = condition.species.joinToString(" · ") { speciesLabel(it) }
+                    text = condition.speciesTags.joinToString(" · ", transform = ::tagLabel)
                         .ifBlank { "Cross-species" },
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
