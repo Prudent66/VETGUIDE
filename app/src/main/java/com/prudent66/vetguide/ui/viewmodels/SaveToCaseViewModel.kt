@@ -230,10 +230,39 @@ class SaveToCaseViewModel @Inject constructor(
                 mut.value = visible.copy(saving = true, error = null)
                 viewModelScope.launch {
                     try {
-                        val caseId = persist(assessment, visible)
+                        val now = System.currentTimeMillis()
+                        // A typed new-patient name always wins: never fall back to the
+                        // patient preselected on the Diagnose screen.
+                        val patientId = if (visible.quickAddName.isNotBlank()) {
+                            quickAddPatient(visible, now)
+                        } else {
+                            assessment.defaultPatientId
+                                ?: visible.selectedPatientId
+                                ?: quickAddPatient(visible, now)
+                        }
+                        val caseId = UUID.randomUUID().toString()
+                        caseRepository.upsertCase(
+                            Case(
+                                id = caseId,
+                                patientId = patientId,
+                                presentingComplaint = assessment.presentingComplaint,
+                                status = CaseStatus.INVESTIGATING,
+                                createdAtEpochMs = now,
+                                updatedAtEpochMs = now,
+                            ),
+                        )
+                        assessment.imageBase64?.let { image ->
+                            upsertArtifact(caseId, CaseArtifactType.IMAGE, image, now)
+                        }
+                        assessment.aiContent?.let { content ->
+                            upsertArtifact(caseId, CaseArtifactType.AI, content, now)
+                        }
+                        assessment.questionnaireContent?.let { content ->
+                            upsertArtifact(caseId, CaseArtifactType.QUESTIONNAIRE, content, now)
+                        }
+                        savedCase.emit(caseId)
                         pending = null
                         mut.value = SaveToCaseUiState.Hidden
-                        savedCase.emit(caseId)
                     } catch (e: SQLiteException) {
                         val message = e.message ?: "Database error while saving the case"
                         android.util.Log.e(TAG, message)
@@ -246,59 +275,7 @@ class SaveToCaseViewModel @Inject constructor(
                 }
             }
         }
-    }
-
-    private suspend fun persist(
-        assessment: PendingAssessment,
-        visible: SaveToCaseUiState.Visible,
-    ): String {
-        val now = System.currentTimeMillis()
-        // A typed new-patient name always wins: never fall back to the
-        // patient preselected on the Diagnose screen.
-        val patientId = if (visible.quickAddName.isNotBlank()) {
-            quickAddPatient(visible, now)
-        } else {
-            assessment.defaultPatientId
-                ?: visible.selectedPatientId
-                ?: quickAddPatient(visible, now)
-        }
-        val caseId = UUID.randomUUID().toString()
-        caseRepository.upsertCase(
-            Case(
-                id = caseId,
-                patientId = patientId,
-                presentingComplaint = assessment.presentingComplaint,
-                status = CaseStatus.INVESTIGATING,
-                createdAtEpochMs = now,
-                updatedAtEpochMs = now,
-            ),
-        )
-        assessment.imageBase64?.let { image ->
-            upsertArtifact(caseId, CaseArtifactType.IMAGE, image, now)
-        }
-        assessment.aiContent?.let { content ->
-            upsertArtifact(caseId, CaseArtifactType.AI, content, now)
-        }
-        assessment.questionnaireContent?.let { content ->
-            upsertArtifact(caseId, CaseArtifactType.QUESTIONNAIRE, content, now)
-        }
-        upsertArtifact(
-            caseId,
-            CaseArtifactType.SOAP,
-            CasePayloadCodec.encode(
-                SoapPayload(
-                    subjective = assessment.subjectiveSeed,
-                    objective = assessment.objectiveSeed,
-                    assessment = assessment.assessmentSeed,
-                    plan = assessment.planSeed,
-                ),
-            ),
-            now,
-        )
-        return caseId
-    }
-
-    private suspend fun upsertArtifact(
+    }    private suspend fun upsertArtifact(
         caseId: String,
         type: CaseArtifactType,
         content: String,

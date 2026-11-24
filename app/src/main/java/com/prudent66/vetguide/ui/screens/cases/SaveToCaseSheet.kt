@@ -37,6 +37,29 @@ import com.prudent66.vetguide.ui.viewmodels.SaveToCaseViewModel
  * (name + species; the rest of the signalment stays editable on the patient).
  */
 @OptIn(ExperimentalMaterial3Api::class)
+
+
+@Composable
+private fun SaveButton(
+    viewModel: SaveToCaseViewModel,
+    state: SaveToCaseUiState.Visible,
+    onDismiss: () -> Unit,
+) {
+    Button(
+        onClick = viewModel::save,
+        enabled = !state.saving &&
+            (state.selectedPatientId != null || state.quickAddName.isNotBlank()),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        if (state.saving) {
+            CircularProgressIndicator(modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.size(8.dp))
+            Text("Saving…")
+        } else {
+            Text("Save to Case")
+        }
+    }
+}
 @Composable
 fun SaveToCaseSheet(
     state: SaveToCaseUiState.Visible,
@@ -81,24 +104,7 @@ fun SaveToCaseSheet(
                     viewModel.setQuickAddCategory(AnimalCategory.WILD, group)
                 },
             )
-            state.error?.let { error ->
-                Text(error, color = MaterialTheme.colorScheme.error)
-            }
-            Button(
-                onClick = viewModel::save,
-                enabled = !state.saving &&
-                    (state.selectedPatientId != null || state.quickAddName.isNotBlank()),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                if (state.saving) {
-                    CircularProgressIndicator(modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text("Saving…")
-                } else {
-                    Text("Save to Case")
-                }
-            }
-            Spacer(modifier = Modifier.padding(bottom = 16.dp))
+            SaveButton(viewModel, state, onDismiss)
         }
     }
 }

@@ -45,6 +45,12 @@ internal fun wrap(text: String, measure: (String) -> Float, maxWidth: Float): Li
         }
     }
 
+/** Returns a row height based on line count: at least 14dp, plus 14dp padding. */
+internal fun rowRowHeight(lineCount: Int): Float = maxOf(14f, lineCount * 13f) + 14f
+
+/** Extracts the numeric percentage from a "95%" style string. */
+internal fun rowPercent(pctText: String): Int = pctText.removeSuffix("%").toIntOrNull() ?: 0
+
 /** Splits a single over-long word into chunks that each fit [maxWidth]. */
 private fun breakWord(
     word: String,

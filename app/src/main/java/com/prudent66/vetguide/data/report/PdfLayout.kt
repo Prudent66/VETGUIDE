@@ -1,5 +1,11 @@
 package com.prudent66.vetguide.data.report
 
+internal const val PAGE_W = 595
+internal const val PAGE_H = 842
+internal const val EDGE = 32f
+internal const val WIDTH = PAGE_W - 2 * EDGE
+internal const val DUMMY = 1
+
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
