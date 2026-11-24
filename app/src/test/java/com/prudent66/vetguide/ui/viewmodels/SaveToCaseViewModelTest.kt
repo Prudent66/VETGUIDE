@@ -1,5 +1,6 @@
 package com.prudent66.vetguide.ui.viewmodels
 
+import com.prudent66.vetguide.domain.model.AnimalCategory
 import com.prudent66.vetguide.domain.model.Case
 import com.prudent66.vetguide.domain.model.CaseArtifact
 import com.prudent66.vetguide.domain.model.CaseStatus
@@ -90,6 +91,52 @@ class SaveToCaseViewModelTest {
     }
 
     @Test
+    fun `typed new patient name creates a patient instead of reusing the preselected one`() {
+        val patientRepo = FakePatientRepository(patients)
+        val caseRepo = FakeCaseRepository()
+        val viewModel = SaveToCaseViewModel(caseRepository = caseRepo, patientRepository = patientRepo)
+        viewModel.openForImage(
+            ImageAnalysisUiState.Result(
+                species = Species.POULTRY,
+                patientId = "p1",
+                providerId = "test",
+                narrative = "findings",
+                degraded = false,
+            ),
+        )
+
+        viewModel.setQuickAddName("  New chick  ")
+        viewModel.save()
+
+        val created = patientRepo.upserted.single()
+        assertEquals("New chick", created.name)
+        assertEquals(AnimalCategory.DOMESTIC, created.animalCategory)
+        assertEquals(Species.POULTRY, created.species)
+        assertEquals(created.id, caseRepo.savedCases.single().patientId)
+    }
+
+    @Test
+    fun `new wild patient keeps the active category and wildlife group`() {
+        val patientRepo = FakePatientRepository(patients)
+        val caseRepo = FakeCaseRepository()
+        val viewModel = SaveToCaseViewModel(caseRepository = caseRepo, patientRepository = patientRepo)
+        viewModel.openForQuestionnaire(
+            DiagnosticUiState.Results(matches = emptyList(), species = Species.OTHER),
+        )
+
+        viewModel.setQuickAddCategory(AnimalCategory.WILD, "Lion / Leopard / Cheetah")
+        viewModel.setQuickAddName("Lion cub")
+        viewModel.save()
+
+        val created = patientRepo.upserted.single()
+        assertEquals("Lion cub", created.name)
+        assertEquals(AnimalCategory.WILD, created.animalCategory)
+        assertEquals("Lion / Leopard / Cheetah", created.wildlifeGroup)
+        assertEquals(Species.OTHER, created.species)
+        assertEquals(created.id, caseRepo.savedCases.single().patientId)
+    }
+
+    @Test
     fun `new patient name and existing patient radio are mutually exclusive`() {
         val viewModel = viewModel()
         viewModel.openForImage(
@@ -144,20 +191,30 @@ class SaveToCaseViewModelTest {
     private class FakePatientRepository(
         private val all: List<Patient>,
     ) : PatientRepository {
+        val upserted = mutableListOf<Patient>()
+
         override fun observePatients(): Flow<List<Patient>> = flowOf(all)
         override fun observePatient(id: String): Flow<Patient?> =
             flowOf(all.firstOrNull { it.id == id })
         override suspend fun getPatient(id: String): Patient? = all.firstOrNull { it.id == id }
-        override suspend fun upsertPatient(patient: Patient): String = patient.id
+        override suspend fun upsertPatient(patient: Patient): String {
+            upserted += patient
+            return patient.id
+        }
         override suspend fun deletePatient(id: String): Boolean = true
     }
 
     private class FakeCaseRepository : CaseRepository {
+        val savedCases = mutableListOf<Case>()
+
         override fun observeCases(): Flow<List<Case>> = flowOf(emptyList())
         override fun observeCasesForPatient(patientId: String): Flow<List<Case>> = flowOf(emptyList())
         override fun observeCase(id: String): Flow<Case?> = flowOf(null)
         override suspend fun getCase(id: String): Case? = null
-        override suspend fun upsertCase(case: Case): String = case.id
+        override suspend fun upsertCase(case: Case): String {
+            savedCases += case
+            return case.id
+        }
         override suspend fun setCaseStatus(id: String, status: CaseStatus) = Unit
         override suspend fun deleteCase(id: String) = Unit
         override fun observeArtifactsForCase(caseId: String): Flow<List<CaseArtifact>> = flowOf(emptyList())

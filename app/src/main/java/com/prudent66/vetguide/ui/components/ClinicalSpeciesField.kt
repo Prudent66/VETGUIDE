@@ -33,7 +33,7 @@ fun ClinicalSpeciesField(
     var expanded by remember { mutableStateOf(false) }
     val labels = remember(category) { ClinicalSpeciesCatalog.labels(category) }
     val value = if (category == AnimalCategory.WILD) {
-        selectedWildlife?.takeIf { it in labels } ?: labels.first()
+        ClinicalSpeciesCatalog.wildlifeGroup(selectedWildlife)?.label ?: labels.first()
     } else {
         ClinicalSpeciesCatalog.label(selectedDomestic)
     }

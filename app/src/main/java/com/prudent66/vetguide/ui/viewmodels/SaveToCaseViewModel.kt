@@ -4,12 +4,13 @@ import android.database.sqlite.SQLiteException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prudent66.vetguide.domain.ai.sanitizeAiItem
-import com.prudent66.vetguide.domain.model.AnsweredQuestionPayload
+import com.prudent66.vetguide.domain.model.AnimalCategory
 import com.prudent66.vetguide.domain.model.Case
 import com.prudent66.vetguide.domain.model.CaseArtifact
 import com.prudent66.vetguide.domain.model.CaseArtifactType
 import com.prudent66.vetguide.domain.model.CasePayloadCodec
 import com.prudent66.vetguide.domain.model.CaseStatus
+import com.prudent66.vetguide.domain.model.ClinicalSpeciesCatalog
 import com.prudent66.vetguide.domain.model.NeuterStatus
 import com.prudent66.vetguide.domain.model.Patient
 import com.prudent66.vetguide.domain.model.PatientSex
@@ -45,6 +46,8 @@ sealed interface SaveToCaseUiState {
         val selectedPatientId: String? = null,
         val quickAddName: String = "",
         val quickAddSpecies: Species = Species.DOG,
+        val quickAddCategory: AnimalCategory = AnimalCategory.DOMESTIC,
+        val quickAddWildlifeGroup: String? = null,
         val saving: Boolean = false,
         val error: String? = null,
     ) : SaveToCaseUiState
@@ -187,7 +190,24 @@ class SaveToCaseViewModel @Inject constructor(
 
     fun setQuickAddSpecies(species: Species) {
         val visible = mut.value as? SaveToCaseUiState.Visible ?: return
-        mut.value = visible.copy(quickAddSpecies = species)
+        mut.value = visible.copy(
+            quickAddSpecies = species,
+            quickAddCategory = AnimalCategory.DOMESTIC,
+            quickAddWildlifeGroup = null,
+        )
+    }
+
+    fun setQuickAddCategory(category: AnimalCategory, wildlifeGroup: String? = null) {
+        val visible = mut.value as? SaveToCaseUiState.Visible ?: return
+        mut.value = visible.copy(
+            quickAddCategory = category,
+            quickAddWildlifeGroup = if (category == AnimalCategory.WILD) {
+                ClinicalSpeciesCatalog.wildlifeGroup(wildlifeGroup)?.label
+                    ?: ClinicalSpeciesCatalog.first(AnimalCategory.WILD)
+            } else {
+                null
+            },
+        )
     }
 
     /** Close the sheet without saving; the captured assessment is discarded. */
@@ -233,9 +253,15 @@ class SaveToCaseViewModel @Inject constructor(
         visible: SaveToCaseUiState.Visible,
     ): String {
         val now = System.currentTimeMillis()
-        val patientId = assessment.defaultPatientId
-            ?: visible.selectedPatientId
-            ?: quickAddPatient(visible, now)
+        // A typed new-patient name always wins: never fall back to the
+        // patient preselected on the Diagnose screen.
+        val patientId = if (visible.quickAddName.isNotBlank()) {
+            quickAddPatient(visible, now)
+        } else {
+            assessment.defaultPatientId
+                ?: visible.selectedPatientId
+                ?: quickAddPatient(visible, now)
+        }
         val caseId = UUID.randomUUID().toString()
         caseRepository.upsertCase(
             Case(
@@ -291,10 +317,18 @@ class SaveToCaseViewModel @Inject constructor(
     }
 
     private suspend fun quickAddPatient(visible: SaveToCaseUiState.Visible, now: Long): String {
+        val wild = visible.quickAddCategory == AnimalCategory.WILD
         val patient = Patient(
             id = UUID.randomUUID().toString(),
             name = visible.quickAddName.trim(),
-            species = visible.quickAddSpecies,
+            animalCategory = visible.quickAddCategory,
+            wildlifeGroup = if (wild) {
+                ClinicalSpeciesCatalog.wildlifeGroup(visible.quickAddWildlifeGroup)?.label
+                    ?: ClinicalSpeciesCatalog.first(AnimalCategory.WILD)
+            } else {
+                null
+            },
+            species = if (wild) Species.OTHER else visible.quickAddSpecies,
             breed = null,
             sex = PatientSex.UNKNOWN,
             neuterStatus = NeuterStatus.UNKNOWN,

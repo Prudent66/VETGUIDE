@@ -73,7 +73,6 @@ object PdfReportExporter {
         if (data.differentials.isNotEmpty()) drawDifferentials(c, data.differentials)
         drawPrescriptions(c, data)
         drawImage(c, data.imageBase64)
-        drawDisclaimer(c)
     }
 
     private fun drawHeader(c: PdfCursor, d: HospitalReportData) {
@@ -89,24 +88,31 @@ object PdfReportExporter {
     }
 
     private fun drawMetadata(c: PdfCursor, d: HospitalReportData) {
+        val labelPaint = paint(MUTED, 9f, Typeface.BOLD)
+        val valuePaint = paint(INK, 11f)
+        val valueX = EDGE + 150f
+        val valueWidth = (EDGE + WIDTH - 10f - valueX).coerceAtLeast(60f)
         val rows = listOf(
             "Patient" to d.patientLine,
             "Category" to d.animalCategory,
             "Owner" to (d.ownerLine ?: "—"),
             "Case status" to d.status,
             "Presenting complaint" to d.complaint,
-            "Clinic / veterinarian" to listOfNotNull(d.clinicName, d.vetName).joinToString(" · ").ifBlank { "—" },
-        )
-        val rowH = 30f
-        val boxH = rows.size * rowH + 16f
+            "Clinic / veterinarian" to listOfNotNull(d.clinicName, d.vetName)
+                .joinToString(" · ").ifBlank { "—" },
+        ).map { (label, value) -> label to wrap(value, valuePaint, valueWidth) }
+        val rowHeights = rows.map { (_, lines) -> maxOf(20f, lines.size * 15f) + 10f }
+        val boxH = rowHeights.sum() + 10f
         c.ensure(boxH + 16f)
         val top = c.y
         c.rect(RectF(EDGE, top, EDGE + WIDTH, top + boxH), TINT, BORDER)
-        c.y = top + 16f
-        rows.forEach { (label, value) ->
-            c.text(label, EDGE + 10f, c.y, paint(MUTED, 9f, Typeface.BOLD))
-            c.text(value, EDGE + 150f, c.y, paint(INK, 11f))
-            c.y += rowH
+        var baseline = top + 22f
+        rows.forEachIndexed { index, (label, lines) ->
+            c.text(label, EDGE + 10f, baseline, labelPaint)
+            lines.forEachIndexed { lineIndex, line ->
+                c.text(line, valueX, baseline + lineIndex * 15f, valuePaint)
+            }
+            baseline += rowHeights[index]
         }
         c.y = top + boxH + 18f
     }
@@ -119,55 +125,59 @@ object PdfReportExporter {
             val idx = d.soap.objective.indexOf(marker, ignoreCase = true)
             if (idx >= 0) d.soap.objective.substring(0, idx).trim() else d.soap.objective
         }
-        val sections = listOf(
+        listOf(
             SUBJECTIVE_TITLE to d.soap.subjective,
             OBJECTIVE_TITLE to objective,
             ASSESSMENT_TITLE to d.soap.assessment,
-        )
-        sections.forEach { (title, body) ->
-            if (body.isBlank()) return@forEach
-            val lines = wrap(body, paint(INK, 11f), WIDTH - 34f)
-            val boxH = lines.size * 15f + 40f
-            c.ensure(boxH + 10f)
-            val top = c.y
-            c.rect(RectF(EDGE, top, EDGE + WIDTH, top + boxH), Color.WHITE, BORDER)
-            c.rect(RectF(EDGE, top, EDGE + 6f, top + boxH), ACCENT)
-            c.text(title, EDGE + 18f, top + 20f, paint(ACCENT, 12f, Typeface.BOLD))
-            c.y = top + 38f
-            lines.forEach { line ->
-                c.text(line, EDGE + 18f, c.y, paint(INK, 11f))
-                c.y += 15f
-            }
-            c.y = top + boxH + 12f
+        ).forEach { (title, body) ->
+            if (body.isNotBlank()) c.box(title, listOf(body), ACCENT, Color.WHITE, bodySize = 11f)
         }
     }
 
     private fun drawDifferentials(c: PdfCursor, items: List<Pair<String, Double>>) {
         val titleH = 30f
-        val boxH = titleH + items.size * 28f + 12f
+        val pad = 12f
+        val namePaint = paint(INK, 10f)
+        val pctPaint = paint(MUTED, 10f)
+        val pctRight = EDGE + WIDTH - 8f
+        val rows = items.take(6).map { (name, confidence) ->
+            val pct = (confidence * 100).toInt().coerceIn(0, 100)
+            val pctText = "$pct%"
+            val pctWidth = pctPaint.measureText(pctText)
+            val nameWidth = (pctRight - pctWidth - 8f - (EDGE + pad)).coerceAtLeast(60f)
+            Triple(wrap(name, namePaint, nameWidth), pctText, pctWidth)
+        }
+        val rowsHeight = rows.fold(0f) { total, row -> total + rowRowHeight(row.first.size) }
+        val boxH = titleH + rowsHeight + 12f
         c.ensure(boxH + 10f)
         val top = c.y
         c.rect(RectF(EDGE, top, EDGE + WIDTH, top + boxH), Color.WHITE, BORDER)
-        c.text("Ranked Suspected Conditions", EDGE + 12f, top + 20f, paint(ACCENT, 12f, Typeface.BOLD))
+        c.text("Ranked Suspected Conditions", EDGE + pad, top + 20f, paint(ACCENT, 12f, Typeface.BOLD))
         var y = top + titleH
-        items.take(6).forEach { (name, confidence) ->
-            c.text(name, EDGE + 12f, y, paint(INK, 10f))
-            val pct = (confidence * 100).toInt().coerceIn(0, 100)
-            c.text("$pct%", EDGE + WIDTH - 46f, y, paint(MUTED, 10f))
-            c.rect(RectF(EDGE + 12f, y + 5f, EDGE + WIDTH - 56f, y + 13f), TINT)
-            c.rect(RectF(EDGE + 12f, y + 5f, EDGE + 12f + (WIDTH - 68f) * pct / 100f, y + 13f), ACCENT)
-            y += 28f
+        rows.forEach { (lines, pctText, pctWidth) ->
+            val rowH = rowRowHeight(lines.size)
+            lines.forEachIndexed { index, line -> c.text(line, EDGE + pad, y + index * 13f, namePaint) }
+            c.text(pctText, pctRight - pctWidth, y, pctPaint)
+            val barTop = y + rowH - 10f
+            c.rect(RectF(EDGE + pad, barTop, EDGE + WIDTH - 56f, barTop + 8f), TINT)
+            c.rect(
+                RectF(EDGE + pad, barTop, EDGE + pad + (WIDTH - 68f) * rowPercent(pctText) / 100f, barTop + 8f),
+                ACCENT,
+            )
+            y += rowH
         }
         c.y = top + boxH + 12f
     }
+
+    private fun rowRowHeight(lineCount: Int): Float = maxOf(14f, lineCount * 13f) + 14f
+
+    private fun rowPercent(pctText: String): Int = pctText.removeSuffix("%").toIntOrNull() ?: 0
 
     private fun drawPrescriptions(c: PdfCursor, d: HospitalReportData) {
         val rx = planPrescriptions(d)
         val care = planSupportiveCare(d)
         if (rx.isEmpty() && care.isEmpty()) return
-        val rxH = maxOf(46f, rx.size * 15f + 30f)
-        val careH = maxOf(46f, care.size * 15f + 30f)
-        c.ensure(rxH + careH + 52f)
+        c.ensure(90f)
         c.text(PLAN_TITLE, EDGE, c.y, paint(ACCENT, 12f, Typeface.BOLD))
         c.y += 26f
         c.box("Prescriptions & Dosages", rx, FOREST, TINT)
@@ -195,14 +205,5 @@ object PdfReportExporter {
         bitmap.recycle()
     }
 
-    private fun drawDisclaimer(c: PdfCursor) {
-        val text = "VETGUIDE Clinical Decision Support — Not a Substitute for Veterinary Examination"
-        val lines = wrap(text, paint(MUTED, 9f), WIDTH)
-        c.ensure(lines.size * 13f + 20f)
-        lines.forEach { line ->
-            c.text(line, EDGE, c.y, paint(MUTED, 9f))
-            c.y += 13f
-        }
-    }
 
 }

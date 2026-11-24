@@ -8,15 +8,19 @@ enum class AnimalCategory {
     val label: String get() = name.lowercase().replaceFirstChar { it.uppercase() }
 }
 
-/** Wildlife species groups available when the Wild pathway is selected. */
-enum class WildlifeGroup(val label: String) {
-    WILD_RUMINANTS("Wild Ruminants / Antelope"),
-    WILD_CANIDS("Wild Canids"),
-    WILD_FELIDS("Wild Felids"),
-    WILD_BIRDS("Wild Birds / Raptors"),
-    PRIMATES("Primates"),
-    REPTILES("Reptiles"),
-    SMALL_WILD_MAMMALS("Small Wild Mammals"),
+/**
+ * Wildlife species groups available when the Wild pathway is selected.
+ * [label] leads with recognisable animal names; [previousLabel] keeps older
+ * persisted records resolvable after the Build 21 display update.
+ */
+enum class WildlifeGroup(val label: String, val previousLabel: String) {
+    WILD_RUMINANTS("Antelope / Gazelle / Buffalo", "Wild Ruminants / Antelope"),
+    WILD_CANIDS("Jackal / Fox / Wild Dog", "Wild Canids"),
+    WILD_FELIDS("Lion / Leopard / Cheetah", "Wild Felids"),
+    PRIMATES("Monkey / Baboon / Chimpanzee", "Primates"),
+    WILD_BIRDS("Eagle / Vulture / Wild Bird", "Wild Birds / Raptors"),
+    REPTILES("Snake / Crocodile / Tortoise", "Reptiles"),
+    SMALL_WILD_MAMMALS("Pangolin / Grasscutter / Bat", "Small Wild Mammals"),
 }
 
 /**

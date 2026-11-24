@@ -24,9 +24,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.prudent66.vetguide.domain.model.AnimalCategory
+import com.prudent66.vetguide.domain.model.ClinicalSpeciesCatalog
 import com.prudent66.vetguide.domain.model.Patient
-import com.prudent66.vetguide.ui.components.SpeciesField
-import com.prudent66.vetguide.ui.screens.knowledge.speciesLabel
+import com.prudent66.vetguide.ui.components.AnimalCategoryToggle
+import com.prudent66.vetguide.ui.components.ClinicalSpeciesField
 import com.prudent66.vetguide.ui.viewmodels.SaveToCaseUiState
 import com.prudent66.vetguide.ui.viewmodels.SaveToCaseViewModel
 
@@ -66,10 +68,18 @@ fun SaveToCaseSheet(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
             )
-            SpeciesField(
-                selected = state.quickAddSpecies,
-                onSelect = viewModel::setQuickAddSpecies,
-                modifier = Modifier.fillMaxWidth(),
+            AnimalCategoryToggle(
+                selected = state.quickAddCategory,
+                onSelect = { category -> viewModel.setQuickAddCategory(category) },
+            )
+            ClinicalSpeciesField(
+                category = state.quickAddCategory,
+                selectedDomestic = state.quickAddSpecies,
+                selectedWildlife = state.quickAddWildlifeGroup,
+                onDomestic = viewModel::setQuickAddSpecies,
+                onWildlife = { group ->
+                    viewModel.setQuickAddCategory(AnimalCategory.WILD, group)
+                },
             )
             state.error?.let { error ->
                 Text(error, color = MaterialTheme.colorScheme.error)
@@ -138,8 +148,8 @@ private fun PatientRow(
         Column {
             Text(patient.name, style = MaterialTheme.typography.bodyLarge)
             Text(
-                text = patient.breed?.let { "${speciesLabel(patient.species)} · $it" }
-                    ?: speciesLabel(patient.species),
+                text = patient.breed?.let { "${ClinicalSpeciesCatalog.display(patient)} · $it" }
+                    ?: ClinicalSpeciesCatalog.display(patient),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

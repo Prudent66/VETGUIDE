@@ -20,8 +20,11 @@ object KnowledgeFilters {
             tag.isNullOrBlank() ||
                 condition.speciesTags.any { stored ->
                     stored.equals(tag, ignoreCase = true) ||
-                        ClinicalSpeciesCatalog.wildlifeGroup(stored)?.label
-                            .equals(tag, ignoreCase = true)
+                        (
+                            ClinicalSpeciesCatalog.wildlifeGroup(tag)?.let { selected ->
+                                ClinicalSpeciesCatalog.wildlifeGroup(stored) == selected
+                            } == true
+                            )
                 }
             )
 

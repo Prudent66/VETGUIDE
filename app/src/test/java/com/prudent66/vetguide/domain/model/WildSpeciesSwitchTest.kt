@@ -26,7 +26,7 @@ class WildSpeciesSwitchTest {
         val labels = ClinicalSpeciesCatalog.labels(AnimalCategory.WILD)
 
         assertEquals(7, labels.size)
-        assertEquals("Wild Ruminants / Antelope", ClinicalSpeciesCatalog.first(AnimalCategory.WILD))
+        assertEquals("Antelope / Gazelle / Buffalo", ClinicalSpeciesCatalog.first(AnimalCategory.WILD))
         assertTrue(WildlifeGroup.WILD_CANIDS.label in labels)
         assertTrue(WildlifeGroup.REPTILES.label in labels)
         assertEquals(
@@ -34,6 +34,38 @@ class WildSpeciesSwitchTest {
             ClinicalSpeciesCatalog.wildlifeGroup(WildlifeGroup.WILD_BIRDS.label),
         )
         assertNull(ClinicalSpeciesCatalog.wildlifeGroup("Cattle"))
+    }
+
+    @Test
+    fun `wildlife groups resolve enum names current and previous labels`() {
+        listOf(
+            "WILD_RUMINANTS",
+            "Wild Ruminants / Antelope",
+            "Antelope / Gazelle / Buffalo",
+        ).forEach { label ->
+            assertEquals(WildlifeGroup.WILD_RUMINANTS, ClinicalSpeciesCatalog.wildlifeGroup(label))
+        }
+        assertEquals(
+            WildlifeGroup.SMALL_WILD_MAMMALS,
+            ClinicalSpeciesCatalog.wildlifeGroup("Pangolin / Grasscutter / Bat"),
+        )
+    }
+
+    @Test
+    fun `every wildlife group offers concrete wild animals and no local unknown`() {
+        WildlifeGroup.entries.forEach { group ->
+            val animals = ClinicalSpeciesCatalog.wildAnimalsFor(group)
+            assertTrue("$group has no wild animals", animals.size > 1)
+            assertEquals("Other / Unidentified", animals.last())
+            assertTrue("$group leaked Local / Unknown", "Local / Unknown" !in animals)
+        }
+        assertEquals(
+            listOf(
+                "Duiker", "Gazelle", "Impala", "Bushbuck", "Kob", "Kudu", "Roan Antelope",
+                "African Buffalo", "Giraffe", "Other / Unidentified",
+            ),
+            ClinicalSpeciesCatalog.wildAnimalsFor(WildlifeGroup.WILD_RUMINANTS),
+        )
     }
 
     @Test
@@ -60,5 +92,8 @@ class WildSpeciesSwitchTest {
         )
 
         assertEquals(WildlifeGroup.WILD_RUMINANTS.label, ClinicalSpeciesCatalog.display(patient))
+
+        val legacy = patient.copy(wildlifeGroup = "Wild Ruminants / Antelope")
+        assertEquals(WildlifeGroup.WILD_RUMINANTS.label, ClinicalSpeciesCatalog.display(legacy))
     }
 }

@@ -7,29 +7,6 @@ import android.graphics.RectF
 import android.graphics.Typeface
 import android.graphics.pdf.PdfDocument
 
-internal fun paint(color: Int, size: Float, style: Int = Typeface.NORMAL): Paint =
-    Paint().apply {
-        this.color = color
-        textSize = size
-        typeface = Typeface.create(Typeface.DEFAULT, style)
-        isAntiAlias = true
-    }
-
-internal fun wrap(text: String, paint: Paint, maxWidth: Float): List<String> = buildList {
-    text.split("\n").forEach { raw ->
-        var current = ""
-        raw.split(" ").forEach { word ->
-            val candidate = if (current.isEmpty()) word else "$current $word"
-            if (paint.measureText(candidate) <= maxWidth) current = candidate
-            else {
-                if (current.isNotEmpty()) add(current)
-                current = word
-            }
-        }
-        add(current)
-    }
-}
-
 /**
  * Draws onto one active PdfDocument page at a time. The previous page is
  * always finished (footer drawn, finishPage called) before a new one starts.
@@ -67,18 +44,61 @@ internal class PdfCursor(
         canvas.drawBitmap(bitmap, null, bounds, paint(INK, 11f))
     }
 
-    fun box(title: String, lines: List<String>, accent: Int, fill: Int) {
+    /** Draws a titled card, wrapping every body line inside the card border. */
+    fun box(
+        title: String,
+        lines: List<String>,
+        accent: Int,
+        fill: Int,
+        bodySize: Float = 10f,
+    ) {
+        val body = paint(INK, bodySize)
+        val wrapped = lines.flatMap { line -> wrap(line, body, innerContentWidth(WIDTH)) }
+        if (y + 60f > PAGE_H - 56f) startPage()
+        paginate(wrapped).forEachIndexed { index, chunk ->
+            if (index > 0) startPage()
+            drawBoxChunk(title, chunk, accent, fill, body, continuation = index > 0)
+        }
+    }
+
+    private fun drawBoxChunk(
+        title: String,
+        lines: List<String>,
+        accent: Int,
+        fill: Int,
+        body: Paint,
+        continuation: Boolean,
+    ) {
         val h = maxOf(46f, lines.size * 15f + 30f)
         val top = y
         rect(RectF(EDGE, top, EDGE + WIDTH, top + h), fill, BORDER)
         rect(RectF(EDGE, top, EDGE + 6f, top + h), accent)
-        text(title, EDGE + 18f, top + 20f, paint(accent, 12f, Typeface.BOLD))
+        val heading = if (continuation) "$title (cont.)" else title
+        text(heading, EDGE + BOX_PADDING, top + 20f, paint(accent, 12f, Typeface.BOLD))
         var baseline = top + 38f
-        lines.take(12).forEach { line ->
-            text(line, EDGE + 18f, baseline, paint(INK, 10f))
+        lines.forEach { line ->
+            text(line, EDGE + BOX_PADDING, baseline, body)
             baseline += 15f
         }
         y = top + h + 12f
+    }
+
+    /** Splits wrapped lines into page-sized chunks (current page first). */
+    private fun paginate(lines: List<String>): List<List<String>> {
+        if (lines.isEmpty()) return listOf(emptyList())
+        val pageBottom = PAGE_H - 56f
+        val firstCapacity = ((pageBottom - y - 42f) / 15f).toInt().coerceAtLeast(1)
+        val restCapacity = ((pageBottom - (EDGE + 20f) - 42f) / 15f).toInt().coerceAtLeast(1)
+        val chunks = mutableListOf<List<String>>()
+        var index = 0
+        var capacity = firstCapacity
+        while (index < lines.size) {
+            val end = minOf(index + capacity, lines.size)
+            chunks += lines.subList(index, end)
+            index = end
+            capacity = restCapacity
+        }
+        return chunks
     }
 
     fun ensure(required: Float) {

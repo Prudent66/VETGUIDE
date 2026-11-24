@@ -47,10 +47,12 @@ import com.prudent66.vetguide.R
 import com.prudent66.vetguide.domain.model.AgeUnit
 import com.prudent66.vetguide.domain.model.AnimalCategory
 import com.prudent66.vetguide.domain.model.BreedCatalog
+import com.prudent66.vetguide.domain.model.ClinicalSpeciesCatalog
 import com.prudent66.vetguide.domain.model.Patient
 import com.prudent66.vetguide.domain.model.PatientDraft
 import com.prudent66.vetguide.domain.model.PatientSex
 import com.prudent66.vetguide.domain.model.Species
+import com.prudent66.vetguide.domain.model.WildlifeGroup
 import com.prudent66.vetguide.ui.components.AnimalCategoryToggle
 import com.prudent66.vetguide.ui.components.ClinicalSpeciesField
 import com.prudent66.vetguide.ui.viewmodels.PatientViewModel
@@ -150,9 +152,17 @@ private fun PatientFormBody(
             },
         )
         PatientTextFields(form)
+        val wildGroup = ClinicalSpeciesCatalog.wildlifeGroup(form.wildlifeGroup)
+            ?: WildlifeGroup.WILD_RUMINANTS
+        val isWild = form.animalCategory == AnimalCategory.WILD
         BreedField(
             selected = form.breed,
-            breeds = BreedCatalog.forSpecies(form.species),
+            breeds = if (isWild) {
+                ClinicalSpeciesCatalog.wildAnimalsFor(wildGroup)
+            } else {
+                BreedCatalog.forSpecies(form.species)
+            },
+            placeholder = if (isWild) "Select wild animal (optional)" else "Select breed",
             onSelect = { form.breed = it },
             modifier = Modifier.fillMaxWidth(),
         )
@@ -219,7 +229,8 @@ class PatientFormState(
     fun load(patient: Patient) {
         name = patient.name
         animalCategory = patient.animalCategory
-        wildlifeGroup = patient.wildlifeGroup
+        wildlifeGroup = ClinicalSpeciesCatalog.wildlifeGroup(patient.wildlifeGroup)?.label
+            ?: patient.wildlifeGroup
         species = patient.species
         sex = patient.sex
         breed = patient.breed.orEmpty()
@@ -350,6 +361,7 @@ private fun AgeUnitField(
 private fun BreedField(
     selected: String,
     breeds: List<String>,
+    placeholder: String,
     onSelect: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -360,7 +372,7 @@ private fun BreedField(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = selected.ifBlank { "Select breed" },
+                text = selected.ifBlank { placeholder },
                 modifier = Modifier.weight(1f),
             )
             Icon(

@@ -76,6 +76,65 @@ class PdfReportExporterTest {
     }
 
     @Test
+    fun `inner content width subtracts both card paddings`() {
+        assertEquals(WIDTH - BOX_PADDING * 2f, innerContentWidth(WIDTH), 0.001f)
+    }
+
+    @Test
+    fun `wrap keeps every rendered line inside the inner content width`() {
+        val measure: (String) -> Float = { value -> value.length * 6f }
+        val lines = wrap(
+            "Prescribe fluids and rest daily for the affected herd",
+            measure,
+            120f,
+        )
+
+        assertTrue(lines.size > 1)
+        lines.forEach { line -> assertTrue(measure(line) <= 120f) }
+    }
+
+    @Test
+    fun `numbered and unnumbered prescription lines are deduplicated`() {
+        val data = HospitalReportData(
+            patientLine = "Nandi · Cattle",
+            caseId = "case-1",
+            complaint = "Fever",
+            status = "Investigating",
+            generatedAt = "24 Nov 2026",
+            soap = SoapPayload(),
+            prescriptions = listOf(
+                "Prescribe a course of antibiotics for seven days",
+                "1. Prescribe a course of antibiotics for seven days",
+                "- Prescribe a course of antibiotics for seven days",
+            ),
+        )
+
+        assertEquals(
+            listOf("Prescribe a course of antibiotics for seven days"),
+            planPrescriptions(data),
+        )
+    }
+
+    @Test
+    fun `numbered and unnumbered supportive care lines are deduplicated`() {
+        val data = HospitalReportData(
+            patientLine = "Nandi · Cattle",
+            caseId = "case-1",
+            complaint = "Fever",
+            status = "Investigating",
+            generatedAt = "24 Nov 2026",
+            soap = SoapPayload(
+                plan = "Isolate affected animals\n- Isolate affected animals\n• Provide shade and water",
+            ),
+        )
+
+        assertEquals(
+            listOf("Isolate affected animals", "Provide shade and water"),
+            planSupportiveCare(data),
+        )
+    }
+
+    @Test
     fun `finished multi page document writes a non empty pdf file`() {
         val lifecycle = PdfPageLifecycle()
         repeat(3) {
