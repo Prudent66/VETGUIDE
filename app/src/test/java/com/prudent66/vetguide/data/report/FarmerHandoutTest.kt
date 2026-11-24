@@ -4,7 +4,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
-import java.time.ZoneOffset
 
 /** Owner handout withdrawal dates and plain-language content. */
 class FarmerHandoutTest {
@@ -16,8 +15,8 @@ class FarmerHandoutTest {
         val meat = FarmerHandoutExporter.withdrawalSafeDate(start, 7)
         val milk = FarmerHandoutExporter.withdrawalSafeDate(start, 3)
 
-        assertEquals("2026-11-27", meat.atOffset(ZoneOffset.UTC).toLocalDate().toString())
-        assertEquals("2026-11-23", milk.atOffset(ZoneOffset.UTC).toLocalDate().toString())
+        assertEquals("2026-11-27", meat.toString())
+        assertEquals("2026-11-23", milk.toString())
     }
 
     @Test
