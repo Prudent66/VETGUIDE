@@ -40,10 +40,8 @@ import com.prudent66.vetguide.domain.formulary.herdMetrics
 import com.prudent66.vetguide.domain.formulary.quarantineChecklist
 import com.prudent66.vetguide.domain.formulary.wildlifeQuarantineChecklist
 import com.prudent66.vetguide.domain.model.AnimalCategory
-import com.prudent66.vetguide.domain.model.ClinicalSpeciesCatalog
 import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.ui.components.AnimalCategoryToggle
-import com.prudent66.vetguide.ui.components.ClinicalSpeciesField
 
 /** Full-screen herd/flock triage: headcount, batch medication and quarantine. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -100,20 +98,7 @@ private fun HerdFormFields(form: HerdFormState) {
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
-        ClinicalSpeciesField(
-            category = form.animalCategory,
-            selectedDomestic = form.domesticSpecies,
-            selectedWildlife = form.wildlifeGroup,
-            onDomestic = { species ->
-                form.speciesName = ClinicalSpeciesCatalog.label(species)
-                form.wildlifeGroup = null
-            },
-            onWildlife = { group ->
-                form.wildlifeGroup = group
-                form.speciesName = group
-            },
-            modifier = Modifier.fillMaxWidth(),
-        )
+        HerdCategoryAndSpeciesFields(form)
         OutlinedTextField(
             value = form.headcountText,
             onValueChange = { form.headcountText = it },

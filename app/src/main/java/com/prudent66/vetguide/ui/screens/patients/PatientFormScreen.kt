@@ -148,7 +148,6 @@ private fun PatientFormBody(
                 form.species = Species.OTHER
                 form.breed = ""
             },
-            modifier = Modifier.fillMaxWidth(),
         )
         PatientTextFields(form)
         BreedField(

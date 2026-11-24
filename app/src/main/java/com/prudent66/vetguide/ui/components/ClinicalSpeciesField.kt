@@ -29,7 +29,6 @@ fun ClinicalSpeciesField(
     selectedWildlife: String?,
     onDomestic: (Species) -> Unit,
     onWildlife: (String) -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
     val labels = remember(category) { ClinicalSpeciesCatalog.labels(category) }
@@ -39,7 +38,7 @@ fun ClinicalSpeciesField(
         ClinicalSpeciesCatalog.label(selectedDomestic)
     }
 
-    OutlinedButton(onClick = { expanded = true }, modifier = modifier.fillMaxWidth()) {
+    OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.weight(1f)) { Text(value) }
         Icon(
             painter = painterResource(R.drawable.nav_chevron_down),

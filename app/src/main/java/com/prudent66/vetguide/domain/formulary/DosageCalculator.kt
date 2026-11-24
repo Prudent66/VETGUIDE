@@ -274,26 +274,34 @@ fun calculateDosage(
     )
 }
 
+/** Generic drug keywords mapped to formulary product ids. */
+private val drugKeywords = mapOf(
+    "ivermectin" to "ivermectin-1",
+    "penicillin" to "penicillin-streptomycin",
+    "streptomycin" to "penicillin-streptomycin",
+    "albendazole" to "albendazole",
+    "amprolium" to "amprolium",
+    "tylosin" to "tylosin",
+    "meloxicam" to "meloxicam",
+    "enrofloxacin" to "enrofloxacin",
+    "diminazene" to "diminazene-aceturate",
+)
+
 /**
- * Matches any prescription line case-insensitively. Generic names such as
- * "ivermectin" or "oxytetracycline" select the matching product; the 20%
- * product is preferred when the text mentions its concentration or 200 mg/mL.
+ * Matches prescription text case-insensitively. Generic names such as
+ * "ivermectin" select the matching product; the 20% oxytetracycline product
+ * is preferred when the text mentions 20 or 200 mg/mL.
  */
 fun matchDrugFromText(text: String): FormularyDrug? {
     val haystack = text.lowercase()
-    return when {
-        "oxytetracycline" in haystack && ("20" in haystack || "200" in haystack) ->
-            findDrug("oxytetracycline-20")
-        "oxytetracycline" in haystack -> findDrug("oxytetracycline-5")
-        "ivermectin" in haystack -> findDrug("ivermectin-1")
-        "penicillin" in haystack || "streptomycin" in haystack ->
-            findDrug("penicillin-streptomycin")
-        "albendazole" in haystack -> findDrug("albendazole")
-        "amprolium" in haystack -> findDrug("amprolium")
-        "tylosin" in haystack -> findDrug("tylosin")
-        "meloxicam" in haystack -> findDrug("meloxicam")
-        "enrofloxacin" in haystack -> findDrug("enrofloxacin")
-        "diminazene" in haystack -> findDrug("diminazene-aceturate")
-        else -> null
+    val id = if ("oxytetracycline" in haystack) {
+        if ("20" in haystack || "200" in haystack) {
+            "oxytetracycline-20"
+        } else {
+            "oxytetracycline-5"
+        }
+    } else {
+        drugKeywords.entries.firstOrNull { it.key in haystack }?.value
     }
+    return id?.let(::findDrug)
 }
