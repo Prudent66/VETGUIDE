@@ -213,10 +213,13 @@ class PatientFormState(
     var species: Species by mutableStateOf(species)
     var animalCategory: AnimalCategory by mutableStateOf(AnimalCategory.DOMESTIC)
     var wildlifeGroup: String? by mutableStateOf(null)
+    var sex: PatientSex by mutableStateOf(sex)
 
     /** Pre-fills every editable field from an existing patient (edit mode). */
     fun load(patient: Patient) {
         name = patient.name
+        animalCategory = patient.animalCategory
+        wildlifeGroup = patient.wildlifeGroup
         species = patient.species
         sex = patient.sex
         breed = patient.breed.orEmpty()
