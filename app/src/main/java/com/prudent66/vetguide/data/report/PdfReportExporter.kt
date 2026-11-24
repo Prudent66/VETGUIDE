@@ -59,7 +59,7 @@ object PdfReportExporter {
 
     private fun drawHeader(c: PdfCursor, d: HospitalReportData) {
         val h = 118f
-        c.rect(0f, 0f, PAGE_W.toFloat(), h, FOREST)
+        c.rect(RectF(0f, 0f, PAGE_W.toFloat(), h), FOREST)
         val title = paint(Color.WHITE, 26f, Typeface.BOLD)
         val sub = paint(Color.WHITE, 11f)
         c.text("VETGUIDE", EDGE, 48f, title)
@@ -82,7 +82,7 @@ object PdfReportExporter {
         val boxH = rows.size * rowH + 16f
         c.ensure(boxH + 16f)
         val top = c.y
-        c.rect(EDGE, top, EDGE + WIDTH, top + boxH, TINT, BORDER)
+        c.rect(RectF(EDGE, top, EDGE + WIDTH, top + boxH), TINT, BORDER)
         c.y = top + 16f
         rows.forEach { (label, value) ->
             c.text(label, EDGE + 10f, c.y, paint(MUTED, 9f, Typeface.BOLD))
@@ -106,8 +106,8 @@ object PdfReportExporter {
             val boxH = lines.size * 15f + 40f
             c.ensure(boxH + 10f)
             val top = c.y
-            c.rect(EDGE, top, EDGE + WIDTH, top + boxH, Color.WHITE, BORDER)
-            c.rect(EDGE, top, EDGE + 6f, top + boxH, ACCENT)
+            c.rect(RectF(EDGE, top, EDGE + WIDTH, top + boxH), Color.WHITE, BORDER)
+            c.rect(RectF(EDGE, top, EDGE + 6f, top + boxH), ACCENT)
             c.text(title, EDGE + 18f, top + 20f, paint(ACCENT, 12f, Typeface.BOLD))
             c.y = top + 38f
             lines.forEach { line ->
@@ -131,15 +131,15 @@ object PdfReportExporter {
         val boxH = titleH + items.size * 28f + 12f
         c.ensure(boxH + 10f)
         val top = c.y
-        c.rect(EDGE, top, EDGE + WIDTH, top + boxH, Color.WHITE, BORDER)
+        c.rect(RectF(EDGE, top, EDGE + WIDTH, top + boxH), Color.WHITE, BORDER)
         c.text("Ranked Suspected Conditions", EDGE + 12f, top + 20f, paint(ACCENT, 12f, Typeface.BOLD))
         var y = top + titleH
         items.take(6).forEach { (name, confidence) ->
             c.text(name, EDGE + 12f, y, paint(INK, 10f))
             val pct = (confidence * 100).toInt().coerceIn(0, 100)
             c.text("$pct%", EDGE + WIDTH - 46f, y, paint(MUTED, 10f))
-            c.rect(EDGE + 12f, y + 5f, EDGE + WIDTH - 56f, y + 13f, TINT)
-            c.rect(EDGE + 12f, y + 5f, EDGE + 12f + (WIDTH - 68f) * pct / 100f, y + 13f, ACCENT)
+            c.rect(RectF(EDGE + 12f, y + 5f, EDGE + WIDTH - 56f, y + 13f), TINT)
+            c.rect(RectF(EDGE + 12f, y + 5f, EDGE + 12f + (WIDTH - 68f) * pct / 100f, y + 13f), ACCENT)
             y += 28f
         }
         c.y = top + boxH + 12f
@@ -165,6 +165,7 @@ object PdfReportExporter {
             val bytes = ImageEncoder.fromBase64(base64)
             BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
         } catch (e: IllegalArgumentException) {
+            android.util.Log.w("PdfReportExporter", "Case image could not be decoded", e)
             null
         } ?: return
         val scale = minOf((WIDTH - 16f) / bitmap.width, 220f / bitmap.height)
@@ -172,7 +173,7 @@ object PdfReportExporter {
         val h = bitmap.height * scale
         c.ensure(h + 60f)
         val top = c.y
-        c.rect(EDGE, top, EDGE + WIDTH, top + h + 28f, Color.WHITE, BORDER)
+        c.rect(RectF(EDGE, top, EDGE + WIDTH, top + h + 28f), Color.WHITE, BORDER)
         c.text("Clinical Case Photograph", EDGE + 12f, top + 18f, paint(ACCENT, 11f, Typeface.BOLD))
         c.canvas.drawBitmap(bitmap, null, RectF(EDGE + 8f, top + 24f, EDGE + 8f + w, top + 24f + h), paint(INK, 11f))
         c.y = top + h + 40f

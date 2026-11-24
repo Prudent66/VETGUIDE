@@ -21,7 +21,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -139,53 +138,6 @@ private fun CaseListBody(
                 }
             is CaseListUiState.Error -> ErrorBox(s.message)
         }
-    }
-}
-
-/** Chronological clinical timeline with a before/after comparison entry. */
-@Composable
-private fun TimelineContent(
-    cases: List<com.prudent66.vetguide.domain.model.Case>,
-    onCaseClick: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    var compare by remember { mutableStateOf(false) }
-    Column(modifier = modifier) {
-        Text(
-            "Clinical Timeline",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-        )
-        if (cases.size >= 2) {
-            OutlinedButton(
-                onClick = { compare = true },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-            ) { Text("Compare Before / After") }
-        }
-        CaseList(
-            cases = cases,
-            onCaseClick = onCaseClick,
-            modifier = Modifier.fillMaxSize(),
-        )
-    }
-    if (compare) {
-        AlertDialog(
-            onDismissRequest = { compare = false },
-            title = { Text("Before / After Comparison") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    cases.take(2).forEachIndexed { index, case ->
-                        val label = if (index == 0) "Before" else "After"
-                        Text(
-                            "$label — ${case.presentingComplaint} · " +
-                                java.text.SimpleDateFormat("d MMM yyyy", Locale.getDefault())
-                                    .format(java.util.Date(case.createdAtEpochMs)),
-                        )
-                    }
-                }
-            },
-            confirmButton = { TextButton(onClick = { compare = false }) { Text("Close") } },
-        )
     }
 }
 

@@ -113,13 +113,17 @@ private fun CaseActionButtons(state: CaseDetailUiState.Success) {
     Button(
         onClick = {
             val handout = FarmerHandoutExporter.buildHandout(
-                patientName = state.patient?.name ?: "Patient",
-                drugName = drug?.name ?: "Prescribed treatment",
-                doseInstructions = rxLine.ifBlank { "Follow your veterinarian's directions." },
-                isolationSteps = "Keep the animal separated from healthy animals and clean equipment daily.",
-                fromEpochMs = System.currentTimeMillis(),
-                meatWithdrawalDays = drug?.meatWithdrawalDays ?: 0,
-                milkWithdrawalDays = drug?.milkWithdrawalDays ?: 0,
+                com.prudent66.vetguide.data.report.HandoutInput(
+                    patientName = state.patient?.name ?: "Patient",
+                    drugName = drug?.name ?: "Prescribed treatment",
+                    doseInstructions = rxLine.ifBlank { "Follow your veterinarian's directions." },
+                    isolationSteps = "Keep the animal separated from healthy animals and clean equipment daily.",
+                    fromEpochMs = System.currentTimeMillis(),
+                    withdrawal = com.prudent66.vetguide.data.report.HandoutWithdrawal(
+                        meatDays = drug?.meatWithdrawalDays ?: 0,
+                        milkDays = drug?.milkWithdrawalDays ?: 0,
+                    ),
+                ),
             )
             val intent = Intent(Intent.ACTION_SEND).apply {
                 type = "text/plain"

@@ -2,6 +2,7 @@ package com.prudent66.vetguide.data.report
 
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.RectF
 import android.graphics.Typeface
 import android.graphics.pdf.PdfDocument
 
@@ -40,13 +41,16 @@ internal class PdfCursor(private val document: PdfDocument) {
         canvas.drawText(value, x, baseline, p)
     }
 
-    fun rect(left: Float, top: Float, right: Float, bottom: Float, fill: Int, border: Int? = null) {
-        canvas.drawRect(left, top, right, bottom, Paint().apply {
+    fun rect(left: Float, top: Float, right: Float, bottom: Float, fill: Int) =
+        rect(RectF(left, top, right, bottom), fill)
+
+    fun rect(bounds: RectF, fill: Int, border: Int? = null) {
+        canvas.drawRect(bounds, Paint().apply {
             color = fill
             style = Paint.Style.FILL
         })
         border?.let { stroke ->
-            canvas.drawRect(left, top, right, bottom, Paint().apply {
+            canvas.drawRect(bounds, Paint().apply {
                 color = stroke
                 style = Paint.Style.STROKE
                 strokeWidth = 1f
@@ -57,8 +61,8 @@ internal class PdfCursor(private val document: PdfDocument) {
     fun box(title: String, lines: List<String>, accent: Int, fill: Int) {
         val h = maxOf(46f, lines.size * 15f + 30f)
         val top = y
-        rect(EDGE, top, EDGE + WIDTH, top + h, fill, BORDER)
-        rect(EDGE, top, EDGE + 6f, top + h, accent)
+        rect(RectF(EDGE, top, EDGE + WIDTH, top + h), fill, BORDER)
+        rect(RectF(EDGE, top, EDGE + 6f, top + h), accent)
         text(title, EDGE + 18f, top + 20f, paint(accent, 12f, Typeface.BOLD))
         var baseline = top + 38f
         lines.take(12).forEach { line ->

@@ -133,18 +133,23 @@ private fun HerdFormFields(form: HerdFormState) {
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
-        SelectionField("Drug", findDrug(form.drugId)?.name.orEmpty(), formulary.map { it.name }) { name ->
-            formulary.firstOrNull { it.name == name }?.let { form.drugId = it.id }
-        }
-        OutlinedTextField(
-            value = form.bottleSizeText,
-            onValueChange = { form.bottleSizeText = it },
-            label = { Text("Bottle size (mL)") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-        )
+        DrugAndBottleFields(form)
     }
+}
+
+@Composable
+private fun DrugAndBottleFields(form: HerdFormState) {
+    SelectionField("Drug", findDrug(form.drugId)?.name.orEmpty(), formulary.map { it.name }) { name ->
+        formulary.firstOrNull { it.name == name }?.let { form.drugId = it.id }
+    }
+    OutlinedTextField(
+        value = form.bottleSizeText,
+        onValueChange = { form.bottleSizeText = it },
+        label = { Text("Bottle size (mL)") },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -23,13 +23,14 @@ class FarmerHandoutTest {
     @Test
     fun `handout contains dosing isolation and safe dates`() {
         val text = FarmerHandoutExporter.buildHandout(
-            patientName = "Nandi",
-            drugName = "Oxytetracycline 5%",
-            doseInstructions = "15 mg/kg IM once daily",
-            isolationSteps = "Separate from the herd.",
-            fromEpochMs = start,
-            meatWithdrawalDays = 7,
-            milkWithdrawalDays = 3,
+            HandoutInput(
+                patientName = "Nandi",
+                drugName = "Oxytetracycline 5%",
+                doseInstructions = "15 mg/kg IM once daily",
+                isolationSteps = "Separate from the herd.",
+                fromEpochMs = start,
+                withdrawal = HandoutWithdrawal(meatDays = 7, milkDays = 3),
+            ),
         )
 
         assertTrue(text.contains("Nandi"))

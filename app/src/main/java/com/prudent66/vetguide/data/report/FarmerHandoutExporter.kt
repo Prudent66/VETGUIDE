@@ -5,6 +5,22 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
+/** Inputs for a plain-language owner handout. */
+data class HandoutInput(
+    val patientName: String,
+    val drugName: String,
+    val doseInstructions: String,
+    val isolationSteps: String,
+    val fromEpochMs: Long,
+    val withdrawal: HandoutWithdrawal,
+)
+
+/** Meat and milk withdrawal periods in days. */
+data class HandoutWithdrawal(
+    val meatDays: Int,
+    val milkDays: Int,
+)
+
 /** Plain-language owner handout with an exact meat/milk withdrawal safe date. */
 object FarmerHandoutExporter {
 
@@ -20,24 +36,16 @@ object FarmerHandoutExporter {
     fun formatDate(date: LocalDate): String = date.format(DATE_FORMAT)
 
     /** Builds the shareable, plain-language care sheet. */
-    fun buildHandout(
-        patientName: String,
-        drugName: String,
-        doseInstructions: String,
-        isolationSteps: String,
-        fromEpochMs: Long,
-        meatWithdrawalDays: Int,
-        milkWithdrawalDays: Int,
-    ): String {
-        val meatDate = formatDate(withdrawalSafeDate(fromEpochMs, meatWithdrawalDays))
-        val milkDate = formatDate(withdrawalSafeDate(fromEpochMs, milkWithdrawalDays))
+    fun buildHandout(input: HandoutInput): String {
+        val meatDate = formatDate(withdrawalSafeDate(input.fromEpochMs, input.withdrawal.meatDays))
+        val milkDate = formatDate(withdrawalSafeDate(input.fromEpochMs, input.withdrawal.milkDays))
         return buildString {
             append("VETGUIDE — Owner Care Sheet\n\n")
-            append("Animal: $patientName\n")
-            append("Treatment: $drugName — $doseInstructions\n\n")
-            append("Isolation & care:\n$isolationSteps\n\n")
-            append("Meat withdrawal safe date: $meatDate ($meatWithdrawalDays days)\n")
-            append("Milk withdrawal safe date: $milkDate ($milkWithdrawalDays days)\n\n")
+            append("Animal: ${input.patientName}\n")
+            append("Treatment: ${input.drugName} — ${input.doseInstructions}\n\n")
+            append("Isolation & care:\n${input.isolationSteps}\n\n")
+            append("Meat withdrawal safe date: $meatDate (${input.withdrawal.meatDays} days)\n")
+            append("Milk withdrawal safe date: $milkDate (${input.withdrawal.milkDays} days)\n\n")
             append("Always follow the attending veterinarian's instructions.\n")
         }
     }
