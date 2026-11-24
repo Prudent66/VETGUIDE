@@ -1,6 +1,7 @@
 package com.prudent66.vetguide.ui.screens.cases
 import com.prudent66.vetguide.ui.components.LocalBottomBarClearance
 
+import android.content.Intent
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +19,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,11 +29,14 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import com.prudent66.vetguide.data.report.FarmerHandoutExporter
 import com.prudent66.vetguide.domain.ai.buildPrescriptionPlan
+import com.prudent66.vetguide.domain.formulary.matchDrugFromText
 import com.prudent66.vetguide.domain.ai.sanitizeAiItem
 import com.prudent66.vetguide.domain.model.AiArtifactPayload
 import com.prudent66.vetguide.domain.model.Patient
@@ -42,6 +47,7 @@ import com.prudent66.vetguide.ui.components.PrescriptionCard
 import com.prudent66.vetguide.ui.components.VoiceDictationButton
 import com.prudent66.vetguide.ui.screens.knowledge.speciesLabel
 import com.prudent66.vetguide.ui.viewmodels.CaseDetailUiState
+import com.prudent66.vetguide.worker.ReminderScheduler
 import com.prudent66.vetguide.ui.viewmodels.CaseDetailViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -92,7 +98,48 @@ internal fun CaseDetailContent(
                 Text("Export PDF")
             }
         }
+        CaseActionButtons(state)
     }
+}
+
+/** Owner care-sheet sharing and a one-tap follow-up reminder. */
+@Composable
+private fun CaseActionButtons(state: CaseDetailUiState.Success) {
+    val context = LocalContext.current
+    val scheduler = remember { ReminderScheduler() }
+    val plan = buildPrescriptionPlan(state.ai?.analysisData, state.ai?.narrative)
+    val rxLine = plan.prescriptions.firstOrNull().orEmpty()
+    val drug = matchDrugFromText(rxLine)
+    Button(
+        onClick = {
+            val handout = FarmerHandoutExporter.buildHandout(
+                patientName = state.patient?.name ?: "Patient",
+                drugName = drug?.name ?: "Prescribed treatment",
+                doseInstructions = rxLine.ifBlank { "Follow your veterinarian's directions." },
+                isolationSteps = "Keep the animal separated from healthy animals and clean equipment daily.",
+                fromEpochMs = System.currentTimeMillis(),
+                meatWithdrawalDays = drug?.meatWithdrawalDays ?: 0,
+                milkWithdrawalDays = drug?.milkWithdrawalDays ?: 0,
+            )
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, handout)
+            }
+            context.startActivity(Intent.createChooser(intent, "Share Owner Care Sheet"))
+        },
+        modifier = Modifier.fillMaxWidth(),
+    ) { Text("Share Owner Care Sheet") }
+    OutlinedButton(
+        onClick = {
+            scheduler.schedule(
+                context,
+                "VETGUIDE follow-up",
+                "Clinical re-check is due for ${state.patient?.name ?: "this animal"}.",
+                24L * 60L * 60L * 1000L,
+            )
+        },
+        modifier = Modifier.fillMaxWidth(),
+    ) { Text("Schedule re-check reminder") }
 }
 
 @Composable

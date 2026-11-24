@@ -135,6 +135,18 @@ private fun CapabilitiesSection() {
 
         Full Multi-Species Offline Questionnaires: Structured offline clinical
         triage across Cattle, Goat, Sheep, Poultry, Pig, Equine, Dog and Cat.
+
+        Domestic & Wildlife Clinical Modes: Switch between Domestic and Wild
+        to link wildlife species directly to wildlife diseases, zoonotic
+        precautions and tailored clinical questionnaires.
+
+        Hospital-Grade PDF Clinical Reports & Owner Care Sheets: Structured,
+        color-accented SOAP PDF exports plus plain-language owner handouts with
+        withdrawal safe dates.
+
+        Smart Syringe Calculator, Timeline & Offline Reminders: Auto-matched
+        drug selection, before/after lesion photo comparison, and offline alerts
+        for repeat doses and withdrawal completion.
         """,
     )
 }
@@ -144,13 +156,13 @@ private fun HowToSection() {
     SectionTitle("How to Use VETGUIDE")
     SectionBody(
         """
-        Step 1 — Register or Select a Patient: Open Patients (+) to record
-        species, breed, age, weight and sex, or capture a quick case directly
-        from Diagnose.
+        Step 1 — Choose Domestic or Wild: Select the category, then register a
+        patient (+) or a Herd / Flock unit. Domestic covers eight species; Wild
+        links groups to wildlife diseases and biosafety precautions.
 
         Step 2 — Capture Photo & Clinical Notes: Go to Diagnose, take or select
-        a clear photo of the lesion or condition, and add brief clinical signs
-        or observations to sharpen results.
+        a clear photo of the lesion/condition, and dictate or type clinical signs.
+        Verify the auto-matched prescription in the dosage calculator.
 
         Step 3 — Review Analysis & Prescriptions: Inspect the findings and
         suspected conditions, then tap Open Prescriptions & Dosages. The sheet
@@ -158,13 +170,13 @@ private fun HowToSection() {
         the weight or bottle concentration if needed, and verify the calculated
         mL syringe volume and withdrawal period before administering treatment.
 
-        Step 4 — Save SOAP Note & Export PDF: Save the case to the patient's
-        clinical record, review or edit the auto-populated SOAP plan, and
-        export or share a PDF summary.
+        Step 4 — Schedule Reminders & Compare Photos: Set offline alerts for
+        repeat doses, re-checks and withdrawal end dates, and compare before/after
+        lesion photos from the clinical timeline.
 
-        Step 5 — Offline Queue & Backup: When working without signal, queue
-        cases for automatic sync and periodically use Export Backup (JSON) in
-        Settings to safeguard records.
+        Step 5 — Export the Clinical Report: Save the SOAP note, then export the
+        redesigned Clinical Report PDF or share the one-tap Owner Care Sheet.
+        Back up records with Export Backup (JSON) in Settings.
         """,
     )
 }

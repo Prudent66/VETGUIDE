@@ -27,6 +27,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,7 +35,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.prudent66.vetguide.domain.model.Patient
+import com.prudent66.vetguide.domain.model.AnimalCategory
 import com.prudent66.vetguide.domain.model.Species
+import com.prudent66.vetguide.ui.components.AnimalCategoryToggle
 import com.prudent66.vetguide.domain.model.ageLabel
 import com.prudent66.vetguide.ui.components.SpeciesField
 import com.prudent66.vetguide.ui.screens.cases.SaveToCaseSheet
@@ -236,6 +239,7 @@ private fun StartPhase(
     onAnalyzeImage: (String?, Double?) -> Unit,
 ) {
     val patients by viewModel.patients.collectAsState()
+    var category by rememberSaveable { mutableStateOf(AnimalCategory.DOMESTIC) }
     val selectedPatient = patients.firstOrNull { it.id == start.patientId }
     Column(
         modifier = Modifier
@@ -250,7 +254,15 @@ private fun StartPhase(
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.error,
         )
-        SpeciesSelection(start, viewModel)
+        AnimalCategoryToggle(
+            selected = category,
+            onSelect = { category = it },
+        )
+        if (category == AnimalCategory.WILD) {
+            WildlifePathwayPanel()
+        } else {
+            SpeciesSelection(start, viewModel)
+        }
         PatientSelection(start, patients, viewModel)
         OutlinedButton(
             onClick = { onAnalyzeImage(selectedPatient?.ageLabel(), selectedPatient?.weightKg) },

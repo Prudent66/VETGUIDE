@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.prudent66.vetguide.domain.formulary.HerdSnapshot
+import com.prudent66.vetguide.domain.model.AnimalCategory
 import com.prudent66.vetguide.domain.formulary.formulary
 import com.prudent66.vetguide.domain.model.Species
 
@@ -12,6 +13,7 @@ import com.prudent66.vetguide.domain.model.Species
 @Stable
 class HerdFormState {
     var unitName by mutableStateOf("")
+    var animalCategory by mutableStateOf(AnimalCategory.DOMESTIC)
     var speciesName by mutableStateOf(Species.CATTLE.name)
     var headcountText by mutableStateOf("")
     var sickText by mutableStateOf("")

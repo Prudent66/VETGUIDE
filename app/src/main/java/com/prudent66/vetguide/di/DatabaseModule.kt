@@ -50,6 +50,7 @@ object DatabaseModule {
             VetguideDatabase.MIGRATION_1_TO_2,
             VetguideDatabase.MIGRATION_2_TO_3,
             VetguideDatabase.migration4To5,
+            VetguideDatabase.migration5To6,
         ).fallbackToDestructiveMigration(true).build()
 
     @Provides

@@ -83,6 +83,7 @@ class PatientViewModel @Inject constructor(
             val existing = editPatientId?.let { patientRepository.getPatient(it) }
             val patient = existing?.copy(
                 name = draft.name,
+                animalCategory = draft.animalCategory,
                 species = draft.species,
                 breed = draft.breed,
                 sex = draft.sex,
@@ -98,6 +99,7 @@ class PatientViewModel @Inject constructor(
             ) ?: Patient(
                 id = UUID.randomUUID().toString(),
                 name = draft.name,
+                animalCategory = draft.animalCategory,
                 species = draft.species,
                 breed = draft.breed,
                 sex = draft.sex,

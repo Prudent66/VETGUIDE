@@ -91,6 +91,20 @@ class DosageCalculatorTest {
     }
 
     @Test
+    fun `prescription text auto-matches the mentioned formulary drug`() {
+        assertEquals(
+            "oxytetracycline-20",
+            matchDrugFromText("Oxytetracycline 20% 15 mg/kg IM once daily")!!.id,
+        )
+        assertEquals("meloxicam", matchDrugFromText("Give meloxicam 0.3 mg/kg SC")!!.id)
+        assertEquals("enrofloxacin", matchDrugFromText("Enrofloxacin 5 mg/kg PO")!!.id)
+        assertEquals("ivermectin-1", matchDrugFromText("Ivermectin 1% pour-on")!!.id)
+        assertEquals("albendazole", matchDrugFromText("Albendazole 10 mg/kg")!!.id)
+        assertEquals("tylosin", matchDrugFromText("Tylosin in drinking water")!!.id)
+        assertEquals(null, matchDrugFromText("Isolate affected birds and disinfect drinkers"))
+    }
+
+    @Test
     fun `all ten formulary entries are discoverable by id and name`() {
         assertEquals(10, formulary.size)
         assertEquals("Enrofloxacin", findDrugByName("enrofloxacin")!!.name)

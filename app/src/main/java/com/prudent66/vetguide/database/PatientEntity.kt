@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.prudent66.vetguide.domain.model.AgeUnit
+import com.prudent66.vetguide.domain.model.AnimalCategory
 import com.prudent66.vetguide.domain.model.NeuterStatus
 import com.prudent66.vetguide.domain.model.PatientSex
 import com.prudent66.vetguide.domain.model.Species
@@ -20,6 +21,7 @@ import com.prudent66.vetguide.domain.model.Species
 data class PatientEntity(
     @PrimaryKey val id: String,
     val name: String,
+    val animalCategory: AnimalCategory = AnimalCategory.DOMESTIC,
     val species: Species,
     val breed: String?,
     val sex: PatientSex,

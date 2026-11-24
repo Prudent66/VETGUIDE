@@ -273,3 +273,16 @@ fun calculateDosage(
         safetyAlerts = listOfNotNull(drug.contraindications[species]),
     )
 }
+
+/**
+ * Picks the formulary drug mentioned in a prescription line, if any. Matching
+ * is case-insensitive and uses both drug names and stable ids, so an analysis
+ * line such as "Tylosin 50 mg/kg PO" selects the right entry immediately.
+ */
+fun matchDrugFromText(text: String): FormularyDrug? {
+    val haystack = text.lowercase()
+    return formulary.firstOrNull { drug ->
+        haystack.contains(drug.name.lowercase()) ||
+            haystack.contains(drug.id.replace('-', ' '))
+    }
+}

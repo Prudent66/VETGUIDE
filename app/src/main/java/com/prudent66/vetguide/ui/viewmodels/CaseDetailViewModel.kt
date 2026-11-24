@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.prudent66.vetguide.data.report.PdfFileWriter
 import com.prudent66.vetguide.data.report.SoapPdfDocument
 import com.prudent66.vetguide.data.report.SoapReportData
+import com.prudent66.vetguide.domain.ai.buildPrescriptionPlan
 import com.prudent66.vetguide.domain.model.AiArtifactPayload
 import com.prudent66.vetguide.domain.model.Case
 import com.prudent66.vetguide.domain.model.CaseArtifact
@@ -240,6 +241,8 @@ class CaseDetailViewModel @Inject constructor(
         val generatedAt = SimpleDateFormat("d MMM yyyy, HH:mm", Locale.getDefault())
             .format(Date(nowMs))
         val ageLine = patient?.ageLabel()?.let { " · $it" }.orEmpty()
+        val analysis = success.ai?.analysisData
+        val plan = buildPrescriptionPlan(analysis, success.ai?.narrative)
         return SoapReportData(
             patientLine = listOfNotNull(
                 patient?.name ?: "Unregistered patient",
@@ -257,6 +260,10 @@ class CaseDetailViewModel @Inject constructor(
             clinicName = profile.clinicName,
             vetName = profile.vetName,
             clinicContact = profile.contact,
+            animalCategory = (patient?.animalCategory?.label ?: "Domestic"),
+            differentials = analysis?.suspectedConditions?.map { it.name to it.confidence }.orEmpty(),
+            prescriptions = plan.prescriptions,
+            supportiveCare = plan.supportiveCare,
         )
     }
 

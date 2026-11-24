@@ -39,6 +39,7 @@ import com.prudent66.vetguide.domain.formulary.formulary
 import com.prudent66.vetguide.domain.formulary.herdMetrics
 import com.prudent66.vetguide.domain.formulary.quarantineChecklist
 import com.prudent66.vetguide.domain.model.Species
+import com.prudent66.vetguide.ui.components.AnimalCategoryToggle
 
 /** Full-screen herd/flock triage: headcount, batch medication and quarantine. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,6 +85,10 @@ fun HerdOutbreakScreen(onDismiss: () -> Unit) {
 @Composable
 private fun HerdFormFields(form: HerdFormState) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        AnimalCategoryToggle(
+            selected = form.animalCategory,
+            onSelect = { form.animalCategory = it },
+        )
         OutlinedTextField(
             value = form.unitName,
             onValueChange = { form.unitName = it },

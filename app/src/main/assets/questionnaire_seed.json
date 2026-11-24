@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "questions": [
     {
       "id": "q-dog-vomiting",
@@ -706,6 +706,106 @@
           "orderIndex": 1
         }
       ]
+    },
+    {
+      "id": "q-wild-behavior",
+      "species": "OTHER",
+      "orderIndex": 0,
+      "text": "Abnormal behaviour or loss of fear?",
+      "options": [
+        {
+          "id": "opt-wild-behavior-yes",
+          "label": "Yes",
+          "symptomId": "abnormal-behavior",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-wild-behavior-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-wild-mortality",
+      "species": "OTHER",
+      "orderIndex": 1,
+      "text": "Unexpected deaths in the group?",
+      "options": [
+        {
+          "id": "opt-wild-mortality-yes",
+          "label": "Yes",
+          "symptomId": "sudden-death",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-wild-mortality-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-wild-resp",
+      "species": "OTHER",
+      "orderIndex": 2,
+      "text": "Laboured breathing or respiratory distress?",
+      "options": [
+        {
+          "id": "opt-wild-resp-yes",
+          "label": "Yes",
+          "symptomId": "respiratory-distress",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-wild-resp-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-wild-neuro",
+      "species": "OTHER",
+      "orderIndex": 3,
+      "text": "Neurologic signs or paralysis?",
+      "options": [
+        {
+          "id": "opt-wild-neuro-yes",
+          "label": "Yes",
+          "symptomId": "neurologic-signs",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-wild-neuro-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-wild-skin",
+      "species": "OTHER",
+      "orderIndex": 4,
+      "text": "Skin lesions, sores or hair loss?",
+      "options": [
+        {
+          "id": "opt-wild-skin-yes",
+          "label": "Yes",
+          "symptomId": "skin-reddening",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-wild-skin-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
     }
   ],
   "weights": [
@@ -983,6 +1083,91 @@
       "conditionId": "equine-colic",
       "symptomId": "restlessness",
       "weight": 6.0
+    },
+    {
+      "conditionId": "rabies",
+      "symptomId": "abnormal-behavior",
+      "weight": 14.0
+    },
+    {
+      "conditionId": "rabies",
+      "symptomId": "bite-wounds",
+      "weight": 12.0
+    },
+    {
+      "conditionId": "rabies",
+      "symptomId": "paralysis",
+      "weight": 12.0
+    },
+    {
+      "conditionId": "wildlife-anthrax",
+      "symptomId": "sudden-death",
+      "weight": 14.0
+    },
+    {
+      "conditionId": "wildlife-anthrax",
+      "symptomId": "fever",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "capture-myopathy",
+      "symptomId": "capture-stress",
+      "weight": 14.0
+    },
+    {
+      "conditionId": "capture-myopathy",
+      "symptomId": "weakness",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "wildlife-avian-influenza",
+      "symptomId": "respiratory-distress",
+      "weight": 12.0
+    },
+    {
+      "conditionId": "wildlife-avian-influenza",
+      "symptomId": "sudden-death",
+      "weight": 10.0
+    },
+    {
+      "conditionId": "wild-morbillivirus",
+      "symptomId": "fever",
+      "weight": 10.0
+    },
+    {
+      "conditionId": "wild-morbillivirus",
+      "symptomId": "nasal-discharge",
+      "weight": 10.0
+    },
+    {
+      "conditionId": "canine-distemper-wild",
+      "symptomId": "neurologic-signs",
+      "weight": 12.0
+    },
+    {
+      "conditionId": "canine-distemper-wild",
+      "symptomId": "nasal-discharge",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "sarcoptic-mange",
+      "symptomId": "skin-reddening",
+      "weight": 12.0
+    },
+    {
+      "conditionId": "sarcoptic-mange",
+      "symptomId": "wasting",
+      "weight": 6.0
+    },
+    {
+      "conditionId": "wildlife-trypanosomiasis",
+      "symptomId": "pale-membranes",
+      "weight": 10.0
+    },
+    {
+      "conditionId": "wildlife-trypanosomiasis",
+      "symptomId": "wasting",
+      "weight": 8.0
     }
   ]
 }

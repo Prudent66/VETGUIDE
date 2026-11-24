@@ -38,6 +38,7 @@ data class BackupPayload(
 data class PatientBackup(
     val id: String,
     val name: String,
+    val animalCategory: String = "DOMESTIC",
     val species: String,
     val breed: String? = null,
     val sex: String,
@@ -90,6 +91,7 @@ object BackupJson {
 fun PatientEntity.toBackup(): PatientBackup = PatientBackup(
     id = id,
     name = name,
+    animalCategory = animalCategory.name,
     species = species.name,
     breed = breed,
     sex = sex.name,
@@ -109,6 +111,8 @@ fun PatientEntity.toBackup(): PatientBackup = PatientBackup(
 fun PatientBackup.toEntity(): PatientEntity = PatientEntity(
     id = id,
     name = name,
+    animalCategory = runCatching { enumValueOf<com.prudent66.vetguide.domain.model.AnimalCategory>(animalCategory) }
+        .getOrDefault(com.prudent66.vetguide.domain.model.AnimalCategory.DOMESTIC),
     species = enumValueOf<Species>(species),
     breed = breed,
     sex = enumValueOf<PatientSex>(sex),

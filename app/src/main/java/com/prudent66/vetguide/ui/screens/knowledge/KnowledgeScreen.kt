@@ -31,6 +31,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,7 +40,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.prudent66.vetguide.R
 import com.prudent66.vetguide.domain.model.KbConditionSummary
+import com.prudent66.vetguide.domain.model.AnimalCategory
 import com.prudent66.vetguide.domain.model.Species
+import com.prudent66.vetguide.ui.components.AnimalCategoryToggle
 import com.prudent66.vetguide.ui.viewmodels.KnowledgeUiState
 import com.prudent66.vetguide.ui.viewmodels.KnowledgeViewModel
 
@@ -54,6 +57,7 @@ fun KnowledgeScreen(
     viewModel: KnowledgeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
+    var category by rememberSaveable { mutableStateOf(AnimalCategory.DOMESTIC) }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Knowledge Base") }) },
@@ -64,6 +68,11 @@ fun KnowledgeScreen(
                 .padding(padding)
                 .fillMaxSize(),
         ) {
+            AnimalCategoryToggle(
+                selected = category,
+                onSelect = { category = it },
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
             SearchBar(
                 query = queryOf(state),
                 onQueryChange = viewModel::setQuery,

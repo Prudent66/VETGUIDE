@@ -45,11 +45,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.prudent66.vetguide.R
 import com.prudent66.vetguide.domain.model.AgeUnit
+import com.prudent66.vetguide.domain.model.AnimalCategory
 import com.prudent66.vetguide.domain.model.BreedCatalog
 import com.prudent66.vetguide.domain.model.Patient
 import com.prudent66.vetguide.domain.model.PatientDraft
 import com.prudent66.vetguide.domain.model.PatientSex
 import com.prudent66.vetguide.domain.model.Species
+import com.prudent66.vetguide.ui.components.AnimalCategoryToggle
 import com.prudent66.vetguide.ui.components.SpeciesField
 import com.prudent66.vetguide.ui.viewmodels.PatientViewModel
 
@@ -127,6 +129,10 @@ private fun PatientFormBody(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        AnimalCategoryToggle(
+            selected = form.animalCategory,
+            onSelect = { form.animalCategory = it },
+        )
         Text("Species", style = MaterialTheme.typography.labelLarge)
         SpeciesField(
             selected = form.species,
@@ -172,6 +178,7 @@ private fun SaveButton(
             viewModel.savePatient(
                 PatientDraft(
                     name = form.name.trim(),
+                    animalCategory = form.animalCategory,
                     species = form.species,
                     breed = form.breed.trim().ifBlank { null },
                     sex = form.sex,
@@ -199,6 +206,7 @@ class PatientFormState(
     var ageUnit: AgeUnit by mutableStateOf(AgeUnit.MONTHS)
     var weightText: String by mutableStateOf("")
     var species: Species by mutableStateOf(species)
+    var animalCategory: AnimalCategory by mutableStateOf(AnimalCategory.DOMESTIC)
     var sex: PatientSex by mutableStateOf(sex)
 
     /** Pre-fills every editable field from an existing patient (edit mode). */

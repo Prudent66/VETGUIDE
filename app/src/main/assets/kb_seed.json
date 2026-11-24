@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "conditions": [
     {
       "id": "canine-parvovirus",
@@ -260,6 +260,157 @@
       "references": [
         "ref-placeholder-1"
       ]
+    },
+    {
+      "id": "rabies",
+      "name": "Rabies (Wildlife)",
+      "urgency": "HIGH",
+      "overview": "Wildlife field triage reference for Rabies (Wildlife). Zoonotic and biosafety precautions apply \u2014 decision support only.",
+      "species": [
+        "WILD_CANIDS",
+        "WILD_FELIDS",
+        "PRIMATES",
+        "SMALL_WILD_MAMMALS"
+      ],
+      "symptoms": [
+        "abnormal-behavior",
+        "bite-wounds",
+        "paralysis"
+      ],
+      "references": [
+        "ref-placeholder-1"
+      ]
+    },
+    {
+      "id": "wildlife-anthrax",
+      "name": "Anthrax (Wildlife)",
+      "urgency": "HIGH",
+      "overview": "Wildlife field triage reference for Anthrax (Wildlife). Zoonotic and biosafety precautions apply \u2014 decision support only.",
+      "species": [
+        "WILD_RUMINANTS",
+        "PRIMATES",
+        "SMALL_WILD_MAMMALS"
+      ],
+      "symptoms": [
+        "sudden-death",
+        "fever",
+        "unexplained-bleeding"
+      ],
+      "references": [
+        "ref-placeholder-1"
+      ]
+    },
+    {
+      "id": "capture-myopathy",
+      "name": "Capture Myopathy",
+      "urgency": "HIGH",
+      "overview": "Wildlife field triage reference for Capture Myopathy. Zoonotic and biosafety precautions apply \u2014 decision support only.",
+      "species": [
+        "WILD_RUMINANTS",
+        "WILD_CANIDS",
+        "WILD_FELIDS",
+        "WILD_BIRDS",
+        "PRIMATES",
+        "REPTILES",
+        "SMALL_WILD_MAMMALS"
+      ],
+      "symptoms": [
+        "capture-stress",
+        "weakness",
+        "sudden-death"
+      ],
+      "references": [
+        "ref-placeholder-1"
+      ]
+    },
+    {
+      "id": "wildlife-avian-influenza",
+      "name": "Wildlife Avian Influenza / Newcastle",
+      "urgency": "HIGH",
+      "overview": "Wildlife field triage reference for Wildlife Avian Influenza / Newcastle. Zoonotic and biosafety precautions apply \u2014 decision support only.",
+      "species": [
+        "WILD_BIRDS"
+      ],
+      "symptoms": [
+        "respiratory-distress",
+        "sudden-death",
+        "diarrhea"
+      ],
+      "references": [
+        "ref-placeholder-1"
+      ]
+    },
+    {
+      "id": "wild-morbillivirus",
+      "name": "PPR / Rinderpest-like Morbillivirus",
+      "urgency": "HIGH",
+      "overview": "Wildlife field triage reference for PPR / Rinderpest-like Morbillivirus. Zoonotic and biosafety precautions apply \u2014 decision support only.",
+      "species": [
+        "WILD_RUMINANTS"
+      ],
+      "symptoms": [
+        "fever",
+        "nasal-discharge",
+        "respiratory-distress"
+      ],
+      "references": [
+        "ref-placeholder-1"
+      ]
+    },
+    {
+      "id": "canine-distemper-wild",
+      "name": "Canine Distemper in Wild Carnivores",
+      "urgency": "HIGH",
+      "overview": "Wildlife field triage reference for Canine Distemper in Wild Carnivores. Zoonotic and biosafety precautions apply \u2014 decision support only.",
+      "species": [
+        "WILD_CANIDS",
+        "SMALL_WILD_MAMMALS"
+      ],
+      "symptoms": [
+        "fever",
+        "nasal-discharge",
+        "neurologic-signs"
+      ],
+      "references": [
+        "ref-placeholder-1"
+      ]
+    },
+    {
+      "id": "sarcoptic-mange",
+      "name": "Sarcoptic Mange",
+      "urgency": "MEDIUM",
+      "overview": "Wildlife field triage reference for Sarcoptic Mange. Zoonotic and biosafety precautions apply \u2014 decision support only.",
+      "species": [
+        "WILD_CANIDS",
+        "SMALL_WILD_MAMMALS",
+        "WILD_RUMINANTS"
+      ],
+      "symptoms": [
+        "skin-reddening",
+        "wasting"
+      ],
+      "references": [
+        "ref-placeholder-1"
+      ]
+    },
+    {
+      "id": "wildlife-trypanosomiasis",
+      "name": "Wildlife Trypanosomiasis",
+      "urgency": "MEDIUM",
+      "overview": "Wildlife field triage reference for Wildlife Trypanosomiasis. Zoonotic and biosafety precautions apply \u2014 decision support only.",
+      "species": [
+        "WILD_RUMINANTS",
+        "WILD_CANIDS",
+        "PRIMATES"
+      ],
+      "symptoms": [
+        "fever",
+        "wasting",
+        "pale-membranes"
+      ],
+      "references": [
+        "ref-placeholder-1"
+      ]
     }
   ],
   "symptoms": [
@@ -417,6 +568,26 @@
       "id": "abnormal-milk",
       "name": "Abnormal milk appearance",
       "bodySystem": "Reproductive"
+    },
+    {
+      "id": "abnormal-behavior",
+      "name": "Abnormal behaviour",
+      "bodySystem": "Neurologic"
+    },
+    {
+      "id": "bite-wounds",
+      "name": "Bite wounds",
+      "bodySystem": "Integument"
+    },
+    {
+      "id": "capture-stress",
+      "name": "Capture stress / collapse",
+      "bodySystem": "Musculoskeletal"
+    },
+    {
+      "id": "paralysis",
+      "name": "Paralysis",
+      "bodySystem": "Neurologic"
     }
   ],
   "references": [

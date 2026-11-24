@@ -12,6 +12,7 @@ import com.prudent66.vetguide.domain.model.Patient
 fun PatientEntity.toDomain(): Patient = Patient(
     id = id,
     name = name,
+    animalCategory = animalCategory,
     species = species,
     breed = breed,
     sex = sex,
@@ -31,6 +32,7 @@ fun PatientEntity.toDomain(): Patient = Patient(
 fun Patient.toEntity(): PatientEntity = PatientEntity(
     id = id,
     name = name,
+    animalCategory = animalCategory,
     species = species,
     breed = breed,
     sex = sex,

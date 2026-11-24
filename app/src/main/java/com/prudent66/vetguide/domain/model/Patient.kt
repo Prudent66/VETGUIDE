@@ -8,6 +8,8 @@ package com.prudent66.vetguide.domain.model
 data class Patient(
     val id: String,
     val name: String,
+    /** Domestic / wildlife pathway; defaults for legacy records. */
+    val animalCategory: AnimalCategory = AnimalCategory.DOMESTIC,
     val species: Species,
     val breed: String?,
     val sex: PatientSex,
