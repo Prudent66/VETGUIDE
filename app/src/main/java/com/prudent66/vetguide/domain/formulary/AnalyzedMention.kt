@@ -33,7 +33,7 @@ private val frequencyRegex = Regex(
     RegexOption.IGNORE_CASE,
 )
 private val genericMedicationRegex = Regex(
-    """\b[A-Z][A-Za-z-]*(?:\s+[A-Za-z-]+){0,2}\s+(?:ointment|oil|spray|injection|drench)\b""",
+    """\b[A-Z][A-Za-z-]*(?:\s+[A-Za-z-]+){0,2}\s+(?i:ointment|oil|spray|injection|drench)\b""",
 )
 
 /** Strips strength/category suffixes so "Ivermectin" matches "Ivermectin 1%". */

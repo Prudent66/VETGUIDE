@@ -151,8 +151,8 @@ class DrugMatchingTest {
             bestDomesticDrug(text, null, Species.DOG)!!.id,
         )
         val result = calculateDosage(analyzed, Species.DOG, 10.0)!!
-        assertEquals(75.0, result.doseMg, 0.001)
-        assertEquals(1.5, result.syringeMl, 0.001)
+        assertEquals(100.0, result.doseMg, 0.001)
+        assertEquals(2.0, result.syringeMl, 0.001)
         assertNull(calculateDosage(analyzed, Species.OTHER, 10.0))
     }
 
