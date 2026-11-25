@@ -152,8 +152,10 @@ class PdfReportExporterTest {
 
         assertTrue(barTop > lastBaseline + 10f)
         assertTrue(differentialRowHeight(lineCount) > differentialBarTop(0f, lineCount) + 8f)
-        assertTrue(differentialRowHeight(lineCount) > differentialTextHeight(lineCount))
-        assertEquals(13f, differentialTextHeight(1), 0.001f)
+        assertTrue(
+            differentialRowHeight(lineCount) > differentialRowLayout(0f, lineCount).labelBottom,
+        )
+        assertEquals(13f, differentialRowLayout(0f, 1).labelBottom, 0.001f)
     }
 
     @Test

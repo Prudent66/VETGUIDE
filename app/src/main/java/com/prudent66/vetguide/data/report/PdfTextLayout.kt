@@ -51,9 +51,6 @@ internal fun rowRowHeight(lineCount: Int): Float = maxOf(14f, lineCount * 13f) +
 /** Extracts the numeric percentage from a "95%" style string. */
 internal fun rowPercent(pctText: String): Int = pctText.removeSuffix("%").toIntOrNull() ?: 0
 
-/** Full measured height of a wrapped condition label (13pt per line). */
-internal fun differentialTextHeight(lineCount: Int): Float = maxOf(1, lineCount) * 13f
-
 internal const val DIFFERENTIAL_BAR_HEIGHT = 8f
 internal const val DIFFERENTIAL_LABEL_PADDING = 14f
 internal const val DIFFERENTIAL_ROW_SPACING = 18f
@@ -71,7 +68,7 @@ internal data class DifferentialRowLayout(
  * the accumulated [y] previously lagged behind the wrapped text.
  */
 internal fun differentialRowLayout(y: Float, lineCount: Int): DifferentialRowLayout {
-    val labelHeight = differentialTextHeight(lineCount).coerceAtLeast(14f)
+    val labelHeight = (maxOf(1, lineCount) * 13f).coerceAtLeast(14f)
     val labelBottom = y + labelHeight
     val barTop = labelBottom + DIFFERENTIAL_LABEL_PADDING
     val rowHeight = (barTop - y) + DIFFERENTIAL_BAR_HEIGHT + DIFFERENTIAL_ROW_SPACING
