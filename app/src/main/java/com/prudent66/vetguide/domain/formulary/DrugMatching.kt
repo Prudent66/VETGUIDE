@@ -151,7 +151,7 @@ private fun syntheticWildDrug(name: String, group: WildlifeGroup): WildlifeFormu
     val topical = listOf("ointment", "oil", "spray", "drench").any { it in lower }
     return WildlifeFormularyEntry(
         id = "analyzed-wild-${name.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-')}",
-        name = "$name (wild; analyzed — verify dose)",
+        name = "${name.removeSuffix(" (wild)")} (wild; analyzed — verify dose)",
         doseByGroup = WildlifeGroup.entries.associateWith { DoseRange(5.0, 10.0) },
         concentrationsMgPerMl = listOf(50.0),
         route = if (topical) DoseRoute.TOPICAL else DoseRoute.IM,

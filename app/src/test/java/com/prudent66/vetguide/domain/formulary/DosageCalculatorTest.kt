@@ -193,7 +193,7 @@ class DosageCalculatorTest {
             DoseRoute.ORAL,
             calculateWildlifeDosage(oral, WildlifeGroup.WILD_FELIDS, 10.0, 50.0)!!.route,
         )
-        assertEquals(7, wildlifeDrugsFor(WildlifeGroup.WILD_FELIDS).size)
+        assertEquals(8, wildlifeDrugsFor(WildlifeGroup.WILD_FELIDS).size)
     }
 
     @Test

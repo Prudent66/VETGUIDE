@@ -77,7 +77,7 @@ fun extractPrescriptionLines(text: String): List<String> =
 
 /** First condition name inside a narrative's suspected-conditions clause. */
 private val narrativeConditionRegex = Regex(
-    """Suspected conditions \(decision support, not a diagnosis\):\s*([^.;]+)""",
+    """Suspected conditions \(decision support, not a diagnosis\):\s*([^.;(]+)""",
     RegexOption.IGNORE_CASE,
 )
 
