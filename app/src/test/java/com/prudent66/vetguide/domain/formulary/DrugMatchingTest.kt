@@ -165,8 +165,8 @@ class DrugMatchingTest {
         assertEquals("Metronidazole (wild; analyzed — verify dose)", analyzed.name)
         assertEquals(analyzed.id, bestWildDrug(text, null, WildlifeGroup.WILD_CANIDS)!!.id)
         val result = calculateWildlifeDosage(analyzed, WildlifeGroup.WILD_CANIDS, 10.0)!!
-        assertEquals(75.0, result.doseMg, 0.001)
-        assertEquals(1.5, result.syringeMl, 0.001)
+        assertEquals(100.0, result.doseMg, 0.001)
+        assertEquals(2.0, result.syringeMl, 0.001)
     }
 
     @Test
@@ -217,5 +217,98 @@ class DrugMatchingTest {
         assertTrue(dynamicWild.all { it.doseByGroup.containsKey(WildlifeGroup.WILD_CANIDS) })
         assertTrue(dynamicDomestic.none { it.id.startsWith("analyzed-wild") })
         assertTrue(dynamicWild.none { it.id.startsWith("analyzed-domestic") })
+    }
+
+    @Test
+    fun `domestic picker pins analyzed anthelmintics and selects them on open`() {
+        val text = "Deworm with fenbendazole (50 mg/kg orally) or pyrantel pamoate (5-10 mg/kg orally)"
+        val drugs = domesticDrugsFor(text)
+        assertEquals(2, drugs.count { it.isAnalyzedFallback })
+        assertTrue(drugs.take(2).all { it.isAnalyzedFallback })
+
+        val selected = bestDomesticDrug(text, "Helminthosis", Species.CATTLE)!!
+        assertTrue(selected.isAnalyzedFallback)
+        assertEquals("Fenbendazole (analyzed — verify dose)", selected.name)
+        assertEquals(DoseRoute.ORAL, selected.route)
+        val result = calculateDosage(selected, Species.CATTLE, 100.0)!!
+        assertEquals(5000.0, result.doseMg, 0.001)
+        assertEquals(100.0, result.syringeMl, 0.001)
+    }
+
+    @Test
+    fun `wild picker pins analyzed anthelmintics instead of oxytetracycline`() {
+        val text = "Deworm with fenbendazole (50 mg/kg orally) or pyrantel pamoate (5-10 mg/kg orally)"
+        val drugs = wildDrugsFor(text, WildlifeGroup.WILD_RUMINANTS)
+        assertTrue(drugs.first().isAnalyzedFallback)
+        assertEquals(2, drugs.count { it.isAnalyzedFallback })
+
+        val selected = bestWildDrug(text, null, WildlifeGroup.WILD_RUMINANTS)!!
+        assertTrue(selected.isAnalyzedFallback)
+        assertEquals("Fenbendazole (wild; analyzed — verify dose)", selected.name)
+        assertEquals(DoseRoute.ORAL, selected.route)
+        val result = calculateWildlifeDosage(selected, WildlifeGroup.WILD_RUMINANTS, 20.0)!!
+        assertEquals(1000.0, result.doseMg, 0.001)
+        assertEquals(20.0, result.syringeMl, 0.001)
+    }
+
+    @Test
+    fun `ivermectin matches normalized static products in both pathways`() {
+        val domesticText = "Ivermectin 1% for mange"
+        assertEquals(0, domesticDrugsFor(domesticText).count { it.isAnalyzedFallback })
+        assertEquals(
+            "ivermectin-1",
+            bestDomesticDrug(domesticText, null, Species.CATTLE)!!.id,
+        )
+
+        val wildText = "Ivermectin 1% (wild) dart"
+        assertEquals(0, wildDrugsFor(wildText, WildlifeGroup.WILD_RUMINANTS)
+            .count { it.isAnalyzedFallback })
+        assertEquals(
+            "wild-ivermectin",
+            bestWildDrug(wildText, null, WildlifeGroup.WILD_RUMINANTS)!!.id,
+        )
+    }
+
+    @Test
+    fun `prednisolone is added dynamically to the wild picker with parsed dose`() {
+        val text = "Prednisolone 1 mg/kg orally for seven days"
+        val drugs = wildDrugsFor(text, WildlifeGroup.WILD_CANIDS)
+        val analyzed = drugs.first { it.isAnalyzedFallback }
+        assertEquals("Prednisolone (wild; analyzed — verify dose)", analyzed.name)
+        assertEquals(DoseRange(1.0, 1.0), analyzed.doseByGroup[WildlifeGroup.WILD_CANIDS])
+        assertEquals(DoseRoute.ORAL, analyzed.route)
+        assertEquals(analyzed.id, bestWildDrug(text, null, WildlifeGroup.WILD_CANIDS)!!.id)
+    }
+
+    @Test
+    fun `changing weight or drug recalculates an analyzed dose immediately`() {
+        val text = "Fenbendazole 50 mg/kg orally"
+        val drug = domesticDrugsFor(text).first { it.isAnalyzedFallback }
+        val light = calculateDosage(drug, Species.GOAT, 10.0)!!
+        val heavier = calculateDosage(drug, Species.GOAT, 20.0)!!
+        val switched = calculateDosage(findDrug("albendazole")!!, Species.GOAT, 20.0)!!
+
+        assertEquals(500.0, light.doseMg, 0.001)
+        assertEquals(1000.0, heavier.doseMg, 0.001)
+        assertEquals(10.0, light.syringeMl, 0.001)
+        assertEquals(20.0, heavier.syringeMl, 0.001)
+        assertEquals(DoseRange(5.0, 10.0), switched.doseRange)
+    }
+
+    @Test
+    fun `Build 25 analyzed additions stay isolated to their own pathway`() {
+        val text = "Fenbendazole 50 mg/kg or Prednisolone"
+        val domestic = domesticDrugsFor(text).filter { it.isAnalyzedFallback }
+        val wild = wildDrugsFor(text, WildlifeGroup.WILD_RUMINANTS)
+            .filter { it.isAnalyzedFallback }
+
+        assertEquals(2, domestic.size)
+        assertEquals(2, wild.size)
+        assertTrue(domestic.all { it.id.startsWith("analyzed-domestic-") })
+        assertTrue(wild.all { it.id.startsWith("analyzed-wild-") })
+        assertTrue(domestic.all { !it.name.contains("wild") })
+        assertTrue(wild.all { it.name.contains("wild") })
+        assertTrue(domestic.all { it.doseBySpecies.keys.none { key -> key == Species.OTHER } })
+        assertTrue(wild.all { it.doseByGroup.keys.all { key -> key is WildlifeGroup } })
     }
 }

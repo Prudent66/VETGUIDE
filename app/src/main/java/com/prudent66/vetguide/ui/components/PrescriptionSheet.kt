@@ -47,6 +47,7 @@ fun PrescriptionCard(
     subject: AnimalSubject? = null,
     weightKg: Double? = null,
     condition: String? = null,
+    analysisText: String = "",
     modifier: Modifier = Modifier,
 ) {
     if (prescriptions.isEmpty()) return
@@ -73,7 +74,7 @@ fun PrescriptionCard(
     }
     if (showSheet) {
         ModalBottomSheet(onDismissRequest = { showSheet = false }) {
-            PrescriptionSheetBody(prescriptions, subject, weightKg, condition)
+            PrescriptionSheetBody(prescriptions, subject, weightKg, condition, analysisText)
         }
     }
 }
@@ -84,6 +85,7 @@ private fun PrescriptionSheetBody(
     subject: AnimalSubject?,
     weightKg: Double?,
     condition: String?,
+    analysisText: String,
 ) {
     Column(
         modifier = Modifier
@@ -103,7 +105,7 @@ private fun PrescriptionSheetBody(
             Text("${index + 1}. $item", style = MaterialTheme.typography.bodyMedium)
         }
         HorizontalDivider()
-        DosageCalculatorSection(prescriptions, subject, weightKg, condition)
+        DosageCalculatorSection(prescriptions, subject, weightKg, condition, analysisText)
     }
 }
 
@@ -113,8 +115,11 @@ private fun DosageCalculatorSection(
     subject: AnimalSubject?,
     weightKg: Double?,
     condition: String?,
+    analysisText: String,
 ) {
-    val text = prescriptions.joinToString(" ")
+    val text = (prescriptions + listOf(analysisText))
+        .filter { it.isNotBlank() }
+        .joinToString(" ")
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Dosage & Syringe Calculator", style = MaterialTheme.typography.titleSmall)
         if (subject?.category == AnimalCategory.WILD) {
@@ -135,7 +140,7 @@ private fun DomesticDosageSection(
     val selected = ClinicalSpeciesCatalog.domesticSpecies(speciesName) ?: Species.CATTLE
     val drugs = remember(text) { domesticDrugsFor(text) }
     val auto = remember(text, condition, selected) { bestDomesticDrug(text, condition, selected) }
-    var chosenId by rememberSaveable { mutableStateOf<String?>(null) }
+    var chosenId by rememberSaveable(text) { mutableStateOf<String?>(null) }
     val drug = remember(drugs, auto, chosenId) {
         drugs.firstOrNull { it.id == (chosenId ?: auto?.id) } ?: drugs.first()
     }
@@ -174,7 +179,7 @@ private fun WildlifeDosageSection(
     var wildAnimal by rememberSaveable(subject) { mutableStateOf(subject.wildAnimal.orEmpty()) }
     val drugs = remember(text, group) { wildDrugsFor(text, group) }
     val auto = remember(text, condition, group) { bestWildDrug(text, condition, group) }
-    var chosenId by rememberSaveable { mutableStateOf<String?>(null) }
+    var chosenId by rememberSaveable(text) { mutableStateOf<String?>(null) }
     val drug = remember(drugs, auto, chosenId) {
         drugs.firstOrNull { it.id == (chosenId ?: auto?.id) } ?: drugs.first()
     }
@@ -196,7 +201,7 @@ private fun WildlifeDosageSection(
     SelectionDialogField("Wild animal", wildAnimal.ifBlank { animals.first() }, animals) {
         wildAnimal = it
     }
-    SelectionDialogField("Drug (wildlife formulary)", drug?.name.orEmpty(), drugs.map { it.name }) {
+    SelectionDialogField("Drug (wildlife formulary)", drug.name, drugs.map { it.name }) {
         name -> drugs.firstOrNull { it.name == name }?.let { chosenId = it.id }
     }
     if (drug.isAnalyzedFallback) AnalyzedDrugNote()

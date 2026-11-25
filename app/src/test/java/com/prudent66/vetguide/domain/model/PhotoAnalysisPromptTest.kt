@@ -1,5 +1,8 @@
 package com.prudent66.vetguide.domain.model
 
+import com.prudent66.vetguide.domain.ai.AiAnalysisData
+import com.prudent66.vetguide.domain.ai.SuspectedCondition
+import com.prudent66.vetguide.domain.ai.analysisNarrative
 import com.prudent66.vetguide.domain.ai.firstNarrativeCondition
 import com.prudent66.vetguide.domain.ai.withoutDuplicateSuspectedConditions
 import com.prudent66.vetguide.domain.ai.withoutNextSteps
@@ -99,6 +102,21 @@ class PhotoAnalysisPromptTest {
             "(decision support, not a diagnosis): Mange (confidence 70%); " +
             "Infected abscess (confidence 50%). Requires veterinary review."
         assertEquals("Mange", firstNarrativeCondition(narrative))
+    }
+
+    @Test
+    fun `analysis narrative carries findings conditions and prescriptions for matching`() {
+        val data = AiAnalysisData(
+            provider = "offline",
+            model = "rules",
+            findings = listOf("Deworm with fenbendazole (50 mg/kg orally)"),
+            suspectedConditions = listOf(SuspectedCondition("Helminthosis", 0.7)),
+            prescriptions = listOf("Ivermectin 1% 200 mcg/kg SC"),
+        )
+        val narrative = analysisNarrative(data)
+        assertTrue(narrative.contains("fenbendazole"))
+        assertTrue(narrative.contains("Helminthosis"))
+        assertTrue(narrative.contains("Ivermectin"))
     }
 
     @Test

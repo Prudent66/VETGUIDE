@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.prudent66.vetguide.domain.ai.AiAnalysisData
 import com.prudent66.vetguide.domain.ai.SuspectedCondition
+import com.prudent66.vetguide.domain.ai.analysisNarrative
 import com.prudent66.vetguide.domain.model.AnimalSubject
 import com.prudent66.vetguide.domain.ai.buildPrescriptionPlan
 import com.prudent66.vetguide.ui.components.PrescriptionCard
@@ -42,6 +43,7 @@ internal fun StructuredReport(
             subject = subject,
             weightKg = weightKg,
             condition = data.suspectedConditions.firstOrNull()?.name,
+            analysisText = analysisNarrative(data),
             modifier = Modifier.fillMaxWidth(),
         )
         SupportiveCareSection(plan.supportiveCare)

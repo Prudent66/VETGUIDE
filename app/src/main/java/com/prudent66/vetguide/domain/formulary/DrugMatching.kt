@@ -16,6 +16,8 @@ private val domesticConditionDrugs = mapOf(
     "pneumonia" to "oxytetracycline-20",
     "pleuropneumonia" to "ceftiofur",
     "helminthosis" to "albendazole",
+    "gut worm" to "albendazole",
+    "internal parasite" to "albendazole",
     "coccidiosis" to "amprolium",
     "parvovirus" to "enrofloxacin",
     "newcastle" to "oxytetracycline-5",
@@ -34,6 +36,8 @@ private val wildConditionDrugs = mapOf(
     "bite injury" to "wild-topical-wound",
     "respiratory signs" to "wild-oxytetracycline-20",
     "parasite burden" to "wild-albendazole",
+    "gut worm" to "wild-albendazole",
+    "internal parasite" to "wild-albendazole",
     "restraint" to "wild-ketamine-xylazine",
     "collapse" to "wild-atropine",
     "trypanosome" to "wild-diminazene",
@@ -46,47 +50,38 @@ private val domesticAnalyzedNames = listOf(
     "Topical Antibiotic Ointment", "Wound Spray / Antiseptic Oil",
     "Metronidazole", "Praziquantel", "Fenbendazole", "Dexamethasone",
     "Sulfadimidine", "Trimethoprim", "Levamisole", "Closantel",
-    "Doramectin", "Furosemide", "Prednisolone",
+    "Doramectin", "Furosemide", "Prednisolone", "Pyrantel Pamoate",
+    "Ivermectin", "Oxytetracycline", "Toltrazuril", "Moxidectin", "Selamectin",
 )
 
 private val wildAnalyzedNames = listOf(
-    "Amoxicillin (wild)", "Doxycycline (wild)", "Ceftiofur (wild)",
+    "Fenbendazole", "Pyrantel Pamoate", "Prednisolone", "Ivermectin",
+    "Oxytetracycline", "Albendazole", "Levamisole", "Meloxicam",
+    "Enrofloxacin", "Amoxicillin", "Doxycycline", "Ceftiofur",
+    "Dexamethasone", "Metronidazole", "Praziquantel", "Furosemide",
     "Atropine / Supportive (wild)", "Topical Wound / Antiseptic Ointment (wild)",
     "Metronidazole (wild)", "Ketamine (wild)", "Xylazine (wild)",
-    "Praziquantel (wild)", "Furosemide (wild)",
-)
-
-private val genericTopicalRegex = Regex(
-    """\b[A-Z][A-Za-z-]*(?:\s+[A-Za-z-]+){0,2}\s+(?:ointment|oil|spray|injection|drench)\b""",
 )
 
 /** Medication names found in findings/recommendations, known ones first. */
-internal fun extractedDrugNames(text: String, dictionary: List<String>): List<String> {
-    val lower = text.lowercase()
-    val known = dictionary.filter { it.lowercase() in lower }
-    val generic = genericTopicalRegex.findAll(text)
-        .map { it.value.trim() }
-        .filter { phrase -> dictionary.none { it.lowercase() in phrase.lowercase() } }
-        .filter { it.length <= 60 }
-    return (known + generic).distinctBy { it.lowercase() }
-}
+internal fun extractedDrugNames(text: String, dictionary: List<String>): List<String> =
+    medicationMentions(text, dictionary).map { it.name }
 
 /** Preferred domestic product for a suspected condition, if one is mapped. */
 fun domesticConditionDrug(condition: String?): FormularyDrug? {
     val key = condition?.lowercase() ?: return null
-    return domesticConditionDrugs.entries.firstOrNull { it.key in key }
-        ?.value?.let(::findDrug)
+    val id = domesticConditionDrugs.entries.firstOrNull { it.key in key }?.value ?: return null
+    return findDrug(id)
 }
 
 /** Preferred wildlife product for a condition, restricted to the selected group. */
 fun wildConditionDrug(condition: String?, group: WildlifeGroup): WildlifeFormularyEntry? {
     val key = condition?.lowercase() ?: return null
-    return wildConditionDrugs.entries.firstOrNull { it.key in key }
-        ?.value?.let(::findWildlifeDrug)
-        ?.takeIf { group in it.doseByGroup }
+    val id = wildConditionDrugs.entries.firstOrNull { it.key in key }?.value ?: return null
+    return findWildlifeDrug(id)?.takeIf { group in it.doseByGroup }
 }
 
-/** Best domestic default: explicit text, then condition, then analyzed drug. */
+/** Best domestic default: explicit text, then analyzed drug, then condition. */
 fun bestDomesticDrug(
     text: String,
     condition: String?,
@@ -94,8 +89,8 @@ fun bestDomesticDrug(
 ): FormularyDrug? {
     val drugs = domesticDrugsFor(text)
     return matchDrugFromText(text)
-        ?: domesticConditionDrug(condition)
         ?: drugs.firstOrNull { it.isAnalyzedFallback && species in it.doseBySpecies }
+        ?: domesticConditionDrug(condition)
         ?: drugs.firstOrNull { species in it.doseBySpecies }
 }
 
@@ -107,55 +102,63 @@ fun bestWildDrug(
 ): WildlifeFormularyEntry? {
     val drugs = wildDrugsFor(text, group)
     return matchWildlifeDrugFromText(text, group)
-        ?: wildConditionDrug(condition, group)
         ?: drugs.firstOrNull { it.isAnalyzedFallback && group in it.doseByGroup }
+        ?: wildConditionDrug(condition, group)
         ?: drugs.firstOrNull { group in it.doseByGroup }
 }
 
-/** Full domestic picker: static products plus any analyzed drug not yet listed. */
+/** Full domestic picker: analyzed additions pinned above the static products. */
 fun domesticDrugsFor(text: String): List<FormularyDrug> {
-    val analyzed = extractedDrugNames(text, domesticAnalyzedNames)
-        .filter { name -> formulary.none { it.name.equals(name, ignoreCase = true) } }
+    val analyzed = medicationMentions(text, domesticAnalyzedNames)
+        .filter { mention -> formulary.none { namesMatch(it.name, mention.name) } }
         .map(::syntheticDomesticDrug)
-    return formulary + analyzed
+    return analyzed + formulary
 }
 
-/** Wildlife picker for one group: static group products plus analyzed additions. */
+/** Wildlife picker: analyzed additions pinned above the group-only products. */
 fun wildDrugsFor(text: String, group: WildlifeGroup): List<WildlifeFormularyEntry> {
     val static = wildlifeDrugsFor(group)
-    val analyzed = extractedDrugNames(text, wildAnalyzedNames)
-        .filter { name -> static.none { it.name.equals(name, ignoreCase = true) } }
+    val analyzed = medicationMentions(text, wildAnalyzedNames)
+        .filter { mention -> static.none { namesMatch(it.name, mention.name) } }
         .map { syntheticWildDrug(it, group) }
-    return static + analyzed
+    return analyzed + static
 }
 
-private fun syntheticDomesticDrug(name: String): FormularyDrug {
-    val lower = name.lowercase()
+private fun slug(name: String): String =
+    name.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-')
+
+private fun syntheticDomesticDrug(mention: AnalyzedMention): FormularyDrug {
+    val lower = mention.name.lowercase()
     val topical = listOf("ointment", "oil", "spray", "drench").any { it in lower }
     return FormularyDrug(
-        id = "analyzed-domestic-${name.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-')}",
-        name = "$name (analyzed — verify dose)",
+        id = "analyzed-domestic-${slug(mention.name)}",
+        name = "${mention.name} (analyzed — verify dose)",
         doseBySpecies = Species.entries.filter { it != Species.OTHER }
-            .associateWith { DoseRange(5.0, 10.0) },
+            .associateWith { mention.doseRange ?: DoseRange(5.0, 10.0) },
         concentrationsMgPerMl = listOf(50.0),
-        route = if (topical) DoseRoute.TOPICAL else DoseRoute.IM,
-        frequency = "Verify frequency against a current formulary",
+        route = mention.route ?: if (topical) DoseRoute.TOPICAL else DoseRoute.IM,
+        frequency = mention.frequency.ifBlank { "Verify frequency against a current formulary" },
         meatWithdrawalDays = 0,
         milkWithdrawalDays = 0,
         isAnalyzedFallback = true,
     )
 }
 
-private fun syntheticWildDrug(name: String, group: WildlifeGroup): WildlifeFormularyEntry {
-    val lower = name.lowercase()
+private fun syntheticWildDrug(
+    mention: AnalyzedMention,
+    group: WildlifeGroup,
+): WildlifeFormularyEntry {
+    val lower = mention.name.lowercase()
     val topical = listOf("ointment", "oil", "spray", "drench").any { it in lower }
     return WildlifeFormularyEntry(
-        id = "analyzed-wild-${name.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-')}",
-        name = "${name.removeSuffix(" (wild)")} (wild; analyzed — verify dose)",
-        doseByGroup = WildlifeGroup.entries.associateWith { DoseRange(5.0, 10.0) },
+        id = "analyzed-wild-${slug(mention.name)}",
+        name = "${mention.name.removeSuffix(" (wild)")} (wild; analyzed — verify dose)",
+        doseByGroup = WildlifeGroup.entries.associateWith {
+            mention.doseRange ?: DoseRange(5.0, 10.0)
+        },
         concentrationsMgPerMl = listOf(50.0),
-        route = if (topical) DoseRoute.TOPICAL else DoseRoute.IM,
-        frequency = "Verify frequency against a current wildlife protocol",
+        route = mention.route ?: if (topical) DoseRoute.TOPICAL else DoseRoute.IM,
+        frequency = mention.frequency.ifBlank { "Verify frequency against a current wildlife protocol" },
         meatWithdrawalDays = 0,
         milkWithdrawalDays = 0,
         isAnalyzedFallback = true,

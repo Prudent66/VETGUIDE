@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.prudent66.vetguide.domain.ai.OFFLINE_PROVIDER_ID
+import com.prudent66.vetguide.domain.ai.analysisNarrative
 import com.prudent66.vetguide.domain.ai.buildPrescriptionPlan
 import com.prudent66.vetguide.domain.ai.firstNarrativeCondition
 import com.prudent66.vetguide.domain.ai.isQueueableFallbackReason
@@ -133,6 +134,7 @@ private fun ResultBody(result: ImageAnalysisUiState.Result) {
             subject = result.subject,
             weightKg = result.weightKg,
             condition = firstNarrativeCondition(result.narrative),
+            analysisText = analysisNarrative(narrative = result.narrative),
             modifier = Modifier.fillMaxWidth(),
         )
     }

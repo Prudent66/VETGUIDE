@@ -34,9 +34,10 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.prudent66.vetguide.data.report.FarmerHandoutExporter
+import com.prudent66.vetguide.domain.ai.analysisNarrative
 import com.prudent66.vetguide.domain.ai.buildPrescriptionPlan
-import com.prudent66.vetguide.domain.formulary.matchDrugFromText
-import com.prudent66.vetguide.domain.formulary.matchWildlifeDrugFromText
+import com.prudent66.vetguide.domain.formulary.bestDomesticDrug
+import com.prudent66.vetguide.domain.formulary.bestWildDrug
 import com.prudent66.vetguide.domain.ai.sanitizeAiItem
 import com.prudent66.vetguide.domain.ai.withoutDuplicateSuspectedConditions
 import com.prudent66.vetguide.domain.ai.withoutNextSteps
@@ -45,6 +46,7 @@ import com.prudent66.vetguide.domain.model.AnimalCategory
 import com.prudent66.vetguide.domain.model.AnimalSubject
 import com.prudent66.vetguide.domain.model.ClinicalSpeciesCatalog
 import com.prudent66.vetguide.domain.model.Patient
+import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.domain.model.WildlifeGroup
 import com.prudent66.vetguide.domain.model.SoapPayload
 import com.prudent66.vetguide.domain.model.ageLabel
@@ -114,6 +116,8 @@ private fun CaseActionButtons(state: CaseDetailUiState.Success) {
     val scheduler = remember { ReminderScheduler() }
     val plan = buildPrescriptionPlan(state.ai?.analysisData, state.ai?.narrative)
     val rxLine = plan.prescriptions.firstOrNull().orEmpty()
+    val narrative = analysisNarrative(state.ai?.analysisData, state.ai?.narrative)
+    val condition = state.ai?.analysisData?.suspectedConditions?.firstOrNull()?.name
     val subject = state.patient?.let(AnimalSubject::fromPatient)
     val drugName: String
     val meatDays: Int
@@ -121,12 +125,12 @@ private fun CaseActionButtons(state: CaseDetailUiState.Success) {
     if (subject?.category == AnimalCategory.WILD) {
         val group = ClinicalSpeciesCatalog.wildlifeGroup(subject.groupLabel ?: subject.wildlifeGroup)
             ?: WildlifeGroup.WILD_RUMINANTS
-        val wild = matchWildlifeDrugFromText(rxLine, group)
+        val wild = bestWildDrug(narrative, condition, group)
         drugName = wild?.name ?: "Prescribed treatment"
         meatDays = wild?.meatWithdrawalDays ?: 0
         milkDays = wild?.milkWithdrawalDays ?: 0
     } else {
-        val domestic = matchDrugFromText(rxLine)
+        val domestic = bestDomesticDrug(narrative, condition, state.patient?.species ?: Species.CATTLE)
         drugName = domestic?.name ?: "Prescribed treatment"
         meatDays = domestic?.meatWithdrawalDays ?: 0
         milkDays = domestic?.milkWithdrawalDays ?: 0
@@ -194,6 +198,8 @@ private fun AiAnalysisCard(ai: AiArtifactPayload, patient: Patient?) {
         plan.prescriptions,
         subject = patient?.let(AnimalSubject::fromPatient),
         weightKg = patient?.weightKg,
+        condition = ai.analysisData?.suspectedConditions?.firstOrNull()?.name,
+        analysisText = analysisNarrative(ai.analysisData, ai.narrative),
         modifier = Modifier.fillMaxWidth(),
     )
 }

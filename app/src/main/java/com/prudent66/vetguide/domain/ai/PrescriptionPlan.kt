@@ -126,6 +126,26 @@ fun withoutNextSteps(narrative: String): String {
 }
 
 /**
+ * Every medication-bearing part of an assessment, flattened for drug matching.
+ * Findings and differentials often carry dose instructions that never appear
+ * in the structured prescription list, so the dosage picker must see them too.
+ */
+fun analysisNarrative(
+    data: AiAnalysisData? = null,
+    narrative: String? = null,
+): String {
+    val structured = data?.let {
+        it.findings + it.suspectedConditions.map { condition -> condition.name } +
+            it.recommendedNextSteps + it.prescriptions
+    }.orEmpty()
+    return (structured + listOfNotNull(narrative))
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+        .distinct()
+        .joinToString(" ")
+}
+
+/**
  * Builds the dedicated prescription plan for a structured analysis. When the
  * backend supplied explicit `prescriptions` they win; otherwise drug lines are
  * partitioned out of the legacy `recommendedNextSteps` so no dosage is lost or
