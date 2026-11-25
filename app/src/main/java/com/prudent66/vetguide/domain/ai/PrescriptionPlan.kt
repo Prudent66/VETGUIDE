@@ -75,6 +75,16 @@ fun extractPrescriptionLines(text: String): List<String> =
         .distinct()
         .toList()
 
+/** First condition name inside a narrative's suspected-conditions clause. */
+private val narrativeConditionRegex = Regex(
+    """Suspected conditions \(decision support, not a diagnosis\):\s*([^.;]+)""",
+    RegexOption.IGNORE_CASE,
+)
+
+/** Top suspected condition when only a narrative is available (offline tier). */
+fun firstNarrativeCondition(narrative: String): String? =
+    narrativeConditionRegex.find(narrative)?.groupValues?.getOrNull(1)?.trim()
+
 /** A full "Suspected conditions ..." clause in a vet-facing narrative. */
 private val SUSPECTED_CONDITIONS_CLAUSE = Regex(
     """Suspected conditions \(decision support, not a diagnosis\):[^.]*\.""",

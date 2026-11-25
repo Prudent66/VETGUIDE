@@ -1,5 +1,6 @@
 package com.prudent66.vetguide.domain.model
 
+import com.prudent66.vetguide.domain.ai.firstNarrativeCondition
 import com.prudent66.vetguide.domain.ai.withoutDuplicateSuspectedConditions
 import com.prudent66.vetguide.domain.ai.withoutNextSteps
 import org.junit.Assert.assertEquals
