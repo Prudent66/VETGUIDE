@@ -155,17 +155,24 @@ object PdfReportExporter {
         c.text("Ranked Suspected Conditions", EDGE + pad, top + 20f, paint(ACCENT, 12f, Typeface.BOLD))
         var y = top + titleH
         rows.forEach { (lines, pctText, pctWidth) ->
-            val rowH = differentialRowHeight(lines.size)
+            val layout = differentialRowLayout(y, lines.size)
             lines.forEachIndexed { index, line -> c.text(line, EDGE + pad, y + index * 13f, namePaint) }
             c.text(pctText, pctRight - pctWidth, y, pctPaint)
-            // Advance by the full measured label height before drawing the bar.
-            val barTop = differentialBarTop(y, lines.size)
-            c.rect(RectF(EDGE + pad, barTop, EDGE + WIDTH - 56f, barTop + 8f), TINT)
+            // Full measured label height + padding, then the bar, then spacing.
             c.rect(
-                RectF(EDGE + pad, barTop, EDGE + pad + (WIDTH - 68f) * rowPercent(pctText) / 100f, barTop + 8f),
+                RectF(EDGE + pad, layout.barTop, EDGE + WIDTH - 56f,
+                    layout.barTop + DIFFERENTIAL_BAR_HEIGHT),
+                TINT,
+            )
+            c.rect(
+                RectF(
+                    EDGE + pad, layout.barTop,
+                    EDGE + pad + (WIDTH - 68f) * rowPercent(pctText) / 100f,
+                    layout.barTop + DIFFERENTIAL_BAR_HEIGHT,
+                ),
                 ACCENT,
             )
-            y += rowH
+            y += layout.rowHeight
         }
         c.y = top + boxH + 12f
     }

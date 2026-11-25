@@ -37,6 +37,7 @@ import com.prudent66.vetguide.data.report.FarmerHandoutExporter
 import com.prudent66.vetguide.domain.ai.buildPrescriptionPlan
 import com.prudent66.vetguide.domain.formulary.matchDrugFromText
 import com.prudent66.vetguide.domain.ai.sanitizeAiItem
+import com.prudent66.vetguide.domain.ai.withoutDuplicateSuspectedConditions
 import com.prudent66.vetguide.domain.ai.withoutNextSteps
 import com.prudent66.vetguide.domain.model.AiArtifactPayload
 import com.prudent66.vetguide.domain.model.AnimalCategory
@@ -153,7 +154,9 @@ private fun AiAnalysisCard(ai: AiArtifactPayload, patient: Patient?) {
     val plan = remember(ai) { buildPrescriptionPlan(ai.analysisData, ai.narrative) }
     ArtifactCard("Analysis Finding:") {
         Text(
-            clinicalAnalysisText(withoutNextSteps(ai.narrative)),
+            clinicalAnalysisText(
+                withoutDuplicateSuspectedConditions(withoutNextSteps(ai.narrative)),
+            ),
             style = MaterialTheme.typography.bodyMedium,
         )
         if (plan.supportiveCare.isNotEmpty()) {

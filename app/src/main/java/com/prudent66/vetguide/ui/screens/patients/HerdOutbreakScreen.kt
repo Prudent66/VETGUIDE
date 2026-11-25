@@ -36,6 +36,7 @@ import com.prudent66.vetguide.domain.formulary.HerdMetrics
 import com.prudent66.vetguide.domain.formulary.batchTreatment
 import com.prudent66.vetguide.domain.formulary.findDrug
 import com.prudent66.vetguide.domain.formulary.formulary
+import com.prudent66.vetguide.domain.formulary.formularyForSpecies
 import com.prudent66.vetguide.domain.formulary.herdMetrics
 import com.prudent66.vetguide.domain.formulary.quarantineChecklist
 import com.prudent66.vetguide.domain.formulary.wildlifeQuarantineChecklist
@@ -50,7 +51,10 @@ fun HerdOutbreakScreen(onDismiss: () -> Unit) {
     val form = remember { HerdFormState() }
     val snapshot = form.snapshot()
     val metrics = herdMetrics(snapshot)
-    val drug = findDrug(form.drugId) ?: formulary.first()
+    val availableDrugs = formularyForSpecies(form.domesticSpecies)
+    val drug = findDrug(form.drugId)?.takeIf { it in availableDrugs }
+        ?: availableDrugs.firstOrNull()
+        ?: formulary.first()
     val batch = batchTreatment(
         drug = drug,
         snapshot = snapshot,
@@ -139,8 +143,9 @@ private fun HerdFormFields(form: HerdFormState) {
 
 @Composable
 private fun DrugAndBottleFields(form: HerdFormState) {
-    SelectionField("Drug", findDrug(form.drugId)?.name.orEmpty(), formulary.map { it.name }) { name ->
-        formulary.firstOrNull { it.name == name }?.let { form.drugId = it.id }
+    val drugs = formularyForSpecies(form.domesticSpecies)
+    SelectionField("Drug", findDrug(form.drugId)?.name.orEmpty(), drugs.map { it.name }) { name ->
+        drugs.firstOrNull { it.name == name }?.let { form.drugId = it.id }
     }
     OutlinedTextField(
         value = form.bottleSizeText,

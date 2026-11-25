@@ -19,7 +19,7 @@ class SeedCompletenessTest {
     }
 
     @Test
-    fun `all eight species have active offline questionnaires`() {
+    fun `all domestic species have active offline questionnaires`() {
         val payload = QuestionnaireSeedParser.parse(asset("questionnaire_seed.json"))
         val bySpecies = payload.questions.groupBy { it.species }
 

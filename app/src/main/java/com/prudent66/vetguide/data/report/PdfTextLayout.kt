@@ -54,13 +54,37 @@ internal fun rowPercent(pctText: String): Int = pctText.removeSuffix("%").toIntO
 /** Full measured height of a wrapped condition label (13pt per line). */
 internal fun differentialTextHeight(lineCount: Int): Float = maxOf(1, lineCount) * 13f
 
-/** Bar always starts below every rendered label line, never over the text. */
-internal fun differentialBarTop(y: Float, lineCount: Int): Float =
-    y + differentialTextHeight(lineCount) + 4f
+internal const val DIFFERENTIAL_BAR_HEIGHT = 8f
+internal const val DIFFERENTIAL_LABEL_PADDING = 14f
+internal const val DIFFERENTIAL_ROW_SPACING = 18f
 
-/** Row height reserves the label block, the 8pt bar and a 4pt lower gap. */
+/** Vertical layout of one ranked-condition row, measured from its top [y]. */
+internal data class DifferentialRowLayout(
+    val labelBottom: Float,
+    val barTop: Float,
+    val rowHeight: Float,
+)
+
+/**
+ * Advances past the complete label block before the bar: the bar can never
+ * overlap the condition title or percentage, including on rows 2 and 3 where
+ * the accumulated [y] previously lagged behind the wrapped text.
+ */
+internal fun differentialRowLayout(y: Float, lineCount: Int): DifferentialRowLayout {
+    val labelHeight = differentialTextHeight(lineCount).coerceAtLeast(14f)
+    val labelBottom = y + labelHeight
+    val barTop = labelBottom + DIFFERENTIAL_LABEL_PADDING
+    val rowHeight = (barTop - y) + DIFFERENTIAL_BAR_HEIGHT + DIFFERENTIAL_ROW_SPACING
+    return DifferentialRowLayout(labelBottom, barTop, rowHeight)
+}
+
+/** Bar top for a row starting at [y]; kept for callers that only need that. */
+internal fun differentialBarTop(y: Float, lineCount: Int): Float =
+    differentialRowLayout(y, lineCount).barTop
+
+/** Full row height including label, padding, bar and spacing to the next row. */
 internal fun differentialRowHeight(lineCount: Int): Float =
-    differentialBarTop(0f, lineCount) + 12f
+    differentialRowLayout(0f, lineCount).rowHeight
 
 /** Splits a single over-long word into chunks that each fit [maxWidth]. */
 private fun breakWord(

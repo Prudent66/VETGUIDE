@@ -137,10 +137,9 @@ private fun DosageCalculatorSection(
 @Composable
 private fun DomesticDosageSection(text: String, species: Species, weightKg: Double?) {
     var speciesName by rememberSaveable(species) {
-        mutableStateOf(if (species == Species.OTHER) Species.CATTLE.name else species.name)
+        mutableStateOf(ClinicalSpeciesCatalog.label(species))
     }
-    val selected = Species.entries.firstOrNull { it.name == speciesName && it != Species.OTHER }
-        ?: Species.CATTLE
+    val selected = ClinicalSpeciesCatalog.domesticSpecies(speciesName) ?: Species.CATTLE
     val matched = remember(text) { matchDrugFromText(text) }
     var drugId by rememberSaveable(matched?.id) {
         mutableStateOf(matched?.id ?: formulary.first().id)
@@ -155,6 +154,7 @@ private fun DomesticDosageSection(text: String, species: Species, weightKg: Doub
     val result = remember(drug, selected, weightText, concentration) {
         calculateDosage(drug, selected, weightText.toDoubleOrNull() ?: 0.0, concentration)
     }
+    val weightMissing = weightText.toDoubleOrNull()?.let { it <= 0.0 } ?: true
     SelectionDialogField("Species", speciesName, domesticSpeciesNames) { speciesName = it }
     SelectionDialogField("Drug", drug.name, formulary.map { it.name }) { name ->
         findDrugByName(name)?.let { found -> drugId = found.id }
@@ -172,7 +172,7 @@ private fun DomesticDosageSection(text: String, species: Species, weightKg: Doub
         singleLine = true,
         modifier = Modifier.fillMaxWidth(),
     )
-    DosageResultPanel(result, drug.contraindications[selected])
+    DosageResultPanel(result, drug.contraindications[selected], weightMissing)
 }
 
 @Composable
@@ -204,6 +204,7 @@ private fun WildlifeDosageSection(text: String, subject: AnimalSubject, weightKg
             )
         }
     }
+    val weightMissing = weightText.toDoubleOrNull()?.let { it <= 0.0 } ?: true
     SelectionDialogField("Wild species", groupLabel, ClinicalSpeciesCatalog.wildlifeLabels) {
         groupLabel = it
     }
@@ -228,12 +229,10 @@ private fun WildlifeDosageSection(text: String, subject: AnimalSubject, weightKg
         singleLine = true,
         modifier = Modifier.fillMaxWidth(),
     )
-    WildlifeDosagePanel(result, drug?.contraindications?.get(group))
+    WildlifeDosagePanel(result, drug?.contraindications?.get(group), weightMissing)
 }
 
-private val domesticSpeciesNames: List<String> = Species.entries
-    .filter { it != Species.OTHER }
-    .map { it.name }
+private val domesticSpeciesNames: List<String> = ClinicalSpeciesCatalog.domesticLabels
 
 @Composable
 private fun SelectionDialogField(
@@ -279,20 +278,22 @@ private fun SelectionDialogField(
 }
 
 @Composable
-private fun DosageResultPanel(result: DosageResult?, speciesAlert: String?) {
+private fun DosageResultPanel(
+    result: DosageResult?, speciesAlert: String?, weightMissing: Boolean = false,
+) {
     if (result == null) {
         Text(
-            "No standard dose is defined for this species and weight. Adjust the " +
-                "selection and verify against a current formulary.",
+            dosageMessage(
+                weightMissing,
+                "No standard dose is defined for this species and weight. Adjust the " +
+                    "selection and verify against a current formulary.",
+            ),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.error,
         )
     } else {
         Card(modifier = Modifier.fillMaxWidth()) {
-            Column(
-                modifier = Modifier.padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
+            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 ResultLine(
                     "Recommended Dose (mg)",
                     "${formatAmount(result.doseMg)} mg — ${formatAmount(result.selectedMgPerKg)} mg/kg " +
@@ -318,21 +319,15 @@ private fun DosageResultPanel(result: DosageResult?, speciesAlert: String?) {
                 containerColor = MaterialTheme.colorScheme.errorContainer,
             ),
         ) {
-            Column(
-                modifier = Modifier.padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
+            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
                     "Species Safety / Contraindication Alert",
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onErrorContainer,
                 )
                 alerts.forEach { alert ->
-                    Text(
-                        "• $alert",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                    )
+                    Text("• $alert", style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onErrorContainer)
                 }
             }
         }
@@ -340,11 +335,18 @@ private fun DosageResultPanel(result: DosageResult?, speciesAlert: String?) {
 }
 
 @Composable
-private fun WildlifeDosagePanel(result: WildlifeDosageResult?, speciesAlert: String?) {
+private fun WildlifeDosagePanel(
+    result: WildlifeDosageResult?,
+    speciesAlert: String?,
+    weightMissing: Boolean = false,
+) {
     if (result == null) {
         Text(
-            "No wildlife dose is defined for this group and weight. Adjust the " +
-                "selection and verify against a current wildlife formulary.",
+            dosageMessage(
+                weightMissing,
+                "No wildlife dose is defined for this group and weight. Adjust the " +
+                    "selection and verify against a current wildlife formulary.",
+            ),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.error,
         )

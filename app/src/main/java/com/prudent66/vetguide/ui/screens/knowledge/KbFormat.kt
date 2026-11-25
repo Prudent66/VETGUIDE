@@ -8,10 +8,8 @@ import com.prudent66.vetguide.domain.model.Species
 
 /** Shared KB label helpers (kept out of screen files for readability). */
 
-internal fun speciesLabel(species: Species?): String = species?.name
-    ?.lowercase()
-    ?.replaceFirstChar { it.uppercase() }
-    ?: "All"
+internal fun speciesLabel(species: Species?): String =
+    species?.let(ClinicalSpeciesCatalog::label) ?: "All"
 
 /** Human-readable label for a raw KB species tag (domestic or wildlife group). */
 internal fun tagLabel(tag: String): String =

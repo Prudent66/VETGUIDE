@@ -18,10 +18,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.prudent66.vetguide.R
+import com.prudent66.vetguide.domain.model.ClinicalSpeciesCatalog
 import com.prudent66.vetguide.domain.model.Species
-import com.prudent66.vetguide.ui.screens.knowledge.speciesLabel
 
-/** Shared species selector covering the full Nigerian veterinary scope. */
+/** Shared domestic species selector covering global farmed and companion species. */
 @Composable
 internal fun SpeciesField(
     selected: Species,
@@ -34,7 +34,7 @@ internal fun SpeciesField(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(text = speciesLabel(selected), modifier = Modifier.weight(1f))
+            Text(text = ClinicalSpeciesCatalog.label(selected), modifier = Modifier.weight(1f))
             Icon(
                 painter = painterResource(R.drawable.nav_chevron_down),
                 contentDescription = null,
@@ -43,11 +43,11 @@ internal fun SpeciesField(
         }
     }
     DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-        Species.entries.forEach { species ->
+        ClinicalSpeciesCatalog.domesticLabels.forEach { label ->
             DropdownMenuItem(
-                text = { Text(speciesLabel(species)) },
+                text = { Text(label) },
                 onClick = {
-                    onSelect(species)
+                    ClinicalSpeciesCatalog.domesticSpecies(label)?.let(onSelect)
                     expanded = false
                 },
             )

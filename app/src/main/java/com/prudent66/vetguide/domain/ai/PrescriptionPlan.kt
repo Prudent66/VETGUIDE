@@ -75,6 +75,25 @@ fun extractPrescriptionLines(text: String): List<String> =
         .distinct()
         .toList()
 
+/** A full "Suspected conditions ..." clause in a vet-facing narrative. */
+private val SUSPECTED_CONDITIONS_CLAUSE = Regex(
+    """Suspected conditions \(decision support, not a diagnosis\):[^.]*\.""",
+    RegexOption.IGNORE_CASE,
+)
+
+/**
+ * Older saved analyses sometimes repeat the whole suspected-conditions block
+ * inside the narrative. Keep the first occurrence and drop the rest so the
+ * case record lists each condition once.
+ */
+fun withoutDuplicateSuspectedConditions(narrative: String): String {
+    if (SUSPECTED_CONDITIONS_CLAUSE.findAll(narrative).count() < 2) return narrative
+    var seen = 0
+    return SUSPECTED_CONDITIONS_CLAUSE.replace(narrative) { match ->
+        if (seen++ == 0) match.value else ""
+    }.replace(Regex("""\s{2,}"""), " ").trim()
+}
+
 /** Start of the redundant free-form next-steps clause in a legacy narrative. */
 private val NEXT_STEPS_START_REGEX = Regex(
     """(?:recommended\s+)?next\s+steps\s*:""",

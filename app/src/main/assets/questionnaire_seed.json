@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "questions": [
     {
       "id": "q-dog-vomiting",
@@ -806,6 +806,326 @@
           "orderIndex": 1
         }
       ]
+    },
+    {
+      "id": "q-buf-wasting",
+      "species": "BUFFALO",
+      "orderIndex": 0,
+      "text": "Loss of condition or wasting?",
+      "options": [
+        {
+          "id": "opt-q-buf-wasting-yes",
+          "label": "Yes",
+          "symptomId": "wasting",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-q-buf-wasting-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-buf-diarrhea",
+      "species": "BUFFALO",
+      "orderIndex": 1,
+      "text": "Persistent diarrhea?",
+      "options": [
+        {
+          "id": "opt-q-buf-diarrhea-yes",
+          "label": "Yes",
+          "symptomId": "diarrhea",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-q-buf-diarrhea-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-buf-appetite",
+      "species": "BUFFALO",
+      "orderIndex": 2,
+      "text": "Reduced appetite?",
+      "options": [
+        {
+          "id": "opt-q-buf-appetite-yes",
+          "label": "Yes",
+          "symptomId": "anorexia",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-q-buf-appetite-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-cam-wasting",
+      "species": "CAMEL",
+      "orderIndex": 0,
+      "text": "Loss of condition or wasting?",
+      "options": [
+        {
+          "id": "opt-q-cam-wasting-yes",
+          "label": "Yes",
+          "symptomId": "wasting",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-q-cam-wasting-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-cam-diarrhea",
+      "species": "CAMEL",
+      "orderIndex": 1,
+      "text": "Persistent diarrhea?",
+      "options": [
+        {
+          "id": "opt-q-cam-diarrhea-yes",
+          "label": "Yes",
+          "symptomId": "diarrhea",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-q-cam-diarrhea-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-cam-appetite",
+      "species": "CAMEL",
+      "orderIndex": 2,
+      "text": "Reduced appetite?",
+      "options": [
+        {
+          "id": "opt-q-cam-appetite-yes",
+          "label": "Yes",
+          "symptomId": "anorexia",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-q-cam-appetite-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-rab-appetite",
+      "species": "RABBIT",
+      "orderIndex": 0,
+      "text": "Not eating normally?",
+      "options": [
+        {
+          "id": "opt-q-rab-appetite-yes",
+          "label": "Yes",
+          "symptomId": "anorexia",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-q-rab-appetite-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-rab-fecal",
+      "species": "RABBIT",
+      "orderIndex": 1,
+      "text": "Reduced or absent fecal output?",
+      "options": [
+        {
+          "id": "opt-q-rab-fecal-yes",
+          "label": "Yes",
+          "symptomId": "reduced-fecal-output",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-q-rab-fecal-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-rab-lethargy",
+      "species": "RABBIT",
+      "orderIndex": 2,
+      "text": "Unusual lethargy?",
+      "options": [
+        {
+          "id": "opt-q-rab-lethargy-yes",
+          "label": "Yes",
+          "symptomId": "lethargy",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-q-rab-lethargy-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-fis-appetite",
+      "species": "FISH",
+      "orderIndex": 0,
+      "text": "Reduced feeding response?",
+      "options": [
+        {
+          "id": "opt-q-fis-appetite-yes",
+          "label": "Yes",
+          "symptomId": "anorexia",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-q-fis-appetite-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-fis-breathing",
+      "species": "FISH",
+      "orderIndex": 1,
+      "text": "Abnormal gill movement or respiratory signs?",
+      "options": [
+        {
+          "id": "opt-q-fis-breathing-yes",
+          "label": "Yes",
+          "symptomId": "respiratory-distress",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-q-fis-breathing-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-fis-lethargy",
+      "species": "FISH",
+      "orderIndex": 2,
+      "text": "Unusual lethargy or swimming behaviour?",
+      "options": [
+        {
+          "id": "opt-q-fis-lethargy-yes",
+          "label": "Yes",
+          "symptomId": "lethargy",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-q-fis-lethargy-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-buf-fever",
+      "species": "BUFFALO",
+      "orderIndex": 3,
+      "text": "Fever or elevated temperature?",
+      "options": [
+        {
+          "id": "opt-q-buf-fever-yes",
+          "label": "Yes",
+          "symptomId": "fever",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-q-buf-fever-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-cam-fever",
+      "species": "CAMEL",
+      "orderIndex": 3,
+      "text": "Fever or elevated temperature?",
+      "options": [
+        {
+          "id": "opt-q-cam-fever-yes",
+          "label": "Yes",
+          "symptomId": "fever",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-q-cam-fever-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-rab-weakness",
+      "species": "RABBIT",
+      "orderIndex": 3,
+      "text": "Unusual weakness?",
+      "options": [
+        {
+          "id": "opt-q-rab-weakness-yes",
+          "label": "Yes",
+          "symptomId": "weakness",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-q-rab-weakness-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "q-fis-mortality",
+      "species": "FISH",
+      "orderIndex": 3,
+      "text": "Unexplained mortality in the tank or pond?",
+      "options": [
+        {
+          "id": "opt-q-fis-mortality-yes",
+          "label": "Yes",
+          "symptomId": "sudden-death",
+          "orderIndex": 0
+        },
+        {
+          "id": "opt-q-fis-mortality-no",
+          "label": "No",
+          "symptomId": null,
+          "orderIndex": 1
+        }
+      ]
     }
   ],
   "weights": [
@@ -1167,6 +1487,71 @@
     {
       "conditionId": "wildlife-trypanosomiasis",
       "symptomId": "wasting",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "buffalo-helminthosis",
+      "symptomId": "wasting",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "buffalo-helminthosis",
+      "symptomId": "diarrhea",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "buffalo-helminthosis",
+      "symptomId": "pale-membranes",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "buffalo-helminthosis",
+      "symptomId": "anorexia",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "camel-helminthosis",
+      "symptomId": "wasting",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "camel-helminthosis",
+      "symptomId": "diarrhea",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "camel-helminthosis",
+      "symptomId": "pale-membranes",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "rabbit-gastrointestinal-stasis",
+      "symptomId": "anorexia",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "rabbit-gastrointestinal-stasis",
+      "symptomId": "lethargy",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "rabbit-gastrointestinal-stasis",
+      "symptomId": "reduced-fecal-output",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "fish-water-quality-stress",
+      "symptomId": "lethargy",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "fish-water-quality-stress",
+      "symptomId": "anorexia",
+      "weight": 8.0
+    },
+    {
+      "conditionId": "fish-water-quality-stress",
+      "symptomId": "respiratory-distress",
       "weight": 8.0
     }
   ]

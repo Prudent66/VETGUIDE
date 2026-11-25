@@ -157,6 +157,32 @@ class PdfReportExporterTest {
     }
 
     @Test
+    fun `rows two and three advance past their labels before drawing bars`() {
+        val lineCounts = listOf(1, 2, 3)
+        var y = 200f
+        lineCounts.forEachIndexed { index, lines ->
+            val layout = differentialRowLayout(y, lines)
+            val lastBaseline = y + (lines - 1) * 13f
+
+            assertTrue(layout.barTop >= lastBaseline + DIFFERENTIAL_LABEL_PADDING)
+            assertEquals(
+                layout.labelBottom + DIFFERENTIAL_LABEL_PADDING,
+                layout.barTop,
+                0.001f,
+            )
+            assertEquals(
+                layout.barTop + DIFFERENTIAL_BAR_HEIGHT + DIFFERENTIAL_ROW_SPACING,
+                layout.rowHeight + y,
+                0.001f,
+            )
+            y += layout.rowHeight
+            if (index < lineCounts.lastIndex) {
+                assertTrue("row ${index + 2} starts on a fresh line", y > lastBaseline + 13f)
+            }
+        }
+    }
+
+    @Test
     fun `wild patient metadata uses subtype and group instead of Other`() {
         val wild = Patient(
             id = "w1",

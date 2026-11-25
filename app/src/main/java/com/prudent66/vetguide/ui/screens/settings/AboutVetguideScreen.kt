@@ -135,7 +135,7 @@ Herd & Flock Outbreak Mode: Track morbidity and case-fatality rates, calculate w
 
 Hands-Free Voice Dictation: Speak clinical signs and SOAP notes directly into assessments and patient records during field examinations.
 
-Full Multi-Species Offline Questionnaires: Structured offline clinical triage across Cattle, Goat, Sheep, Poultry, Pig, Equine, Dog and Cat.
+Full Multi-Species Offline Questionnaires: Structured offline clinical triage across Cattle, Goat, Sheep, Poultry, Pig, Equine, Dog, Cat, Buffalo, Camel, Rabbit and Fish, with global breed lists for every species.
 
 Domestic & Wildlife Clinical Modes: Switch seamlessly between Domestic and Wild across patient profiles, Herd/Flock Outbreak Mode, Diagnose and the Knowledge Base. Wild species link directly to wildlife diseases, zoonotic precautions and tailored clinical questionnaires.
 
@@ -145,7 +145,7 @@ Smart Syringe Calculator, Timeline & Offline Reminders: Auto-matched drug select
 """
 
 internal const val ABOUT_HOW_TO = """
-Step 1 — Choose Domestic or Wild: Select the category, then register a patient (+) or a Herd / Flock unit. Domestic covers eight species; Wild links groups to wildlife diseases and biosafety precautions.
+Step 1 — Choose Domestic or Wild: Select the category, then register a patient (+) or a Herd / Flock unit. Domestic covers twelve species plus Other Domestic and global breeds; Wild links groups to wildlife diseases and biosafety precautions.
 
 Step 2 — Capture Photo & Clinical Notes: Go to Diagnose, take or select a clear photo of the lesion/condition, and dictate or type clinical signs. Verify the auto-matched prescription in the dosage calculator.
 

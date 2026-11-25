@@ -1,11 +1,11 @@
 {
-  "version": 5,
+  "version": 6,
   "conditions": [
     {
       "id": "canine-parvovirus",
       "name": "Canine Parvovirus",
       "urgency": "EMERGENCY",
-      "overview": "Clinical overview \u2014 requires veterinary review. A highly contagious viral enteritis; the attending veterinarian is responsible for investigation, diagnosis, and all management decisions.",
+      "overview": "Clinical overview — requires veterinary review. A highly contagious viral enteritis; the attending veterinarian is responsible for investigation, diagnosis, and all management decisions.",
       "species": [
         "DOG"
       ],
@@ -24,7 +24,7 @@
       "id": "feline-upper-respiratory-infection",
       "name": "Feline Upper Respiratory Infection",
       "urgency": "ROUTINE",
-      "overview": "Clinical overview \u2014 requires veterinary review. A common respiratory syndrome of cats; investigation and management decisions must be made by the attending veterinarian.",
+      "overview": "Clinical overview — requires veterinary review. A common respiratory syndrome of cats; investigation and management decisions must be made by the attending veterinarian.",
       "species": [
         "CAT"
       ],
@@ -43,7 +43,7 @@
       "id": "bovine-helminthosis",
       "name": "Bovine Helminthosis",
       "urgency": "ROUTINE",
-      "overview": "Clinical overview \u2014 requires veterinary review. Refers to parasitic worm burdens of cattle; treatment decisions rest entirely with the attending veterinarian.",
+      "overview": "Clinical overview — requires veterinary review. Refers to parasitic worm burdens of cattle; treatment decisions rest entirely with the attending veterinarian.",
       "species": [
         "CATTLE"
       ],
@@ -62,7 +62,7 @@
       "id": "peste-des-petits-ruminants",
       "name": "Peste des Petits Ruminants (PPR)",
       "urgency": "EMERGENCY",
-      "overview": "Clinical overview \u2014 requires veterinary review. A highly contagious viral disease of small ruminants; suspicion must be handled by the attending veterinarian under local reporting rules.",
+      "overview": "Clinical overview — requires veterinary review. A highly contagious viral disease of small ruminants; suspicion must be handled by the attending veterinarian under local reporting rules.",
       "species": [
         "GOAT",
         "SHEEP"
@@ -82,7 +82,7 @@
       "id": "newcastle-disease",
       "name": "Newcastle Disease",
       "urgency": "EMERGENCY",
-      "overview": "Clinical overview \u2014 requires veterinary review. A viral disease of poultry; suspicion must be handled by the attending veterinarian under local reporting rules.",
+      "overview": "Clinical overview — requires veterinary review. A viral disease of poultry; suspicion must be handled by the attending veterinarian under local reporting rules.",
       "species": [
         "POULTRY"
       ],
@@ -101,7 +101,7 @@
       "id": "african-swine-fever",
       "name": "African Swine Fever",
       "urgency": "EMERGENCY",
-      "overview": "Clinical overview \u2014 requires veterinary review. A viral disease of swine; suspicion must be handled by the attending veterinarian under local reporting rules.",
+      "overview": "Clinical overview — requires veterinary review. A viral disease of swine; suspicion must be handled by the attending veterinarian under local reporting rules.",
       "species": [
         "PIG"
       ],
@@ -120,7 +120,7 @@
       "id": "equine-colic",
       "name": "Equine Colic",
       "urgency": "URGENT",
-      "overview": "Clinical overview \u2014 requires veterinary review. A symptom cluster of abdominal pain in horses; the attending veterinarian is responsible for workup and escalation decisions.",
+      "overview": "Clinical overview — requires veterinary review. A symptom cluster of abdominal pain in horses; the attending veterinarian is responsible for workup and escalation decisions.",
       "species": [
         "EQUINE"
       ],
@@ -138,7 +138,7 @@
       "id": "anthrax-multi-species",
       "name": "Anthrax (Multi-species)",
       "urgency": "EMERGENCY",
-      "overview": "Clinical overview \u2014 requires veterinary review. Suspicion of this disease requires strict local-reporting and safety procedures handled by the attending veterinarian.",
+      "overview": "Clinical overview — requires veterinary review. Suspicion of this disease requires strict local-reporting and safety procedures handled by the attending veterinarian.",
       "species": [
         "DOG",
         "CAT",
@@ -163,7 +163,7 @@
       "id": "contagious-bovine-pleuropneumonia",
       "name": "Contagious Bovine Pleuropneumonia (CBPP)",
       "urgency": "EMERGENCY",
-      "overview": "Field triage reference for Contagious Bovine Pleuropneumonia (CBPP). Decision support only \u2014 confirm with veterinary examination and local surveillance guidance.",
+      "overview": "Field triage reference for Contagious Bovine Pleuropneumonia (CBPP). Decision support only — confirm with veterinary examination and local surveillance guidance.",
       "species": [
         "CATTLE"
       ],
@@ -182,7 +182,7 @@
       "id": "foot-and-mouth-disease",
       "name": "Foot-and-Mouth Disease (FMD)",
       "urgency": "EMERGENCY",
-      "overview": "Field triage reference for Foot-and-Mouth Disease (FMD). Decision support only \u2014 confirm with veterinary examination and local surveillance guidance.",
+      "overview": "Field triage reference for Foot-and-Mouth Disease (FMD). Decision support only — confirm with veterinary examination and local surveillance guidance.",
       "species": [
         "CATTLE",
         "GOAT",
@@ -204,7 +204,7 @@
       "id": "fowl-pox",
       "name": "Fowl Pox",
       "urgency": "URGENT",
-      "overview": "Field triage reference for Fowl Pox. Decision support only \u2014 confirm with veterinary examination and local surveillance guidance.",
+      "overview": "Field triage reference for Fowl Pox. Decision support only — confirm with veterinary examination and local surveillance guidance.",
       "species": [
         "POULTRY"
       ],
@@ -223,7 +223,7 @@
       "id": "mastitis",
       "name": "Mastitis",
       "urgency": "URGENT",
-      "overview": "Field triage reference for Mastitis. Decision support only \u2014 confirm with veterinary examination and local surveillance guidance.",
+      "overview": "Field triage reference for Mastitis. Decision support only — confirm with veterinary examination and local surveillance guidance.",
       "species": [
         "CATTLE",
         "GOAT",
@@ -244,7 +244,7 @@
       "id": "helminthosis-multi-species",
       "name": "Helminthosis (Multi-species)",
       "urgency": "ROUTINE",
-      "overview": "Field triage reference for Helminthosis (Multi-species). Decision support only \u2014 confirm with veterinary examination and local surveillance guidance.",
+      "overview": "Field triage reference for Helminthosis (Multi-species). Decision support only — confirm with veterinary examination and local surveillance guidance.",
       "species": [
         "GOAT",
         "SHEEP",
@@ -265,7 +265,7 @@
       "id": "rabies",
       "name": "Rabies (Wildlife)",
       "urgency": "EMERGENCY",
-      "overview": "Wildlife field triage reference for Rabies (Wildlife). Zoonotic and biosafety precautions apply \u2014 decision support only.",
+      "overview": "Wildlife field triage reference for Rabies (Wildlife). Zoonotic and biosafety precautions apply — decision support only.",
       "species": [
         "WILD_CANIDS",
         "WILD_FELIDS",
@@ -285,7 +285,7 @@
       "id": "wildlife-anthrax",
       "name": "Anthrax (Wildlife)",
       "urgency": "EMERGENCY",
-      "overview": "Wildlife field triage reference for Anthrax (Wildlife). Zoonotic and biosafety precautions apply \u2014 decision support only.",
+      "overview": "Wildlife field triage reference for Anthrax (Wildlife). Zoonotic and biosafety precautions apply — decision support only.",
       "species": [
         "WILD_RUMINANTS",
         "PRIMATES",
@@ -304,7 +304,7 @@
       "id": "capture-myopathy",
       "name": "Capture Myopathy",
       "urgency": "EMERGENCY",
-      "overview": "Wildlife field triage reference for Capture Myopathy. Zoonotic and biosafety precautions apply \u2014 decision support only.",
+      "overview": "Wildlife field triage reference for Capture Myopathy. Zoonotic and biosafety precautions apply — decision support only.",
       "species": [
         "WILD_RUMINANTS",
         "WILD_CANIDS",
@@ -327,7 +327,7 @@
       "id": "wildlife-avian-influenza",
       "name": "Wildlife Avian Influenza / Newcastle",
       "urgency": "EMERGENCY",
-      "overview": "Wildlife field triage reference for Wildlife Avian Influenza / Newcastle. Zoonotic and biosafety precautions apply \u2014 decision support only.",
+      "overview": "Wildlife field triage reference for Wildlife Avian Influenza / Newcastle. Zoonotic and biosafety precautions apply — decision support only.",
       "species": [
         "WILD_BIRDS"
       ],
@@ -344,7 +344,7 @@
       "id": "wild-morbillivirus",
       "name": "PPR / Rinderpest-like Morbillivirus",
       "urgency": "EMERGENCY",
-      "overview": "Wildlife field triage reference for PPR / Rinderpest-like Morbillivirus. Zoonotic and biosafety precautions apply \u2014 decision support only.",
+      "overview": "Wildlife field triage reference for PPR / Rinderpest-like Morbillivirus. Zoonotic and biosafety precautions apply — decision support only.",
       "species": [
         "WILD_RUMINANTS"
       ],
@@ -361,7 +361,7 @@
       "id": "canine-distemper-wild",
       "name": "Canine Distemper in Wild Carnivores",
       "urgency": "EMERGENCY",
-      "overview": "Wildlife field triage reference for Canine Distemper in Wild Carnivores. Zoonotic and biosafety precautions apply \u2014 decision support only.",
+      "overview": "Wildlife field triage reference for Canine Distemper in Wild Carnivores. Zoonotic and biosafety precautions apply — decision support only.",
       "species": [
         "WILD_CANIDS",
         "SMALL_WILD_MAMMALS"
@@ -379,7 +379,7 @@
       "id": "sarcoptic-mange",
       "name": "Sarcoptic Mange",
       "urgency": "URGENT",
-      "overview": "Wildlife field triage reference for Sarcoptic Mange. Zoonotic and biosafety precautions apply \u2014 decision support only.",
+      "overview": "Wildlife field triage reference for Sarcoptic Mange. Zoonotic and biosafety precautions apply — decision support only.",
       "species": [
         "WILD_CANIDS",
         "SMALL_WILD_MAMMALS",
@@ -397,7 +397,7 @@
       "id": "wildlife-trypanosomiasis",
       "name": "Wildlife Trypanosomiasis",
       "urgency": "URGENT",
-      "overview": "Wildlife field triage reference for Wildlife Trypanosomiasis. Zoonotic and biosafety precautions apply \u2014 decision support only.",
+      "overview": "Wildlife field triage reference for Wildlife Trypanosomiasis. Zoonotic and biosafety precautions apply — decision support only.",
       "species": [
         "WILD_RUMINANTS",
         "WILD_CANIDS",
@@ -407,6 +407,75 @@
         "fever",
         "wasting",
         "pale-membranes"
+      ],
+      "references": [
+        "ref-placeholder-1"
+      ]
+    },
+    {
+      "id": "buffalo-helminthosis",
+      "name": "Buffalo Helminthosis",
+      "urgency": "URGENT",
+      "overview": "Clinical overview — requires veterinary review. Parasite burden in domestic buffalo; the attending veterinarian is responsible for diagnosis and treatment.",
+      "species": [
+        "BUFFALO"
+      ],
+      "symptoms": [
+        "wasting",
+        "diarrhea",
+        "pale-membranes",
+        "anorexia"
+      ],
+      "references": [
+        "ref-placeholder-1"
+      ]
+    },
+    {
+      "id": "camel-helminthosis",
+      "name": "Camel Helminthosis",
+      "urgency": "URGENT",
+      "overview": "Clinical overview — requires veterinary review. Parasite burden in dromedary and Bactrian camels; veterinary confirmation is required.",
+      "species": [
+        "CAMEL"
+      ],
+      "symptoms": [
+        "wasting",
+        "diarrhea",
+        "pale-membranes"
+      ],
+      "references": [
+        "ref-placeholder-1"
+      ]
+    },
+    {
+      "id": "rabbit-gastrointestinal-stasis",
+      "name": "Rabbit Gastrointestinal Stasis",
+      "urgency": "URGENT",
+      "overview": "Clinical overview — requires veterinary review. Reduced gut motility in rabbits; prompt veterinary assessment is required.",
+      "species": [
+        "RABBIT"
+      ],
+      "symptoms": [
+        "anorexia",
+        "lethargy",
+        "reduced-fecal-output"
+      ],
+      "references": [
+        "ref-placeholder-1"
+      ]
+    },
+    {
+      "id": "fish-water-quality-stress",
+      "name": "Fish Water-Quality Stress",
+      "urgency": "URGENT",
+      "overview": "Clinical overview — requires veterinary or aquaculture review. Water-quality related stress in farmed fish; confirm parameters before treatment.",
+      "species": [
+        "FISH"
+      ],
+      "symptoms": [
+        "lethargy",
+        "anorexia",
+        "respiratory-distress"
       ],
       "references": [
         "ref-placeholder-1"
@@ -593,7 +662,7 @@
   "references": [
     {
       "id": "ref-placeholder-1",
-      "title": "Reference \u2014 requires veterinary review",
+      "title": "Reference — requires veterinary review",
       "note": "No citation content is provided in this seed. Replace with verified, authoritative veterinary sources before any clinical use."
     }
   ]

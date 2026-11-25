@@ -1,5 +1,6 @@
 package com.prudent66.vetguide.domain.model
 
+import com.prudent66.vetguide.domain.ai.withoutDuplicateSuspectedConditions
 import com.prudent66.vetguide.domain.ai.withoutNextSteps
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -66,6 +67,29 @@ class PhotoAnalysisPromptTest {
         assertTrue(summary.contains("Confidence values"))
         assertFalse(summary.contains("Isolate the goat"))
         assertFalse(summary.contains("next steps", ignoreCase = true))
+    }
+
+    @Test
+    fun `repeated suspected conditions block is reduced to one`() {
+        val clause = "Suspected conditions (decision support, not a diagnosis): " +
+            "Infected abscess (confidence 80%); Parasitic skin disease (confidence 60%)."
+        val narrative = "Findings: skin lesion. $clause $clause Requires veterinary review."
+
+        val summary = withoutDuplicateSuspectedConditions(narrative)
+
+        assertEquals(
+            1,
+            summary.split("Suspected conditions (decision support, not a diagnosis):").size - 1,
+        )
+        assertTrue(summary.contains("Infected abscess"))
+        assertTrue(summary.contains("Parasitic skin disease"))
+        assertTrue(summary.contains("Requires veterinary review"))
+    }
+
+    @Test
+    fun `single suspected conditions block is left alone`() {
+        val narrative = "Findings: lesion. Suspected conditions (decision support, not a diagnosis): Mange (confidence 70%)."
+        assertEquals(narrative, withoutDuplicateSuspectedConditions(narrative))
     }
 
     @Test

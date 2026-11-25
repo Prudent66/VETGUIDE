@@ -1,14 +1,16 @@
 package com.prudent66.vetguide.domain.model
 
 /**
- * Species options for the Domestic / Wild pathways. Domestic uses the eight
- * supported [Species] values; Wild uses the dedicated wildlife groups plus a
- * concrete sub-species picker.
+ * Species options for the Domestic / Wild pathways. Domestic covers the
+ * original eight species plus global farmed species and the legacy
+ * "Other Domestic" placeholder; Wild uses only the dedicated wildlife groups
+ * plus a concrete wild-animal picker. The two lists never overlap.
  */
 object ClinicalSpeciesCatalog {
 
     val domesticLabels: List<String> = listOf(
         "Cattle", "Goat", "Sheep", "Poultry", "Pig", "Equine", "Dog", "Cat",
+        "Buffalo", "Camel", "Rabbit", "Fish", "Other Domestic",
     )
 
     val wildlifeLabels: List<String> = WildlifeGroup.entries.map { it.label }
@@ -55,8 +57,15 @@ object ClinicalSpeciesCatalog {
         domesticLabels.firstOrNull { domesticSpecies(it) == species }
             ?: species.name.lowercase().replaceFirstChar { it.uppercase() }
 
-    fun domesticSpecies(label: String): Species? =
-        Species.entries.firstOrNull { it.name.equals(label, ignoreCase = true) }
+    /** Resolves a domestic label (including the legacy "Other") to its enum. */
+    fun domesticSpecies(label: String): Species? = when {
+        label.equals("Other Domestic", ignoreCase = true) ||
+            label.equals("Other", ignoreCase = true) -> Species.OTHER
+        else -> Species.entries.firstOrNull { it.name.equals(label, ignoreCase = true) }
+    }
+
+    /** Enumerable domestic species in picker order, including the legacy one. */
+    fun domesticValues(): List<Species> = domesticLabels.mapNotNull(::domesticSpecies)
 
     /**
      * Resolves an enum name (`WILD_RUMINANTS`), the current label, or the
@@ -76,8 +85,8 @@ object ClinicalSpeciesCatalog {
     fun display(patient: Patient): String = when {
         patient.animalCategory == AnimalCategory.WILD && !patient.wildlifeGroup.isNullOrBlank() ->
             wildlifeGroup(patient.wildlifeGroup)?.label ?: patient.wildlifeGroup
-        patient.species == Species.OTHER -> "Other"
-        else -> patient.species.name.lowercase().replaceFirstChar { it.uppercase() }
+        patient.species == Species.OTHER -> label(Species.OTHER)
+        else -> label(patient.species)
     }
 
     /**

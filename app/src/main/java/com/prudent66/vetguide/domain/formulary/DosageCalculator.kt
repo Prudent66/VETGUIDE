@@ -12,6 +12,7 @@ enum class DoseRoute(val label: String) {
     WATER("Water"),
     DART("Dart"),
     ORAL("Oral"),
+    BATH("Bath"),
 }
 
 /** Standard per-kilogram dose range; the recommended value is its midpoint. */
@@ -63,6 +64,7 @@ private fun dose(min: Double, max: Double): DoseRange = DoseRange(min, max)
 
 private val cattleSheepGoatPig = listOf(Species.CATTLE, Species.GOAT, Species.SHEEP, Species.PIG)
 private val companion = listOf(Species.DOG, Species.CAT)
+private val globalFarmSpecies = listOf(Species.BUFFALO, Species.CAMEL, Species.RABBIT)
 
 /**
  * Offline veterinary formulary covering common livestock, poultry and
@@ -81,6 +83,9 @@ val formulary: List<FormularyDrug> = listOf(
             Species.DOG to dose(10.0, 20.0),
             Species.CAT to dose(10.0, 20.0),
             Species.EQUINE to dose(5.0, 10.0),
+            Species.BUFFALO to dose(10.0, 20.0),
+            Species.CAMEL to dose(10.0, 20.0),
+            Species.RABBIT to dose(10.0, 20.0),
         ),
         concentrationsMgPerMl = listOf(50.0),
         route = DoseRoute.IM,
@@ -97,6 +102,8 @@ val formulary: List<FormularyDrug> = listOf(
             Species.SHEEP to dose(10.0, 20.0),
             Species.PIG to dose(10.0, 20.0),
             Species.POULTRY to dose(15.0, 25.0),
+            Species.BUFFALO to dose(10.0, 20.0),
+            Species.CAMEL to dose(10.0, 20.0),
         ),
         concentrationsMgPerMl = listOf(200.0),
         route = DoseRoute.IM,
@@ -107,9 +114,8 @@ val formulary: List<FormularyDrug> = listOf(
     FormularyDrug(
         id = "penicillin-streptomycin",
         name = "Penicillin-Streptomycin",
-        doseBySpecies = (cattleSheepGoatPig + companion + Species.EQUINE).associateWith {
-            dose(10.0, 15.0)
-        },
+        doseBySpecies = (cattleSheepGoatPig + companion + globalFarmSpecies + Species.EQUINE)
+            .associateWith { dose(10.0, 15.0) },
         concentrationsMgPerMl = listOf(150.0),
         route = DoseRoute.IM,
         frequency = "Every 12 hours",
@@ -119,9 +125,8 @@ val formulary: List<FormularyDrug> = listOf(
     FormularyDrug(
         id = "ivermectin-1",
         name = "Ivermectin 1%",
-        doseBySpecies = (cattleSheepGoatPig + companion + Species.EQUINE).associateWith {
-            dose(0.2, 0.3)
-        },
+        doseBySpecies = (cattleSheepGoatPig + companion + globalFarmSpecies + Species.EQUINE)
+            .associateWith { dose(0.2, 0.3) },
         concentrationsMgPerMl = listOf(10.0),
         route = DoseRoute.SC,
         frequency = "Single dose; repeat as directed",
@@ -141,6 +146,9 @@ val formulary: List<FormularyDrug> = listOf(
             Species.PIG to dose(5.0, 10.0),
             Species.POULTRY to dose(5.0, 10.0),
             Species.DOG to dose(5.0, 10.0),
+            Species.BUFFALO to dose(5.0, 10.0),
+            Species.CAMEL to dose(5.0, 10.0),
+            Species.RABBIT to dose(5.0, 10.0),
         ),
         concentrationsMgPerMl = listOf(50.0, 100.0),
         route = DoseRoute.PO,
@@ -189,9 +197,8 @@ val formulary: List<FormularyDrug> = listOf(
     FormularyDrug(
         id = "meloxicam",
         name = "Meloxicam",
-        doseBySpecies = (companion + cattleSheepGoatPig + Species.EQUINE).associateWith {
-            dose(0.2, 0.4)
-        },
+        doseBySpecies = (companion + cattleSheepGoatPig + globalFarmSpecies + Species.EQUINE)
+            .associateWith { dose(0.2, 0.4) },
         concentrationsMgPerMl = listOf(5.0, 20.0),
         route = DoseRoute.SC,
         frequency = "Once daily",
@@ -212,6 +219,7 @@ val formulary: List<FormularyDrug> = listOf(
             Species.SHEEP to dose(2.5, 5.0),
             Species.DOG to dose(2.5, 5.0),
             Species.CAT to dose(2.5, 5.0),
+            Species.RABBIT to dose(2.5, 5.0),
         ),
         concentrationsMgPerMl = listOf(50.0, 100.0),
         route = DoseRoute.IM,
@@ -229,6 +237,8 @@ val formulary: List<FormularyDrug> = listOf(
             Species.CATTLE to dose(3.5, 5.0),
             Species.GOAT to dose(3.5, 5.0),
             Species.SHEEP to dose(3.5, 5.0),
+            Species.BUFFALO to dose(3.5, 5.0),
+            Species.CAMEL to dose(3.5, 5.0),
         ),
         concentrationsMgPerMl = listOf(50.0),
         route = DoseRoute.IM,
@@ -239,7 +249,34 @@ val formulary: List<FormularyDrug> = listOf(
             Species.EQUINE to "Not recommended in horses.",
         ),
     ),
+    FormularyDrug(
+        id = "oxytetracycline-aquatic",
+        name = "Oxytetracycline (Aquatic)",
+        doseBySpecies = mapOf(Species.FISH to dose(15.0, 25.0)),
+        concentrationsMgPerMl = listOf(200.0),
+        route = DoseRoute.BATH,
+        frequency = "Bath or water medication — verify species and water volume",
+        meatWithdrawalDays = 7,
+        milkWithdrawalDays = 0,
+        contraindications = mapOf(
+            Species.FISH to "Confirm species, water chemistry and local regulations before medicating.",
+        ),
+    ),
+    FormularyDrug(
+        id = "florfenicol-aquatic",
+        name = "Florfenicol (Aquatic)",
+        doseBySpecies = mapOf(Species.FISH to dose(10.0, 15.0)),
+        concentrationsMgPerMl = listOf(200.0),
+        route = DoseRoute.WATER,
+        frequency = "Medicated water/feed — verify local aquaculture rules",
+        meatWithdrawalDays = 12,
+        milkWithdrawalDays = 0,
+    ),
 )
+
+/** Domestic drugs applicable to a species — keeps wild patients out of this table. */
+fun formularyForSpecies(species: Species): List<FormularyDrug> =
+    formulary.filter { species in it.doseBySpecies }
 
 fun findDrug(id: String): FormularyDrug? = formulary.firstOrNull { it.id == id }
 
@@ -284,6 +321,7 @@ private val drugKeywords = mapOf(
     "streptomycin" to "penicillin-streptomycin",
     "albendazole" to "albendazole",
     "amprolium" to "amprolium",
+    "florfenicol" to "florfenicol-aquatic",
     "tylosin" to "tylosin",
     "meloxicam" to "meloxicam",
     "enrofloxacin" to "enrofloxacin",
@@ -298,7 +336,9 @@ private val drugKeywords = mapOf(
 fun matchDrugFromText(text: String): FormularyDrug? {
     val haystack = text.lowercase()
     val id = if ("oxytetracycline" in haystack) {
-        if ("20" in haystack || "200" in haystack) {
+        if ("fish" in haystack || "aquatic" in haystack || "bath" in haystack) {
+            "oxytetracycline-aquatic"
+        } else if ("20" in haystack || "200" in haystack) {
             "oxytetracycline-20"
         } else {
             "oxytetracycline-5"

@@ -111,7 +111,7 @@ fun clinicalAnalysisText(narrative: String): String =
 
 /** Human-readable species name for complaint/report lines ("Dog", "Goat", …). */
 fun Species?.displayName(): String =
-    this?.name?.lowercase()?.replaceFirstChar { it.uppercase() } ?: "unspecified species"
+    this?.let(ClinicalSpeciesCatalog::label) ?: "unspecified species"
 
 /** Assessment seed from structured AI output; null when there is none. */
 fun renderSuspectedConditionsSeed(analysisData: AiAnalysisData?): String? =

@@ -115,8 +115,8 @@ class DosageCalculatorTest {
     }
 
     @Test
-    fun `all ten formulary entries are discoverable by id and name`() {
-        assertEquals(10, formulary.size)
+    fun `all twelve formulary entries are discoverable by id and name`() {
+        assertEquals(12, formulary.size)
         assertEquals("Enrofloxacin", findDrugByName("enrofloxacin")!!.name)
         assertEquals("Diminazene Aceturate", findDrug("diminazene-aceturate")!!.name)
         assertTrue(findDrugByName("not-a-real-drug") == null)
@@ -194,5 +194,65 @@ class DosageCalculatorTest {
             calculateWildlifeDosage(oral, WildlifeGroup.WILD_FELIDS, 10.0, 50.0)!!.route,
         )
         assertEquals(4, wildlifeDrugsFor(WildlifeGroup.WILD_FELIDS).size)
+    }
+
+    @Test
+    fun `global domestic species resolve in the domestic formulary only`() {
+        listOf(
+            Species.BUFFALO, Species.CAMEL, Species.RABBIT, Species.FISH,
+        ).forEach { species ->
+            assertTrue("no drug for $species", formularyForSpecies(species).isNotEmpty())
+            assertTrue(
+                "wild formulary leaked into $species",
+                wildlifeFormulary.none { drug -> species in drug.doseByGroup },
+            )
+        }
+        // Wild placeholder never resolves in the domestic calculator.
+        assertNull(calculateDosage(findDrug("oxytetracycline-5")!!, Species.OTHER, 100.0))
+    }
+
+    @Test
+    fun `fish aquatic dosing uses bath and water routes with withdrawal periods`() {
+        val bath = findDrug("oxytetracycline-aquatic")!!
+        val bathResult = calculateDosage(bath, Species.FISH, 2.0, 200.0)!!
+        assertEquals(DoseRoute.BATH, bathResult.route)
+        assertEquals(20.0, bathResult.selectedMgPerKg, 0.001)
+        assertEquals(40.0, bathResult.doseMg, 0.001)
+        assertEquals(0.2, bathResult.syringeMl, 0.001)
+        assertEquals(7, bathResult.meatWithdrawalDays)
+        assertEquals(1, bathResult.safetyAlerts.size)
+
+        val water = matchDrugFromText("Florfenicol in water for fish")!!
+        assertEquals("florfenicol-aquatic", water.id)
+        assertEquals(DoseRoute.WATER, calculateDosage(water, Species.FISH, 2.0, 200.0)!!.route)
+    }
+
+    @Test
+    fun `aquatic oxytetracycline text matches the fish product`() {
+        assertEquals(
+            "oxytetracycline-aquatic",
+            matchDrugFromText("Oxytetracycline bath for fish 20 mg/kg")!!.id,
+        )
+        assertEquals(
+            "oxytetracycline-20",
+            matchDrugFromText("Oxytetracycline 20% 15 mg/kg IM once daily")!!.id,
+        )
+    }
+
+    @Test
+    fun `new farmed species share domestic routes and syringe volumes`() {
+        val oxytetracycline = findDrug("oxytetracycline-5")!!
+        val buffalo = calculateDosage(oxytetracycline, Species.BUFFALO, 300.0)!!
+        assertEquals(15.0, buffalo.selectedMgPerKg, 0.001)
+        assertEquals(90.0, buffalo.syringeMl, 0.001)
+
+        val ivermectin = findDrug("ivermectin-1")!!
+        val camel = calculateDosage(ivermectin, Species.CAMEL, 400.0)!!
+        assertEquals(0.25, camel.selectedMgPerKg, 0.001)
+        assertEquals(DoseRoute.SC, camel.route)
+
+        val rabbit = calculateDosage(oxytetracycline, Species.RABBIT, 2.0, 50.0)!!
+        assertEquals(30.0, rabbit.doseMg, 0.001)
+        assertEquals(0.6, rabbit.syringeMl, 0.001)
     }
 }
