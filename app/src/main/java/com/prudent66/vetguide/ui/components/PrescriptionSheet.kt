@@ -176,19 +176,17 @@ private fun WildlifeDosageSection(
     val auto = remember(text, condition, group) { bestWildDrug(text, condition, group) }
     var chosenId by rememberSaveable { mutableStateOf<String?>(null) }
     val drug = remember(drugs, auto, chosenId) {
-        drugs.firstOrNull { it.id == (chosenId ?: auto?.id) } ?: drugs.firstOrNull()
+        drugs.firstOrNull { it.id == (chosenId ?: auto?.id) } ?: drugs.first()
     }
-    var concentration by rememberSaveable(drug?.id) {
-        mutableStateOf(drug?.defaultConcentrationMgPerMl ?: 200.0)
+    var concentration by rememberSaveable(drug.id) {
+        mutableStateOf(drug.defaultConcentrationMgPerMl)
     }
     var weightText by rememberSaveable { mutableStateOf(weightKg?.let(::formatAmount).orEmpty()) }
     val result = remember(drug, group, wildAnimal, weightText, concentration) {
-        drug?.let {
-            calculateWildlifeDosage(
-                it, group, weightText.toDoubleOrNull() ?: 0.0, concentration,
-                wildAnimal.takeIf { animal -> animal.isNotBlank() },
-            )
-        }
+        calculateWildlifeDosage(
+            drug, group, weightText.toDoubleOrNull() ?: 0.0, concentration,
+            wildAnimal.takeIf { it.isNotBlank() },
+        )
     }
     val weightMissing = weightText.toDoubleOrNull()?.let { it <= 0.0 } ?: true
     SelectionDialogField("Wild species", groupLabel, ClinicalSpeciesCatalog.wildlifeLabels) {
@@ -201,17 +199,15 @@ private fun WildlifeDosageSection(
     SelectionDialogField("Drug (wildlife formulary)", drug?.name.orEmpty(), drugs.map { it.name }) {
         name -> drugs.firstOrNull { it.name == name }?.let { chosenId = it.id }
     }
-    if (drug?.isAnalyzedFallback == true) AnalyzedDrugNote()
-    val concentrations = drug?.concentrationsMgPerMl ?: listOf(concentration)
+    if (drug.isAnalyzedFallback) AnalyzedDrugNote()
     SelectionDialogField(
         label = "Bottle concentration",
         value = "${formatAmount(concentration)} mg/mL",
-        options = concentrations.map { "${formatAmount(it)} mg/mL" },
+        options = drug.concentrationsMgPerMl.map { "${formatAmount(it)} mg/mL" },
     ) { label -> label.removeSuffix(" mg/mL").toDoubleOrNull()?.let { concentration = it } }
     WeightField(weightText) { weightText = it }
     WildlifeDosagePanel(
-        result, drug?.contraindications?.get(group), weightMissing,
-        drug?.isAnalyzedFallback ?: false,
+        result, drug.contraindications[group], weightMissing, drug.isAnalyzedFallback,
     )
 }
 

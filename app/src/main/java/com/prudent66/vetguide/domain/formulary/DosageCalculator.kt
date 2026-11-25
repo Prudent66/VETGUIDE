@@ -724,24 +724,28 @@ fun findWildlifeDrug(id: String): WildlifeFormularyEntry? =
 fun wildlifeDrugsFor(group: WildlifeGroup): List<WildlifeFormularyEntry> =
     wildlifeFormulary.filter { group in it.doseByGroup }
 
+private val wildlifeDrugKeywords = listOf(
+    "oxytetracycline" to "wild-oxytetracycline-20",
+    "ivermectin" to "wild-ivermectin",
+    "enrofloxacin" to "wild-enrofloxacin",
+    "albendazole" to "wild-albendazole",
+    "meloxicam" to "wild-meloxicam",
+    "diminazene" to "wild-diminazene",
+    "amoxicillin" to "wild-amoxicillin",
+    "doxycycline" to "wild-doxycycline",
+    "ceftiofur" to "wild-ceftiofur",
+    "atropine" to "wild-atropine",
+)
+
 /** Auto-selects a wildlife product from prescription text for a wild patient. */
 fun matchWildlifeDrugFromText(text: String, group: WildlifeGroup): WildlifeFormularyEntry? {
     val haystack = text.lowercase()
-    val id = when {
-        "oxytetracycline" in haystack -> "wild-oxytetracycline-20"
-        "ivermectin" in haystack -> "wild-ivermectin"
-        "enrofloxacin" in haystack -> "wild-enrofloxacin"
-        "albendazole" in haystack -> "wild-albendazole"
-        "meloxicam" in haystack -> "wild-meloxicam"
-        "diminazene" in haystack -> "wild-diminazene"
-        "amoxicillin" in haystack -> "wild-amoxicillin"
-        "doxycycline" in haystack -> "wild-doxycycline"
-        "ceftiofur" in haystack -> "wild-ceftiofur"
-        "atropine" in haystack -> "wild-atropine"
-        "ointment" in haystack || "antiseptic" in haystack -> "wild-topical-wound"
-        "ketamine" in haystack || "xylazine" in haystack -> "wild-ketamine-xylazine"
-        else -> null
-    }
+    val id = wildlifeDrugKeywords.firstOrNull { it.first in haystack }?.second
+        ?: when {
+            "ointment" in haystack || "antiseptic" in haystack -> "wild-topical-wound"
+            "ketamine" in haystack || "xylazine" in haystack -> "wild-ketamine-xylazine"
+            else -> null
+        }
     return id?.let(::findWildlifeDrug)?.takeIf { group in it.doseByGroup }
 }
 
