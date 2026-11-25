@@ -75,6 +75,27 @@ fun extractPrescriptionLines(text: String): List<String> =
         .distinct()
         .toList()
 
+/** Start of the redundant free-form next-steps clause in a legacy narrative. */
+private val NEXT_STEPS_START_REGEX = Regex(
+    """(?:recommended\s+)?next\s+steps\s*:""",
+    RegexOption.IGNORE_CASE,
+)
+
+/**
+ * Narrative text for the top assessment summary. When the structured
+ * "Supportive field care suggested:" list is rendered separately below it,
+ * the free-form "Recommended next steps: ..." clause is redundant — drop just
+ * that clause, never findings or differential text.
+ */
+fun withoutNextSteps(narrative: String): String {
+    val start = NEXT_STEPS_START_REGEX.find(narrative)?.range?.first ?: return narrative
+    val period = narrative.indexOf('.', start)
+    val end = if (period < 0) narrative.length else period + 1
+    val before = narrative.substring(0, start).trim()
+    val after = narrative.substring(end).trim()
+    return listOf(before, after).filter { it.isNotBlank() }.joinToString(" ")
+}
+
 /**
  * Builds the dedicated prescription plan for a structured analysis. When the
  * backend supplied explicit `prescriptions` they win; otherwise drug lines are

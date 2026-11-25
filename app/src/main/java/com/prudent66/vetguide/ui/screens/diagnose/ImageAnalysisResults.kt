@@ -23,9 +23,8 @@ import androidx.compose.ui.unit.dp
 import com.prudent66.vetguide.domain.ai.OFFLINE_PROVIDER_ID
 import com.prudent66.vetguide.domain.ai.buildPrescriptionPlan
 import com.prudent66.vetguide.domain.ai.isQueueableFallbackReason
-import com.prudent66.vetguide.domain.model.Species
+import com.prudent66.vetguide.domain.model.AnimalSubject
 import com.prudent66.vetguide.ui.components.PrescriptionCard
-import com.prudent66.vetguide.ui.screens.knowledge.speciesLabel
 import com.prudent66.vetguide.ui.viewmodels.ImageAnalysisUiState
 
 /**
@@ -51,7 +50,7 @@ fun ImageAnalyzingPhase(analysis: ImageAnalysisUiState.Analyzing) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
-            text = speciesLine(analysis.species),
+            text = speciesLine(analysis.subject),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -111,7 +110,7 @@ private fun ResultBody(result: ImageAnalysisUiState.Result) {
         }
         StructuredReport(
             analysisData,
-            species = result.species,
+            subject = result.subject,
             weightKg = result.weightKg,
         )
     } else {
@@ -130,7 +129,7 @@ private fun ResultBody(result: ImageAnalysisUiState.Result) {
         }
         PrescriptionCard(
             prescriptions,
-            species = result.species,
+            subject = result.subject,
             weightKg = result.weightKg,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -171,7 +170,7 @@ private fun ProvenanceBanner(result: ImageAnalysisUiState.Result) {
                 )
             }
             Text(
-                text = speciesLine(result.species),
+                text = speciesLine(result.subject),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -193,10 +192,8 @@ private fun ProvenanceBanner(result: ImageAnalysisUiState.Result) {
     }
 }
 
-private fun speciesLine(species: Species?): String = when (species) {
-    null -> "Species: unspecified"
-    else -> "Species: ${speciesLabel(species)}"
-}
+private fun speciesLine(subject: AnimalSubject?): String =
+    subject?.label?.let { "Animal: $it" } ?: "Species: unspecified"
 
 private fun provenanceLine(result: ImageAnalysisUiState.Result): String {
     val model = result.analysisData?.model

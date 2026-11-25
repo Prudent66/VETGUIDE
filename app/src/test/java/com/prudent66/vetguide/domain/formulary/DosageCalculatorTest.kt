@@ -1,6 +1,7 @@
 package com.prudent66.vetguide.domain.formulary
 
 import com.prudent66.vetguide.domain.model.Species
+import com.prudent66.vetguide.domain.model.WildlifeGroup
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -119,5 +120,79 @@ class DosageCalculatorTest {
         assertEquals("Enrofloxacin", findDrugByName("enrofloxacin")!!.name)
         assertEquals("Diminazene Aceturate", findDrug("diminazene-aceturate")!!.name)
         assertTrue(findDrugByName("not-a-real-drug") == null)
+    }
+
+    @Test
+    fun `wild and domestic formularies are strictly isolated`() {
+        // Domestic keys never include the wild placeholder or a wildlife group.
+        formulary.forEach { drug ->
+            assertTrue(drug.doseBySpecies.keys.none { it == Species.OTHER })
+        }
+        // The domestic calculator never resolves Species.OTHER (wild patients).
+        assertNull(calculateDosage(findDrug("oxytetracycline-20")!!, Species.OTHER, 15.0))
+        assertNull(calculateDosage(findDrug("oxytetracycline-5")!!, Species.DOG, 15.0, 0.0))
+
+        // Wildlife entries are keyed only by WildlifeGroup / wild subtype.
+        wildlifeFormulary.forEach { drug ->
+            assertTrue(drug.doseByGroup.isNotEmpty())
+            assertTrue(drug.doseByGroup.keys.all { it is WildlifeGroup })
+        }
+        assertTrue(wildlifeFormulary.none { it.id in formulary.map { drug -> drug.id } })
+        assertNull(findWildlifeDrug("oxytetracycline-20"))
+    }
+
+    @Test
+    fun `wild patient resolves directly in wildlife formulary with syringe volume`() {
+        val drug = matchWildlifeDrugFromText(
+            "Oxytetracycline 20% 15 mg/kg IM", WildlifeGroup.WILD_CANIDS,
+        )!!
+        assertEquals("wild-oxytetracycline-20", drug.id)
+
+        val result = calculateWildlifeDosage(drug, WildlifeGroup.WILD_CANIDS, 15.0, 200.0)!!
+
+        assertEquals(15.0, result.selectedMgPerKg, 0.001)
+        assertEquals(225.0, result.doseMg, 0.001)
+        // 225 mg / 200 mg/mL = 1.125 mL syringe draw for a 15 kg animal.
+        assertEquals(1.125, result.syringeMl, 0.001)
+        assertEquals(DoseRoute.IM, result.route)
+        assertEquals("Jackal / Fox / Wild Dog", result.animalLabel)
+        assertEquals(14, result.meatWithdrawalDays)
+    }
+
+    @Test
+    fun `wild subtype dose overrides group dose and carries wildlife warning`() {
+        val drug = findWildlifeDrug("wild-oxytetracycline-20")!!
+        val generic = calculateWildlifeDosage(drug, WildlifeGroup.WILD_CANIDS, 15.0, 200.0)!!
+        val specific = calculateWildlifeDosage(
+            drug, WildlifeGroup.WILD_CANIDS, 15.0, 200.0, "African Wild Dog",
+        )!!
+
+        assertEquals(15.0, generic.selectedMgPerKg, 0.001)
+        assertEquals(16.0, specific.selectedMgPerKg, 0.001)
+        assertEquals("African Wild Dog · Jackal / Fox / Wild Dog", specific.animalLabel)
+        assertEquals(240.0, specific.doseMg, 0.001)
+        assertEquals(1.2, specific.syringeMl, 0.001)
+
+        val birds = calculateWildlifeDosage(
+            drug, WildlifeGroup.WILD_BIRDS, 2.0, 200.0,
+        )!!
+        assertEquals(1, birds.safetyAlerts.size)
+        assertTrue(birds.safetyAlerts.first().contains("birds"))
+        assertEquals(DoseRoute.IM, birds.route)
+    }
+
+    @Test
+    fun `dart and oral wildlife routes are available by group`() {
+        val dart = findWildlifeDrug("wild-ketamine-xylazine")!!
+        val result = calculateWildlifeDosage(dart, WildlifeGroup.WILD_RUMINANTS, 100.0, 100.0)!!
+        assertEquals(DoseRoute.DART, result.route)
+        assertTrue(result.safetyAlerts.first().contains("myopathy"))
+
+        val oral = findWildlifeDrug("wild-enrofloxacin")!!
+        assertEquals(
+            DoseRoute.ORAL,
+            calculateWildlifeDosage(oral, WildlifeGroup.WILD_FELIDS, 10.0, 50.0)!!.route,
+        )
+        assertEquals(4, wildlifeDrugsFor(WildlifeGroup.WILD_FELIDS).size)
     }
 }

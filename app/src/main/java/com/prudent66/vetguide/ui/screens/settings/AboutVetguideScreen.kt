@@ -80,19 +80,7 @@ private fun SectionBody(text: String) {
 @Composable
 private fun OverviewSection() {
     SectionTitle("Overview & Purpose")
-    SectionBody(
-        """
-        VETGUIDE is a mobile-first veterinary clinical decision-support and
-        case-management assistant developed by Veloxdigitalforge. It is built
-        for both clinic-based practice and rural, low-connectivity livestock
-        field work.
-
-        The app helps veterinary professionals capture clinical observations,
-        review structured findings and suspected conditions, and manage
-        patient records — all while remaining functional offline and
-        syncing automatically when connectivity returns.
-        """,
-    )
+    SectionBody(ABOUT_OVERVIEW)
     Text(
         text = "Version ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
         style = MaterialTheme.typography.labelMedium,
@@ -103,99 +91,71 @@ private fun OverviewSection() {
 @Composable
 private fun CapabilitiesSection() {
     SectionTitle("Key Capabilities")
-    SectionBody(
-        """
-        Visual & Clinical Triage: Capture or upload animal photos alongside
-        species, breed, age, weight and clinical observations to review
-        findings, suspected conditions with confidence scores, and structured
-        field guidance.
-
-        Separated Prescriptions & Dosages Sheet & Syringe Calculator: Drug and
-        injection protocols are presented on their own dedicated sheet, kept
-        distinct from general supportive care. Using the animal's recorded
-        species and weight, VETGUIDE automatically calculates exact milligram
-        doses, syringe draw volumes (mL) for the selected bottle concentration,
-        meat and milk withdrawal periods, and species safety alerts, so the
-        clinician can verify everything before administering treatment.
-
-        Offline Resilience & Auto-Sync: Works reliably offline using built-in
-        clinical questionnaires and an offline veterinary knowledge base, and
-        automatically queues cases to sync when internet connectivity returns.
-
-        Patient Records, SOAP Notes & PDF Export: Manage patient profiles,
-        auto-populate structured SOAP clinical notes, export clean PDF case
-        reports, and back up or restore all records locally via JSON.
-
-        Herd & Flock Outbreak Mode: Track morbidity and case-fatality rates,
-        calculate whole-herd/flock medication totals and bottle counts, and
-        follow contagious-disease quarantine checklists.
-
-        Hands-Free Voice Dictation: Speak clinical signs and SOAP notes directly
-        into assessments and patient records during field examinations.
-
-        Full Multi-Species Offline Questionnaires: Structured offline clinical
-        triage across Cattle, Goat, Sheep, Poultry, Pig, Equine, Dog and Cat.
-
-        Domestic & Wildlife Clinical Modes: Switch seamlessly between Domestic
-        and Wild across patient profiles, Herd/Flock Outbreak Mode, Diagnose and
-        the Knowledge Base. Wild species link directly to wildlife diseases,
-        zoonotic precautions and tailored clinical questionnaires.
-
-        Hospital-Grade PDF Clinical Reports & Owner Care Sheets: Structured,
-        color-accented SOAP PDF exports plus plain-language owner handouts with
-        withdrawal safe dates.
-
-        Smart Syringe Calculator, Timeline & Offline Reminders: Auto-matched
-        drug selection, before/after lesion photo comparison, and offline alerts
-        for repeat doses and withdrawal completion.
-        """,
-    )
+    SectionBody(ABOUT_CAPABILITIES)
 }
 
 @Composable
 private fun HowToSection() {
     SectionTitle("How to Use VETGUIDE")
-    SectionBody(
-        """
-        Step 1 — Choose Domestic or Wild: Select the category, then register a
-        patient (+) or a Herd / Flock unit. Domestic covers eight species; Wild
-        links groups to wildlife diseases and biosafety precautions.
-
-        Step 2 — Capture Photo & Clinical Notes: Go to Diagnose, take or select
-        a clear photo of the lesion/condition, and dictate or type clinical signs.
-        Verify the auto-matched prescription in the dosage calculator.
-
-        Step 3 — Review Analysis & Prescriptions: Inspect the findings and
-        suspected conditions, then tap Open Prescriptions & Dosages. The sheet
-        is pre-filled with the animal's species and recorded weight — adjust
-        the weight or bottle concentration if needed, and verify the calculated
-        mL syringe volume and withdrawal period before administering treatment.
-
-        Step 4 — Schedule Reminders & Compare Photos: Set offline alerts for
-        repeat doses, re-checks and withdrawal end dates, and compare before/after
-        lesion photos from the clinical timeline.
-
-        Step 5 — Export the Clinical Report: Save the SOAP note, then export the
-        redesigned Clinical Report PDF or share the one-tap Owner Care Sheet.
-        Back up records with Export Backup (JSON) in Settings.
-        """,
-    )
+    SectionBody(ABOUT_HOW_TO)
 }
 
 @Composable
 private fun ResponsibilitySection() {
     SectionTitle("Clinical Responsibility & Developer Attribution")
-    SectionBody(
-        """
-        Decision support — not a definitive diagnosis. The licensed
-        veterinarian or animal health professional remains solely responsible
-        for all clinical examinations, drug dosages, withdrawal periods, and
-        treatment decisions.
-        """,
-    )
+    SectionBody(ABOUT_RESPONSIBILITY)
     Text(
         text = "© 2026 Veloxdigitalforge - All Rights Reserved",
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 }
+
+/*
+ * Each paragraph is a single unbroken string so Compose wraps it naturally
+ * across the full screen width. A newline appears only between paragraphs or
+ * between distinct numbered steps — never in the middle of a sentence.
+ */
+internal const val ABOUT_OVERVIEW = """
+VETGUIDE is a mobile-first veterinary clinical decision-support and case-management assistant developed by Veloxdigitalforge. It is built for both clinic-based practice and rural, low-connectivity livestock field work.
+
+The app helps veterinary professionals capture clinical observations, review structured findings and suspected conditions, and manage patient records — all while remaining functional offline and syncing automatically when connectivity returns.
+"""
+
+internal const val ABOUT_CAPABILITIES = """
+Visual & Clinical Triage: Capture or upload animal photos alongside species, breed, age, weight and clinical observations to review findings, suspected conditions with confidence scores, and structured field guidance.
+
+Separated Prescriptions & Dosages Sheet & Syringe Calculator: Drug and injection protocols are presented on their own dedicated sheet, kept distinct from general supportive care. Using the animal's recorded species and weight, VETGUIDE automatically calculates exact milligram doses, syringe draw volumes (mL) for the selected bottle concentration, meat and milk withdrawal periods, and species safety alerts, so the clinician can verify everything before administering treatment. Dedicated wildlife formularies keep Wild animals entirely separate from domestic species.
+
+Offline Resilience & Auto-Sync: Works reliably offline using built-in clinical questionnaires and an offline veterinary knowledge base, and automatically queues cases to sync when internet connectivity returns.
+
+Patient Records, SOAP Notes & PDF Export: Manage patient profiles, auto-populate structured SOAP clinical notes, export clean PDF case reports, and back up or restore all records locally via JSON.
+
+Herd & Flock Outbreak Mode: Track morbidity and case-fatality rates, calculate whole-herd/flock medication totals and bottle counts, and follow contagious-disease quarantine checklists.
+
+Hands-Free Voice Dictation: Speak clinical signs and SOAP notes directly into assessments and patient records during field examinations.
+
+Full Multi-Species Offline Questionnaires: Structured offline clinical triage across Cattle, Goat, Sheep, Poultry, Pig, Equine, Dog and Cat.
+
+Domestic & Wildlife Clinical Modes: Switch seamlessly between Domestic and Wild across patient profiles, Herd/Flock Outbreak Mode, Diagnose and the Knowledge Base. Wild species link directly to wildlife diseases, zoonotic precautions and tailored clinical questionnaires.
+
+Hospital-Grade PDF Clinical Reports & Owner Care Sheets: Structured, color-accented SOAP PDF exports plus plain-language owner handouts with withdrawal safe dates.
+
+Smart Syringe Calculator, Timeline & Offline Reminders: Auto-matched drug selection, before/after lesion photo comparison, and offline alerts for repeat doses and withdrawal completion.
+"""
+
+internal const val ABOUT_HOW_TO = """
+Step 1 — Choose Domestic or Wild: Select the category, then register a patient (+) or a Herd / Flock unit. Domestic covers eight species; Wild links groups to wildlife diseases and biosafety precautions.
+
+Step 2 — Capture Photo & Clinical Notes: Go to Diagnose, take or select a clear photo of the lesion/condition, and dictate or type clinical signs. Verify the auto-matched prescription in the dosage calculator.
+
+Step 3 — Review Analysis & Prescriptions: Inspect the findings and suspected conditions, then tap Open Prescriptions & Dosages. The sheet is pre-filled with the exact selected animal and recorded weight — adjust the weight or bottle concentration if needed, and verify the calculated mL syringe volume and withdrawal period before administering treatment.
+
+Step 4 — Schedule Reminders & Compare Photos: Set offline alerts for repeat doses, re-checks and withdrawal end dates, and compare before/after lesion photos from the clinical timeline.
+
+Step 5 — Export the Clinical Report: Save the SOAP note, then export the redesigned Clinical Report PDF or share the one-tap Owner Care Sheet. Back up records with Export Backup (JSON) in Settings.
+"""
+
+internal const val ABOUT_RESPONSIBILITY = """
+Decision support — not a definitive diagnosis. The licensed veterinarian or animal health professional remains solely responsible for all clinical examinations, drug dosages, withdrawal periods, and treatment decisions.
+"""

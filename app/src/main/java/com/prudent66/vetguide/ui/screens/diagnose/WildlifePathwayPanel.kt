@@ -11,8 +11,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -21,8 +19,11 @@ import com.prudent66.vetguide.domain.model.WildlifeGroup
 
 /** Wildlife group selector with linked diseases and biosafety cautions. */
 @Composable
-fun WildlifePathwayPanel() {
-    var group by rememberSaveable { mutableStateOf(WildlifeGroup.WILD_RUMINANTS) }
+fun WildlifePathwayPanel(
+    selectedGroup: WildlifeGroup = WildlifeGroup.WILD_RUMINANTS,
+    onSelect: (WildlifeGroup) -> Unit = {},
+) {
+    val group = selectedGroup
     var expanded by remember { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
@@ -33,7 +34,7 @@ fun WildlifePathwayPanel() {
                 DropdownMenuItem(
                     text = { Text(option.label) },
                     onClick = {
-                        group = option
+                        onSelect(option)
                         expanded = false
                     },
                 )

@@ -22,6 +22,10 @@ data class AiRequest(
      * aligned with the vet's own observation — while remaining objective.
      */
     val clinicalContext: String? = null,
+    /** "Domestic" or "Wild" — the selected clinical pathway. */
+    val animalCategory: String? = null,
+    /** Exact selected animal ("African Wild Dog · Jackal / Fox / Wild Dog"). */
+    val animalLabel: String? = null,
 )
 
 /** Outcome of ONE provider attempt — providers report failure explicitly. */
@@ -104,6 +108,10 @@ data class AiAnalysisRequest(
     val prompt: String,
     /** Optional vet-provided clinical context forwarded to the backend prompt. */
     val clinicalContext: String? = null,
+    /** Selected pathway ("Domestic"/"Wild") forwarded as an explicit field. */
+    val animalCategory: String? = null,
+    /** Exact selected animal forwarded as an explicit field. */
+    val animalLabel: String? = null,
 )
 
 /** One suspected condition with the model's confidence estimate (§10). */

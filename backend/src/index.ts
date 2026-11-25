@@ -166,6 +166,10 @@ interface AnalyzeRequestBody {
   prompt: string;
   /** Optional vet-provided context, e.g. "Vomiting for 2 days". */
   clinicalContext?: string;
+  /** Selected pathway: "Domestic" or "Wild". */
+  animalCategory?: string;
+  /** Exact selected animal, e.g. "African Wild Dog · Jackal / Fox / Wild Dog". */
+  animalLabel?: string;
 }
 
 /** One failed upstream attempt, retained for diagnostics and error selection. */
@@ -243,13 +247,30 @@ function describeError(error: unknown): string {
   return String(error);
 }
 
-function buildPrompt(findings: string, clinicalContext?: string): string {
+function buildPrompt(
+  findings: string,
+  clinicalContext?: string,
+  animalCategory?: string,
+  animalLabel?: string,
+): string {
   const contextBlock: string[] = [];
   if (clinicalContext && clinicalContext.trim().length > 0) {
     contextBlock.push(
       "User Clinical Context: " + clinicalContext.trim(),
       "- If the user provides clinical context, prioritize visual findings " +
         "that align with that context, but remain objective.",
+    );
+  }
+  const selected = animalLabel?.trim();
+  if (selected) {
+    contextBlock.push(
+      "Selected animal (strict): " + selected +
+        (animalCategory ? " — " + animalCategory + " pathway" : "") + ".",
+      "- Identify and describe ONLY " + selected + ".",
+      "- Restrict every finding, differential diagnosis and clinical description " +
+        "to " + selected + ". Never diagnose or describe conditions of other species.",
+      "- If the photo cannot be confirmed as " + selected + ", say so explicitly " +
+        "and return an empty suspectedConditions list.",
     );
   }
   return [
@@ -471,7 +492,10 @@ async function sha256Hex(text: string): Promise<string> {
 /** Cache key = SHA-256(image bytes + prompt + clinical context). */
 async function requestHash(body: AnalyzeRequestBody, image: string | undefined): Promise<string> {
   return sha256Hex(
-    [image ?? "", "\u0000", body.prompt, "\u0000", body.clinicalContext ?? ""].join(""),
+    [
+      image ?? "", "\u0000", body.prompt, "\u0000", body.clinicalContext ?? "",
+      "\u0000", body.animalCategory ?? "", "\u0000", body.animalLabel ?? "",
+    ].join(""),
   );
 }
 
@@ -791,7 +815,8 @@ async function handleAnalyze(request: Request, env: Env): Promise<Response> {
     return json({ error: "request body must be valid JSON" }, 400);
   }
 
-  const { prompt, imageBase64, clinicalContext } = (parsed ?? {}) as AnalyzeRequestBody;
+  const { prompt, imageBase64, clinicalContext, animalCategory, animalLabel } =
+    (parsed ?? {}) as AnalyzeRequestBody;
   if (typeof prompt !== "string" || prompt.trim().length === 0) {
     return json({ error: "'prompt' (non-empty string) is required" }, 400);
   }
@@ -801,13 +826,21 @@ async function handleAnalyze(request: Request, env: Env): Promise<Response> {
   if (clinicalContext !== undefined && typeof clinicalContext !== "string") {
     return json({ error: "'clinicalContext' must be a string when present" }, 400);
   }
+  if (animalCategory !== undefined && typeof animalCategory !== "string") {
+    return json({ error: "'animalCategory' must be a string when present" }, 400);
+  }
+  if (animalLabel !== undefined && typeof animalLabel !== "string") {
+    return json({ error: "'animalLabel' must be a string when present" }, 400);
+  }
 
   if (!hasAnyProvider(env)) {
     // Local/CI mode: no credentials configured — serve the labeled mock.
     return json(mockAnalysis(prompt), 200);
   }
 
-  const body: AnalyzeRequestBody = { prompt, imageBase64, clinicalContext };
+  const body: AnalyzeRequestBody = {
+    prompt, imageBase64, clinicalContext, animalCategory, animalLabel,
+  };
   const image = rawBase64(imageBase64);
   const hash = await requestHash(body, image);
   const cached = await readCache(request, hash);
@@ -815,7 +848,7 @@ async function handleAnalyze(request: Request, env: Env): Promise<Response> {
 
   // TODO(Phase 6 remaining backend task): server-side free-tier eligibility
   // and daily usage caps per §7 — enforcement is never purely client-side.
-  const promptText = buildPrompt(prompt, clinicalContext);
+  const promptText = buildPrompt(prompt, clinicalContext, animalCategory, animalLabel);
   const parts: GeminiPart[] = [];
   if (image) {
     parts.push({ inline_data: { mime_type: "image/jpeg", data: image } });

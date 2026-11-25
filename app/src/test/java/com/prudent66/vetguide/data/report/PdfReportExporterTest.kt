@@ -5,7 +5,15 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.prudent66.vetguide.domain.model.AgeUnit
+import com.prudent66.vetguide.domain.model.AnimalCategory
+import com.prudent66.vetguide.domain.model.ClinicalSpeciesCatalog
+import com.prudent66.vetguide.domain.model.NeuterStatus
+import com.prudent66.vetguide.domain.model.Patient
+import com.prudent66.vetguide.domain.model.PatientSex
 import com.prudent66.vetguide.domain.model.SoapPayload
+import com.prudent66.vetguide.domain.model.Species
+import com.prudent66.vetguide.domain.model.ageLabel
 import java.io.ByteArrayOutputStream
 
 /**
@@ -132,6 +140,51 @@ class PdfReportExporterTest {
             listOf("Isolate affected animals", "Provide shade and water"),
             planSupportiveCare(data),
         )
+    }
+
+    @Test
+    fun `ranked condition bar starts below every wrapped label line`() {
+        val lineCount = 4
+        val top = 200f
+        val lastBaseline = top + (lineCount - 1) * 13f
+
+        val barTop = differentialBarTop(top, lineCount)
+
+        assertTrue(barTop > lastBaseline + 10f)
+        assertTrue(differentialRowHeight(lineCount) > barTop + 8f)
+        assertTrue(differentialRowHeight(lineCount) > differentialTextHeight(lineCount))
+        assertEquals(13f, differentialTextHeight(1), 0.001f)
+    }
+
+    @Test
+    fun `wild patient metadata uses subtype and group instead of Other`() {
+        val wild = Patient(
+            id = "w1",
+            name = "Kito",
+            animalCategory = AnimalCategory.WILD,
+            wildlifeGroup = "Jackal / Fox / Wild Dog",
+            species = Species.OTHER,
+            breed = "African Wild Dog",
+            sex = PatientSex.UNKNOWN,
+            neuterStatus = NeuterStatus.UNKNOWN,
+            dateOfBirthEpochMs = null,
+            ageValue = 3.0,
+            ageUnit = AgeUnit.YEARS,
+            weightKg = 15.0,
+            weightUpdatedAtEpochMs = null,
+            ownerName = null,
+            ownerPhone = null,
+            ownerNotes = null,
+            createdAtEpochMs = 0L,
+            updatedAtEpochMs = 0L,
+        )
+
+        assertEquals(
+            "African Wild Dog · Jackal / Fox / Wild Dog",
+            ClinicalSpeciesCatalog.reportLabel(wild),
+        )
+        assertEquals("3 Years", wild.ageLabel())
+        assertTrue(ClinicalSpeciesCatalog.reportLabel(wild) != "Other")
     }
 
     @Test

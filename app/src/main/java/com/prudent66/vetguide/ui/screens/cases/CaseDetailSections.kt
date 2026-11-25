@@ -6,7 +6,6 @@ import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,14 +37,17 @@ import com.prudent66.vetguide.data.report.FarmerHandoutExporter
 import com.prudent66.vetguide.domain.ai.buildPrescriptionPlan
 import com.prudent66.vetguide.domain.formulary.matchDrugFromText
 import com.prudent66.vetguide.domain.ai.sanitizeAiItem
+import com.prudent66.vetguide.domain.ai.withoutNextSteps
 import com.prudent66.vetguide.domain.model.AiArtifactPayload
+import com.prudent66.vetguide.domain.model.AnimalCategory
+import com.prudent66.vetguide.domain.model.AnimalSubject
+import com.prudent66.vetguide.domain.model.ClinicalSpeciesCatalog
 import com.prudent66.vetguide.domain.model.Patient
 import com.prudent66.vetguide.domain.model.SoapPayload
 import com.prudent66.vetguide.domain.model.ageLabel
 import com.prudent66.vetguide.domain.model.clinicalAnalysisText
 import com.prudent66.vetguide.ui.components.PrescriptionCard
 import com.prudent66.vetguide.ui.components.VoiceDictationButton
-import com.prudent66.vetguide.ui.screens.knowledge.speciesLabel
 import com.prudent66.vetguide.ui.viewmodels.CaseDetailUiState
 import com.prudent66.vetguide.worker.ReminderScheduler
 import com.prudent66.vetguide.ui.viewmodels.CaseDetailViewModel
@@ -150,7 +152,10 @@ private fun CaseActionButtons(state: CaseDetailUiState.Success) {
 private fun AiAnalysisCard(ai: AiArtifactPayload, patient: Patient?) {
     val plan = remember(ai) { buildPrescriptionPlan(ai.analysisData, ai.narrative) }
     ArtifactCard("Analysis Finding:") {
-        Text(clinicalAnalysisText(ai.narrative), style = MaterialTheme.typography.bodyMedium)
+        Text(
+            clinicalAnalysisText(withoutNextSteps(ai.narrative)),
+            style = MaterialTheme.typography.bodyMedium,
+        )
         if (plan.supportiveCare.isNotEmpty()) {
             Text(
                 "Supportive field care suggested:",
@@ -166,7 +171,7 @@ private fun AiAnalysisCard(ai: AiArtifactPayload, patient: Patient?) {
     }
     PrescriptionCard(
         plan.prescriptions,
-        species = patient?.species,
+        subject = patient?.let(AnimalSubject::fromPatient),
         weightKg = patient?.weightKg,
         modifier = Modifier.fillMaxWidth(),
     )
@@ -187,8 +192,8 @@ private fun PatientInfoCard(state: CaseDetailUiState.Success) {
             if (patient != null) {
                 Text(
                     text = listOfNotNull(
-                        speciesLabel(patient.species),
-                        patient.breed,
+                        ClinicalSpeciesCatalog.reportLabel(patient),
+                        patient.breed.takeIf { patient.animalCategory != AnimalCategory.WILD },
                         patient.ageLabel(),
                     ).joinToString(" · "),
                     style = MaterialTheme.typography.bodyMedium,

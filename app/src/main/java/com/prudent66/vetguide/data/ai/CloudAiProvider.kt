@@ -54,6 +54,8 @@ class CloudAiProvider(
                         imageBase64 = request.imageBase64,
                         prompt = request.findings,
                         clinicalContext = request.clinicalContext,
+                        animalCategory = request.animalCategory,
+                        animalLabel = request.animalLabel,
                     ),
                 ),
             )
@@ -162,6 +164,8 @@ class CloudAiProvider(
                         imageBase64 = compactBase64,
                         prompt = request.findings,
                         clinicalContext = request.clinicalContext,
+                        animalCategory = request.animalCategory,
+                        animalLabel = request.animalLabel,
                     ),
                 ),
             )

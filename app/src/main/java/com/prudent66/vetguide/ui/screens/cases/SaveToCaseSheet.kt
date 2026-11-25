@@ -97,7 +97,9 @@ fun SaveToCaseSheet(
                 category = state.quickAddCategory,
                 selectedDomestic = state.quickAddSpecies,
                 selectedWildlife = state.quickAddWildlifeGroup,
-                onDomestic = viewModel::setQuickAddSpecies,
+                onDomestic = { species ->
+                    viewModel.setQuickAddCategory(AnimalCategory.DOMESTIC, species = species)
+                },
                 onWildlife = { group ->
                     viewModel.setQuickAddCategory(AnimalCategory.WILD, group)
                 },

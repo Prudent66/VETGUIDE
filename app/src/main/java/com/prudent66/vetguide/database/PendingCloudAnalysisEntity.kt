@@ -23,6 +23,10 @@ data class PendingCloudAnalysisEntity(
     val imageBase64: String,
     /** Species context for the analysis prompt. */
     val species: String?,
+    /** Domestic / Wild pathway, persisted so queued retries stay species-exact. */
+    val animalCategory: String? = null,
+    /** Exact selected animal label used in the retry prompt. */
+    val animalLabel: String? = null,
     /** Optional clinical context (age, etc.) from the questionnaire. */
     val clinicalContext: String?,
     /** Optional linked case ID (if Save-to-Case was used). */

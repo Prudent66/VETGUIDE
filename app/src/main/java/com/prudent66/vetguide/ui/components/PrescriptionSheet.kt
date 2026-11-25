@@ -31,12 +31,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.prudent66.vetguide.domain.formulary.DosageResult
+import com.prudent66.vetguide.domain.formulary.WildlifeDosageResult
 import com.prudent66.vetguide.domain.formulary.calculateDosage
+import com.prudent66.vetguide.domain.formulary.calculateWildlifeDosage
 import com.prudent66.vetguide.domain.formulary.matchDrugFromText
+import com.prudent66.vetguide.domain.formulary.matchWildlifeDrugFromText
 import com.prudent66.vetguide.domain.formulary.findDrug
 import com.prudent66.vetguide.domain.formulary.findDrugByName
 import com.prudent66.vetguide.domain.formulary.formulary
+import com.prudent66.vetguide.domain.formulary.wildlifeDrugsFor
+import com.prudent66.vetguide.domain.model.AnimalCategory
+import com.prudent66.vetguide.domain.model.AnimalSubject
+import com.prudent66.vetguide.domain.model.ClinicalSpeciesCatalog
 import com.prudent66.vetguide.domain.model.Species
+import com.prudent66.vetguide.domain.model.WildlifeGroup
 import java.util.Locale
 
 /**
@@ -48,7 +56,7 @@ import java.util.Locale
 @Composable
 fun PrescriptionCard(
     prescriptions: List<String>,
-    species: Species? = null,
+    subject: AnimalSubject? = null,
     weightKg: Double? = null,
     modifier: Modifier = Modifier,
 ) {
@@ -76,7 +84,7 @@ fun PrescriptionCard(
     }
     if (showSheet) {
         ModalBottomSheet(onDismissRequest = { showSheet = false }) {
-            PrescriptionSheetBody(prescriptions, species, weightKg)
+            PrescriptionSheetBody(prescriptions, subject, weightKg)
         }
     }
 }
@@ -84,7 +92,7 @@ fun PrescriptionCard(
 @Composable
 private fun PrescriptionSheetBody(
     prescriptions: List<String>,
-    species: Species?,
+    subject: AnimalSubject?,
     weightKg: Double?,
 ) {
     Column(
@@ -105,61 +113,127 @@ private fun PrescriptionSheetBody(
             Text("${index + 1}. $item", style = MaterialTheme.typography.bodyMedium)
         }
         HorizontalDivider()
-        DosageCalculatorSection(prescriptions, species, weightKg)
+        DosageCalculatorSection(prescriptions, subject, weightKg)
     }
 }
 
 @Composable
 private fun DosageCalculatorSection(
     prescriptions: List<String>,
-    species: Species?,
+    subject: AnimalSubject?,
     weightKg: Double?,
 ) {
-    val matched = remember(prescriptions) {
-        matchDrugFromText(prescriptions.joinToString(" "))
+    val text = prescriptions.joinToString(" ")
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("Dosage & Syringe Calculator", style = MaterialTheme.typography.titleSmall)
+        if (subject?.category == AnimalCategory.WILD) {
+            WildlifeDosageSection(text, subject, weightKg)
+        } else {
+            DomesticDosageSection(text, subject?.species ?: Species.CATTLE, weightKg)
+        }
     }
-    var speciesName by rememberSaveable { mutableStateOf((species ?: Species.CATTLE).name) }
-    val matchedId = matched?.id ?: formulary.first().id
-    var selectedDrugId by rememberSaveable(matchedId) { mutableStateOf(matchedId) }
-    var weightText by rememberSaveable {
-        mutableStateOf(weightKg?.let(::formatAmount).orEmpty())
-    }
+}
 
-    val drug = remember(selectedDrugId) { findDrug(selectedDrugId) ?: formulary.first() }
+@Composable
+private fun DomesticDosageSection(text: String, species: Species, weightKg: Double?) {
+    var speciesName by rememberSaveable(species) {
+        mutableStateOf(if (species == Species.OTHER) Species.CATTLE.name else species.name)
+    }
+    val selected = Species.entries.firstOrNull { it.name == speciesName && it != Species.OTHER }
+        ?: Species.CATTLE
+    val matched = remember(text) { matchDrugFromText(text) }
+    var drugId by rememberSaveable(matched?.id) {
+        mutableStateOf(matched?.id ?: formulary.first().id)
+    }
+    val drug = remember(drugId) { findDrug(drugId) ?: formulary.first() }
     var concentration by rememberSaveable(drug.id) {
         mutableStateOf(drug.defaultConcentrationMgPerMl)
     }
-    val selectedSpecies = runCatching { Species.valueOf(speciesName) }.getOrNull() ?: Species.OTHER
-    val result: DosageResult? = remember(drug, selectedSpecies, weightText, concentration) {
-        calculateDosage(drug, selectedSpecies, weightText.toDoubleOrNull() ?: 0.0, concentration)
+    var weightText by rememberSaveable {
+        mutableStateOf(weightKg?.let(::formatAmount).orEmpty())
     }
-
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Dosage & Syringe Calculator", style = MaterialTheme.typography.titleSmall)
-        SelectionDialogField("Species", speciesName, Species.entries.map { it.name }) {
-            speciesName = it
-        }
-        SelectionDialogField("Drug", drug.name, formulary.map { it.name }) { name ->
-            findDrugByName(name)?.let { found -> selectedDrugId = found.id }
-        }
-        SelectionDialogField(
-            label = "Bottle concentration",
-            value = "${formatAmount(concentration)} mg/mL",
-            options = drug.concentrationsMgPerMl.map { "${formatAmount(it)} mg/mL" },
-        ) { label ->
-            label.removeSuffix(" mg/mL").toDoubleOrNull()?.let { concentration = it }
-        }
-        OutlinedTextField(
-            value = weightText,
-            onValueChange = { weightText = it },
-            label = { Text("Weight (kg)") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        DosageResultPanel(result, drug.contraindications[selectedSpecies])
+    val result = remember(drug, selected, weightText, concentration) {
+        calculateDosage(drug, selected, weightText.toDoubleOrNull() ?: 0.0, concentration)
     }
+    SelectionDialogField("Species", speciesName, domesticSpeciesNames) { speciesName = it }
+    SelectionDialogField("Drug", drug.name, formulary.map { it.name }) { name ->
+        findDrugByName(name)?.let { found -> drugId = found.id }
+    }
+    SelectionDialogField(
+        label = "Bottle concentration",
+        value = "${formatAmount(concentration)} mg/mL",
+        options = drug.concentrationsMgPerMl.map { "${formatAmount(it)} mg/mL" },
+    ) { label -> label.removeSuffix(" mg/mL").toDoubleOrNull()?.let { concentration = it } }
+    OutlinedTextField(
+        value = weightText,
+        onValueChange = { weightText = it },
+        label = { Text("Weight (kg)") },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    DosageResultPanel(result, drug.contraindications[selected])
 }
+
+@Composable
+private fun WildlifeDosageSection(text: String, subject: AnimalSubject, weightKg: Double?) {
+    var groupLabel by rememberSaveable(subject) {
+        mutableStateOf(subject.groupLabel ?: ClinicalSpeciesCatalog.first(AnimalCategory.WILD))
+    }
+    val group = ClinicalSpeciesCatalog.wildlifeGroup(groupLabel) ?: WildlifeGroup.WILD_RUMINANTS
+    var wildAnimal by rememberSaveable(subject) { mutableStateOf(subject.wildAnimal.orEmpty()) }
+    val drugs = remember(group) { wildlifeDrugsFor(group) }
+    val matched = remember(text, group) { matchWildlifeDrugFromText(text, group) }
+    var drugId by rememberSaveable(group, matched?.id) {
+        mutableStateOf(matched?.id ?: drugs.firstOrNull()?.id.orEmpty())
+    }
+    val drug = remember(drugId, group) {
+        wildlifeDrugsFor(group).firstOrNull { it.id == drugId } ?: wildlifeDrugsFor(group).firstOrNull()
+    }
+    var concentration by rememberSaveable(drug?.id) {
+        mutableStateOf(drug?.defaultConcentrationMgPerMl ?: 200.0)
+    }
+    var weightText by rememberSaveable {
+        mutableStateOf(weightKg?.let(::formatAmount).orEmpty())
+    }
+    val result = remember(drug, group, wildAnimal, weightText, concentration) {
+        drug?.let {
+            calculateWildlifeDosage(
+                it, group, weightText.toDoubleOrNull() ?: 0.0, concentration,
+                wildAnimal.takeIf { animal -> animal.isNotBlank() },
+            )
+        }
+    }
+    SelectionDialogField("Wild species", groupLabel, ClinicalSpeciesCatalog.wildlifeLabels) {
+        groupLabel = it
+    }
+    val animals = ClinicalSpeciesCatalog.wildAnimalsFor(group)
+    SelectionDialogField("Wild animal", wildAnimal.ifBlank { animals.first() }, animals) {
+        wildAnimal = it
+    }
+    SelectionDialogField("Drug (wildlife formulary)", drug?.name.orEmpty(), drugs.map { it.name }) {
+        name -> drugs.firstOrNull { it.name == name }?.let { drugId = it.id }
+    }
+    val concentrations = drug?.concentrationsMgPerMl ?: listOf(concentration)
+    SelectionDialogField(
+        label = "Bottle concentration",
+        value = "${formatAmount(concentration)} mg/mL",
+        options = concentrations.map { "${formatAmount(it)} mg/mL" },
+    ) { label -> label.removeSuffix(" mg/mL").toDoubleOrNull()?.let { concentration = it } }
+    OutlinedTextField(
+        value = weightText,
+        onValueChange = { weightText = it },
+        label = { Text("Weight (kg)") },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    WildlifeDosagePanel(result, drug?.contraindications?.get(group))
+}
+
+private val domesticSpeciesNames: List<String> = Species.entries
+    .filter { it != Species.OTHER }
+    .map { it.name }
 
 @Composable
 private fun SelectionDialogField(
@@ -259,6 +333,59 @@ private fun DosageResultPanel(result: DosageResult?, speciesAlert: String?) {
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onErrorContainer,
                     )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun WildlifeDosagePanel(result: WildlifeDosageResult?, speciesAlert: String?) {
+    if (result == null) {
+        Text(
+            "No wildlife dose is defined for this group and weight. Adjust the " +
+                "selection and verify against a current wildlife formulary.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error,
+        )
+    } else {
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                ResultLine(
+                    "Recommended Dose (mg)",
+                    "${formatAmount(result.doseMg)} mg — ${formatAmount(result.selectedMgPerKg)} mg/kg " +
+                        "(range ${formatAmount(result.doseRange.minMgPerKg)}–" +
+                        "${formatAmount(result.doseRange.maxMgPerKg)} mg/kg)",
+                )
+                ResultLine(
+                    "Syringe Volume to Draw (mL)",
+                    "${formatAmount(result.syringeMl)} mL from a " +
+                        "${formatAmount(result.concentrationMgPerMl)} mg/mL bottle for " +
+                        "${formatAmount(result.weightKg)} kg",
+                )
+                ResultLine("Route & Schedule", "${result.route.label} · ${result.frequency}")
+                ResultLine("Meat Withdrawal", "${result.meatWithdrawalDays} days")
+                ResultLine("Milk Withdrawal", "${result.milkWithdrawalDays} days")
+            }
+        }
+    }
+    val alerts = (listOfNotNull(speciesAlert) + result?.safetyAlerts.orEmpty()).distinct()
+    if (alerts.isNotEmpty()) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+            ),
+        ) {
+            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    "Species Safety / Contraindication Alert",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                )
+                alerts.forEach { alert ->
+                    Text("• $alert", style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onErrorContainer)
                 }
             }
         }

@@ -17,6 +17,7 @@ import com.prudent66.vetguide.domain.model.PatientSex
 import com.prudent66.vetguide.domain.model.QuestionnaireArtifactPayload
 import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.domain.model.AiArtifactPayload
+import com.prudent66.vetguide.domain.model.SoapPayload
 import com.prudent66.vetguide.domain.model.displayName
 import com.prudent66.vetguide.domain.model.renderDifferentialsSeed
 import com.prudent66.vetguide.domain.model.renderPlanSeed
@@ -137,8 +138,9 @@ class SaveToCaseViewModel @Inject constructor(
     }
 
     fun openForImage(result: ImageAnalysisUiState.Result) {
+        val animalLabel = result.subject?.label ?: result.species.displayName()
         pending = PendingAssessment(
-            presentingComplaint = "Photo analysis — ${result.species.displayName()}",
+            presentingComplaint = "Photo analysis — $animalLabel",
             defaultPatientId = result.patientId,
             subjectiveSeed = result.clinicalContext?.trim().orEmpty(),
             objectiveSeed = result.analysisData?.findings
@@ -187,18 +189,15 @@ class SaveToCaseViewModel @Inject constructor(
         )
     }
 
-    fun setQuickAddSpecies(species: Species) {
+    fun setQuickAddCategory(
+        category: AnimalCategory,
+        wildlifeGroup: String? = null,
+        species: Species? = null,
+    ) {
         val visible = mut.value as? SaveToCaseUiState.Visible ?: return
         mut.value = visible.copy(
-            quickAddSpecies = species,
-            quickAddCategory = AnimalCategory.DOMESTIC,
-            quickAddWildlifeGroup = null,
-        )
-    }
-
-    fun setQuickAddCategory(category: AnimalCategory, wildlifeGroup: String? = null) {
-        val visible = mut.value as? SaveToCaseUiState.Visible ?: return
-        mut.value = visible.copy(
+            quickAddSpecies = species
+                ?: if (category == AnimalCategory.WILD) Species.OTHER else visible.quickAddSpecies,
             quickAddCategory = category,
             quickAddWildlifeGroup = if (category == AnimalCategory.WILD) {
                 ClinicalSpeciesCatalog.wildlifeGroup(wildlifeGroup)?.label
@@ -251,6 +250,7 @@ class SaveToCaseViewModel @Inject constructor(
                         assessment.questionnaireContent?.let { content ->
                             upsertArtifact(caseId, CaseArtifactType.QUESTIONNAIRE, content, now)
                         }
+                        persistSoap(caseId, assessment, now)
                         savedCase.emit(caseId)
                         pending = null
                         mut.value = SaveToCaseUiState.Hidden
@@ -266,7 +266,30 @@ class SaveToCaseViewModel @Inject constructor(
                 }
             }
         }
-    }    private suspend fun upsertArtifact(
+    }
+
+    /** Pre-fills the SOAP editor and PDF instead of leaving blank boxes. */
+    private suspend fun persistSoap(
+        caseId: String,
+        assessment: PendingAssessment,
+        now: Long,
+    ) {
+        upsertArtifact(
+            caseId,
+            CaseArtifactType.SOAP,
+            CasePayloadCodec.encode(
+                SoapPayload(
+                    subjective = assessment.subjectiveSeed,
+                    objective = assessment.objectiveSeed,
+                    assessment = assessment.assessmentSeed,
+                    plan = assessment.planSeed,
+                ),
+            ),
+            now,
+        )
+    }
+
+    private suspend fun upsertArtifact(
         caseId: String,
         type: CaseArtifactType,
         content: String,

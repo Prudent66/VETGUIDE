@@ -11,6 +11,7 @@ import com.prudent66.vetguide.domain.ai.AiRequest
 import com.prudent66.vetguide.domain.ai.AiResult
 import com.prudent66.vetguide.domain.ai.fallbackReason
 import com.prudent66.vetguide.domain.ai.isQueueableFallbackReason
+import com.prudent66.vetguide.domain.model.AnimalSubject
 import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.domain.repository.CloudAnalysisScheduler
 import com.prudent66.vetguide.domain.repository.PendingCloudAnalysisRepository
@@ -38,13 +39,17 @@ sealed interface ImageAnalysisUiState {
     data object Idle : ImageAnalysisUiState
 
     /** Live camera preview / gallery pick phase. */
-    data class Capture(val species: Species?) : ImageAnalysisUiState
+    data class Capture(val species: Species?, val subject: AnimalSubject? = null) : ImageAnalysisUiState
 
     /** Confirm/crop phase; [imageBase64] is already compressed JPEG (§4.2). */
-    data class Review(val species: Species?, val imageBase64: String) : ImageAnalysisUiState
+    data class Review(
+        val species: Species?,
+        val imageBase64: String,
+        val subject: AnimalSubject? = null,
+    ) : ImageAnalysisUiState
 
     /** §5 failover ladder in flight. */
-    data class Analyzing(val species: Species?) : ImageAnalysisUiState
+    data class Analyzing(val species: Species?, val subject: AnimalSubject? = null) : ImageAnalysisUiState
 
     /**
      * Outcome with mandatory provenance (§5.2/§10): a real provider id is an
@@ -53,6 +58,8 @@ sealed interface ImageAnalysisUiState {
      */
     data class Result(
         val species: Species?,
+        /** Exact selected animal shown in the report and saved to the case title. */
+        val subject: AnimalSubject? = null,
         /**
          * Patient selected on the Diagnose start screen, carried through the
          * photo flow so Save-to-Case can pre-select it (Build 15 fix).
@@ -77,7 +84,11 @@ sealed interface ImageAnalysisUiState {
     ) : ImageAnalysisUiState
 
     /** Corrupt/unsupported image payload; retake restarts the capture phase. */
-    data class ImageError(val species: Species?, val message: String) : ImageAnalysisUiState
+    data class ImageError(
+        val species: Species?,
+        val message: String,
+        val subject: AnimalSubject? = null,
+    ) : ImageAnalysisUiState
 
     /**
      * All AI provider keys exhausted (HTTP 429). The UI shows a specific
@@ -87,6 +98,7 @@ sealed interface ImageAnalysisUiState {
         val species: Species?,
         /** Provider-side reason, surfaced as support detail (never the only copy). */
         val detail: String? = null,
+        val subject: AnimalSubject? = null,
     ) : ImageAnalysisUiState
 }
 
@@ -100,6 +112,9 @@ class ImageAnalysisViewModel @Inject constructor(
     private val mut = MutableStateFlow<ImageAnalysisUiState>(ImageAnalysisUiState.Idle)
     val uiState: StateFlow<ImageAnalysisUiState> = mut.asStateFlow()
 
+    /** Exact animal selected on the Diagnose screen, sent into the prompt. */
+    private var subject: AnimalSubject? = null
+
     /** Patient age ("3 Days") forwarded as one-line clinical context. */
     private var ageLabel: String? = null
 
@@ -112,14 +127,16 @@ class ImageAnalysisViewModel @Inject constructor(
     /** Entry point from the questionnaire Start phase, carrying the species. */
     fun start(
         species: Species?,
+        subject: AnimalSubject? = null,
         ageLabel: String? = null,
         patientId: String? = null,
         weightKg: Double? = null,
     ) {
+        this.subject = subject
         this.ageLabel = ageLabel
         this.patientId = patientId
         this.weightKg = weightKg
-        mut.value = ImageAnalysisUiState.Capture(species)
+        mut.value = ImageAnalysisUiState.Capture(species, subject)
     }
 
     /** Called with a compressed-JPEG Base64 payload after capture or pick. */
@@ -128,23 +145,25 @@ class ImageAnalysisViewModel @Inject constructor(
         mut.value = ImageAnalysisUiState.Review(
             species = capture.species,
             imageBase64 = imageBase64,
+            subject = capture.subject,
         )
     }
 
     /** Confirm/crop screen: back to the live preview. */
     fun retakeImage() {
         val review = mut.value as? ImageAnalysisUiState.Review ?: return
-        mut.value = ImageAnalysisUiState.Capture(species = review.species)
+        mut.value = ImageAnalysisUiState.Capture(review.species, review.subject)
     }
 
     /** Retake from the error state (corrupt payload). */
     fun retryFromError() {
         val error = mut.value as? ImageAnalysisUiState.ImageError ?: return
-        mut.value = ImageAnalysisUiState.Capture(species = error.species)
+        mut.value = ImageAnalysisUiState.Capture(error.species, subject)
     }
 
     /** Abandon the image flow — the questionnaire Start phase reappears. */
     fun reset() {
+        subject = null
         ageLabel = null
         patientId = null
         weightKg = null
@@ -159,7 +178,7 @@ class ImageAnalysisViewModel @Inject constructor(
      */
     fun sendForAnalysis(imageBase64: String, squareCrop: Boolean, clinicalContext: String? = null) {
         val review = mut.value as? ImageAnalysisUiState.Review ?: return
-        mut.value = ImageAnalysisUiState.Analyzing(species = review.species)
+        mut.value = ImageAnalysisUiState.Analyzing(review.species, review.subject)
         viewModelScope.launch {
             try {
                 val payloadBase64 = if (squareCrop) {
@@ -170,13 +189,14 @@ class ImageAnalysisViewModel @Inject constructor(
                     imageBase64
                 }
                 val result = orchestrator.analyze(
-                    imageRequest(review.species, payloadBase64, clinicalContext),
+                    imageRequest(review.subject, payloadBase64, clinicalContext),
                 )
                 val success = result as? AiResult.ProviderSuccess
                 val fallback = result as? AiResult.DeterministicFallback
                 val reason = fallback?.let { fallbackReason(it.diagnostics) }
                 mut.value = ImageAnalysisUiState.Result(
                     species = review.species,
+                    subject = review.subject,
                     patientId = patientId,
                     weightKg = weightKg,
                     providerId = result.providerId,
@@ -194,39 +214,42 @@ class ImageAnalysisViewModel @Inject constructor(
                 mut.value = ImageAnalysisUiState.QuotaExceeded(
                     species = review.species,
                     detail = e.message,
+                    subject = review.subject,
                 )
             } catch (e: IllegalArgumentException) {
                 mut.value = ImageAnalysisUiState.ImageError(
                     species = review.species,
                     message = "Could not process the captured image: ${e.message}",
+                    subject = review.subject,
                 )
             } catch (e: IllegalStateException) {
                 mut.value = ImageAnalysisUiState.ImageError(
                     species = review.species,
                     message = "Image analysis unavailable: ${e.message}",
+                    subject = review.subject,
                 )
             }
         }
     }
 
     private fun imageRequest(
-        species: Species?,
+        subject: AnimalSubject?,
         payloadBase64: String,
         clinicalContext: String?,
     ) = AiRequest(
-        headline = listOfNotNull(
-            species?.name?.lowercase()?.replaceFirstChar { it.uppercase() }
-                ?: "Unspecified species",
-            ageLabel,
-        ).joinToString(" · "),
+        headline = listOfNotNull(subject?.label, ageLabel).joinToString(" · ")
+            .ifBlank { "Unspecified species" },
         findings = buildString {
             append(IMAGE_FINDINGS)
-            // The backend prompt is the findings text: age must travel here.
+            // The exact selected animal and its constraint travel in the prompt.
+            subject?.let { append(" ${it.constraint}") }
             ageLabel?.let { age -> append(" Patient age: $age.") }
         },
         imageBase64 = payloadBase64,
         // Blank context must not ship as whitespace — treat it as absent.
         clinicalContext = clinicalContext?.trim()?.takeIf { it.isNotEmpty() },
+        animalCategory = subject?.category?.label,
+        animalLabel = subject?.label,
     )
 
     private fun resultNarrative(result: AiResult): String = when (result) {
@@ -243,19 +266,22 @@ class ImageAnalysisViewModel @Inject constructor(
     fun queueForRetry(result: ImageAnalysisUiState.Result) {
         if (!isQueueableFallbackReason(result.fallbackReason)) return
         val imageBase64 = result.imageBase64 ?: return
-        enqueuePendingAnalysis(imageBase64, result.species, result.clinicalContext)
+        enqueuePendingAnalysis(imageBase64, result.species, result.clinicalContext, result.subject)
     }
 
     private fun enqueuePendingAnalysis(
         imageBase64: String,
         species: Species?,
         clinicalContext: String?,
+        subject: AnimalSubject?,
     ) {
         viewModelScope.launch {
             val entity = PendingCloudAnalysisEntity(
                 id = UUID.randomUUID().toString(),
                 imageBase64 = imageBase64,
                 species = species?.name,
+                animalCategory = subject?.category?.label,
+                animalLabel = subject?.label,
                 clinicalContext = clinicalContext,
                 caseId = null, // Linked to a case if the vet saves it later
                 patientId = null,

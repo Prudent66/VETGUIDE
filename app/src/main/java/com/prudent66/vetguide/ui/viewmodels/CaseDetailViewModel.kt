@@ -16,6 +16,7 @@ import com.prudent66.vetguide.domain.model.CaseArtifactType
 import com.prudent66.vetguide.domain.model.CasePayloadCodec
 import com.prudent66.vetguide.domain.model.CaseStatus
 import com.prudent66.vetguide.domain.model.ClinicProfile
+import com.prudent66.vetguide.domain.model.ClinicalSpeciesCatalog
 import com.prudent66.vetguide.domain.model.Patient
 import com.prudent66.vetguide.domain.model.QuestionnaireArtifactPayload
 import com.prudent66.vetguide.domain.model.SoapPayload
@@ -246,8 +247,7 @@ class CaseDetailViewModel @Inject constructor(
         return SoapReportData(
             patientLine = listOfNotNull(
                 patient?.name ?: "Unregistered patient",
-                patient?.species?.name?.lowercase()
-                    ?.replaceFirstChar { it.uppercase() },
+                patient?.let(ClinicalSpeciesCatalog::reportLabel),
             ).joinToString(" · ") + ageLine,
             ownerLine = patient?.ownerName,
             caseId = success.case.id,

@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.prudent66.vetguide.domain.ai.AiAnalysisData
 import com.prudent66.vetguide.domain.ai.SuspectedCondition
-import com.prudent66.vetguide.domain.model.Species
+import com.prudent66.vetguide.domain.model.AnimalSubject
 import com.prudent66.vetguide.domain.ai.buildPrescriptionPlan
 import com.prudent66.vetguide.ui.components.PrescriptionCard
 import kotlin.math.roundToInt
@@ -30,7 +30,7 @@ import kotlin.math.roundToInt
 @Composable
 internal fun StructuredReport(
     data: AiAnalysisData,
-    species: Species? = null,
+    subject: AnimalSubject? = null,
     weightKg: Double? = null,
 ) {
     val plan = remember(data) { buildPrescriptionPlan(data) }
@@ -39,7 +39,7 @@ internal fun StructuredReport(
         DifferentialSection(data.suspectedConditions)
         PrescriptionCard(
             plan.prescriptions,
-            species = species,
+            subject = subject,
             weightKg = weightKg,
             modifier = Modifier.fillMaxWidth(),
         )

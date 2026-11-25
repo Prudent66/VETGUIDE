@@ -29,7 +29,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ConditionWeightEntity::class,
         PendingCloudAnalysisEntity::class,
     ],
-    version = 7, // literal required by the Room processor
+    version = 8, // literal required by the Room processor
     exportSchema = true,
 )
 abstract class VetguideDatabase : RoomDatabase() {
@@ -44,7 +44,7 @@ abstract class VetguideDatabase : RoomDatabase() {
     abstract fun pendingCloudAnalysisDao(): PendingCloudAnalysisDao
 
     companion object {
-        const val VETGUIDE_DB_VERSION = 7
+        const val VETGUIDE_DB_VERSION = 8
         const val VETGUIDE_DB_NAME = "vetguide.db"
         const val KB_SEED_VERSION_KEY = "kb_seed_version"
 
@@ -155,6 +155,14 @@ abstract class VetguideDatabase : RoomDatabase() {
         val migration6To7: Migration = object : Migration(6, 7) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE `patients` ADD COLUMN `wildlifeGroup` TEXT")
+            }
+        }
+
+        /** v8: exact selected animal on queued photo analyses. */
+        val migration7To8: Migration = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `pending_cloud_analyses` ADD COLUMN `animalCategory` TEXT")
+                db.execSQL("ALTER TABLE `pending_cloud_analyses` ADD COLUMN `animalLabel` TEXT")
             }
         }
     }

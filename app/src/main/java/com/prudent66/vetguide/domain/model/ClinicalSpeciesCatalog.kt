@@ -79,4 +79,11 @@ object ClinicalSpeciesCatalog {
         patient.species == Species.OTHER -> "Other"
         else -> patient.species.name.lowercase().replaceFirstChar { it.uppercase() }
     }
+
+    /**
+     * Exact animal for clinical reports and photo-analysis labels: wild patients
+     * show subtype and group (e.g. "African Wild Dog · Jackal / Fox / Wild Dog")
+     * instead of the legacy "Other" enum placeholder.
+     */
+    fun reportLabel(patient: Patient): String = AnimalSubject.fromPatient(patient).label
 }

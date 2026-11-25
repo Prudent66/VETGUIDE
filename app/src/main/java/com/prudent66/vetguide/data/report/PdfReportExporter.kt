@@ -147,7 +147,7 @@ object PdfReportExporter {
             val nameWidth = (pctRight - pctWidth - 8f - (EDGE + pad)).coerceAtLeast(60f)
             Triple(wrap(name, namePaint, nameWidth), pctText, pctWidth)
         }
-        val rowsHeight = rows.fold(0f) { total, row -> total + rowRowHeight(row.first.size) }
+        val rowsHeight = rows.fold(0f) { total, row -> total + differentialRowHeight(row.first.size) }
         val boxH = titleH + rowsHeight + 12f
         c.ensure(boxH + 10f)
         val top = c.y
@@ -155,10 +155,11 @@ object PdfReportExporter {
         c.text("Ranked Suspected Conditions", EDGE + pad, top + 20f, paint(ACCENT, 12f, Typeface.BOLD))
         var y = top + titleH
         rows.forEach { (lines, pctText, pctWidth) ->
-            val rowH = rowRowHeight(lines.size)
+            val rowH = differentialRowHeight(lines.size)
             lines.forEachIndexed { index, line -> c.text(line, EDGE + pad, y + index * 13f, namePaint) }
             c.text(pctText, pctRight - pctWidth, y, pctPaint)
-            val barTop = y + rowH - 10f
+            // Advance by the full measured label height before drawing the bar.
+            val barTop = differentialBarTop(y, lines.size)
             c.rect(RectF(EDGE + pad, barTop, EDGE + WIDTH - 56f, barTop + 8f), TINT)
             c.rect(
                 RectF(EDGE + pad, barTop, EDGE + pad + (WIDTH - 68f) * rowPercent(pctText) / 100f, barTop + 8f),

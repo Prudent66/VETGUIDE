@@ -18,11 +18,13 @@ import com.prudent66.vetguide.domain.ai.AiRequest
 import com.prudent66.vetguide.domain.model.Case
 import com.prudent66.vetguide.domain.model.CaseArtifact
 import com.prudent66.vetguide.domain.model.CaseArtifactType
+import com.prudent66.vetguide.domain.model.AnimalCategory
 import com.prudent66.vetguide.domain.model.CaseStatus
 import com.prudent66.vetguide.domain.model.NeuterStatus
 import com.prudent66.vetguide.domain.model.Patient
 import com.prudent66.vetguide.domain.model.PatientSex
 import com.prudent66.vetguide.domain.model.Species
+import com.prudent66.vetguide.domain.model.WildlifeGroup
 import com.prudent66.vetguide.domain.repository.CaseRepository
 import com.prudent66.vetguide.domain.repository.PatientRepository
 import dagger.assisted.Assisted
@@ -144,13 +146,24 @@ class CloudAnalysisWorker @AssistedInject constructor(
     private suspend fun createPatientForAnalysis(pending: PendingCloudAnalysisEntity): String {
         val now = System.currentTimeMillis()
         val species = Species.entries.firstOrNull { it.name == pending.species } ?: Species.OTHER
+        val isWild = pending.animalCategory == AnimalCategory.WILD.label
+        val animalLabel = pending.animalLabel.orEmpty()
+        val wildGroup = if (isWild) {
+            WildlifeGroup.entries.firstOrNull { it.label in animalLabel }?.label
+        } else {
+            null
+        }
+        val wildAnimal = animalLabel.substringBefore(" · ")
+            .takeIf { it != animalLabel && it.isNotBlank() }
         val label = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
             .format(Date(pending.createdAtEpochMs))
         val patient = Patient(
             id = UUID.randomUUID().toString(),
             name = "Analysis $label",
-            species = species,
-            breed = null,
+            animalCategory = if (isWild) AnimalCategory.WILD else AnimalCategory.DOMESTIC,
+            wildlifeGroup = wildGroup,
+            species = if (isWild) Species.OTHER else species,
+            breed = wildAnimal,
             sex = PatientSex.UNKNOWN,
             neuterStatus = NeuterStatus.UNKNOWN,
             dateOfBirthEpochMs = null,
@@ -208,16 +221,23 @@ class CloudAnalysisWorker @AssistedInject constructor(
     }
 
     private fun PendingCloudAnalysisEntity.toAiRequest(): AiRequest = AiRequest(
-        headline = species?.let { "Species: $it" } ?: "Unspecified species",
+        headline = animalLabel ?: species?.let { "Species: $it" } ?: "Unspecified species",
         findings = buildString {
             append(
                 "Photograph of the animal's presenting condition submitted " +
                     "for cloud image analysis.",
             )
+            animalLabel?.let { label ->
+                append(" Selected animal: $label (${animalCategory ?: "Domestic"} pathway). ")
+                append("Restrict every finding, differential diagnosis and clinical description ")
+                append("to $label only — never describe conditions of another species.")
+            }
             clinicalContext?.let { contextText -> append(" $contextText") }
         },
         imageBase64 = imageBase64,
         clinicalContext = clinicalContext?.trim()?.takeIf { it.isNotEmpty() },
+        animalCategory = animalCategory,
+        animalLabel = animalLabel,
     )
 
     private companion object {

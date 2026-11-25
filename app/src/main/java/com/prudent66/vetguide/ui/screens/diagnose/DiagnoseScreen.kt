@@ -1,7 +1,6 @@
 package com.prudent66.vetguide.ui.screens.diagnose
 import com.prudent66.vetguide.ui.components.LocalBottomBarClearance
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Box
@@ -36,8 +35,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.prudent66.vetguide.domain.model.Patient
 import com.prudent66.vetguide.domain.model.AnimalCategory
+import com.prudent66.vetguide.domain.model.AnimalSubject
 import com.prudent66.vetguide.domain.model.ClinicalSpeciesCatalog
 import com.prudent66.vetguide.domain.model.Species
+import com.prudent66.vetguide.domain.model.WildlifeGroup
 import com.prudent66.vetguide.ui.components.AnimalCategoryToggle
 import com.prudent66.vetguide.domain.model.ageLabel
 import com.prudent66.vetguide.ui.components.SpeciesField
@@ -122,7 +123,9 @@ private fun QuestionnairePhase(
         is DiagnosticUiState.Start -> StartPhase(
             start = s,
             viewModel = viewModel,
-            onAnalyzeImage = { ageLabel, weight -> imageViewModel.start(s.species, ageLabel, s.patientId, weight) },
+            onAnalyzeImage = { subject, ageLabel, weight ->
+                imageViewModel.start(s.species, subject, ageLabel, s.patientId, weight)
+            },
         )
         is DiagnosticUiState.Wizard -> WizardPhase(wizard = s, viewModel = viewModel)
         is DiagnosticUiState.Results -> ResultsPhase(
@@ -169,7 +172,7 @@ private fun ImageFlowPhase(
         )
         is ImageAnalysisUiState.QuotaExceeded -> QuotaExceededPhase(
             detail = s.detail,
-            onRetry = { imageViewModel.start(s.species) },
+            onRetry = { imageViewModel.start(s.species, s.subject) },
             onOfflineFallback = { imageViewModel.reset() },
         )
     }
@@ -237,11 +240,15 @@ private fun ErrorPhase(
 private fun StartPhase(
     start: DiagnosticUiState.Start,
     viewModel: DiagnosticViewModel,
-    onAnalyzeImage: (String?, Double?) -> Unit,
+    onAnalyzeImage: (AnimalSubject?, String?, Double?) -> Unit,
 ) {
     val patients by viewModel.patients.collectAsState()
     var category by rememberSaveable { mutableStateOf(AnimalCategory.DOMESTIC) }
+    var wildGroup by rememberSaveable {
+        mutableStateOf(ClinicalSpeciesCatalog.first(AnimalCategory.WILD))
+    }
     val selectedPatient = patients.firstOrNull { it.id == start.patientId }
+    val subject = animalSubjectFor(category, selectedPatient, start.species, wildGroup)
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -255,18 +262,21 @@ private fun StartPhase(
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.error,
         )
-        AnimalCategoryToggle(
-            selected = category,
-            onSelect = { category = it },
-        )
+        AnimalCategoryToggle(selected = category, onSelect = { category = it })
         if (category == AnimalCategory.WILD) {
-            WildlifePathwayPanel()
+            WildlifePathwayPanel(
+                selectedGroup = ClinicalSpeciesCatalog.wildlifeGroup(wildGroup)
+                    ?: WildlifeGroup.WILD_RUMINANTS,
+                onSelect = { wildGroup = it.label },
+            )
         } else {
             SpeciesSelection(start, viewModel)
         }
         PatientSelection(start, patients, viewModel)
         OutlinedButton(
-            onClick = { onAnalyzeImage(selectedPatient?.ageLabel(), selectedPatient?.weightKg) },
+            onClick = {
+                onAnalyzeImage(subject, selectedPatient?.ageLabel(), selectedPatient?.weightKg)
+            },
             modifier = Modifier.fillMaxWidth(),
         ) { Text("Analyze a photo") }
         Button(
@@ -284,6 +294,23 @@ private fun StartPhase(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
+}
+
+/** Resolves the exact animal handed to photo analysis and its prompt. */
+private fun animalSubjectFor(
+    category: AnimalCategory,
+    patient: Patient?,
+    species: Species?,
+    wildGroup: String,
+): AnimalSubject? = when {
+    category == AnimalCategory.WILD ->
+        patient?.takeIf { it.animalCategory == AnimalCategory.WILD }
+            ?.let(AnimalSubject::fromPatient)
+            ?: AnimalSubject.wild(wildGroup)
+    patient?.animalCategory == AnimalCategory.DOMESTIC ->
+        AnimalSubject.domestic(patient.species)
+    species != null && species != Species.OTHER -> AnimalSubject.domestic(species)
+    else -> null
 }
 
 @Composable

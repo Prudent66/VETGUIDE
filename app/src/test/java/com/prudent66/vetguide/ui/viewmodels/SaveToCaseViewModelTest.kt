@@ -1,18 +1,25 @@
 package com.prudent66.vetguide.ui.viewmodels
 
+import com.prudent66.vetguide.domain.ai.AiAnalysisData
+import com.prudent66.vetguide.domain.ai.SuspectedCondition
 import com.prudent66.vetguide.domain.model.AnimalCategory
+import com.prudent66.vetguide.domain.model.AnimalSubject
 import com.prudent66.vetguide.domain.model.Case
 import com.prudent66.vetguide.domain.model.CaseArtifact
+import com.prudent66.vetguide.domain.model.CaseArtifactType
+import com.prudent66.vetguide.domain.model.CasePayloadCodec
 import com.prudent66.vetguide.domain.model.CaseStatus
 import com.prudent66.vetguide.domain.model.NeuterStatus
 import com.prudent66.vetguide.domain.model.Patient
 import com.prudent66.vetguide.domain.model.PatientSex
+import com.prudent66.vetguide.domain.model.SoapPayload
 import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.domain.repository.CaseRepository
 import com.prudent66.vetguide.domain.repository.PatientRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -169,6 +176,74 @@ class SaveToCaseViewModelTest {
         assertEquals("p2", blank.selectedPatientId)
     }
 
+    @Test
+    fun `saving an assessment pre-fills objective assessment and plan SOAP fields`() {
+        val caseRepo = FakeCaseRepository()
+        val viewModel = SaveToCaseViewModel(
+            caseRepository = caseRepo,
+            patientRepository = FakePatientRepository(patients),
+        )
+        val analysis = AiAnalysisData(
+            provider = "test-provider",
+            model = "test-model",
+            findings = listOf("Lesion on flank"),
+            suspectedConditions = listOf(
+                SuspectedCondition("Secondary wound infection", 0.8),
+            ),
+            recommendedNextSteps = listOf("Isolate the affected animal", "Provide clean water"),
+            prescriptions = listOf("Oxytetracycline 20% 15 mg/kg IM once daily"),
+        )
+        viewModel.openForImage(
+            ImageAnalysisUiState.Result(
+                species = Species.CATTLE,
+                patientId = "p1",
+                providerId = "test",
+                narrative = "Findings: lesion on flank.",
+                degraded = false,
+                analysisData = analysis,
+            ),
+        )
+
+        viewModel.save()
+
+        val soap = caseRepo.savedArtifacts
+            .first { it.type == CaseArtifactType.SOAP }
+            .let { CasePayloadCodec.decodeOrNull<SoapPayload>(it.content)!! }
+        assertTrue(soap.objective.contains("Lesion on flank"))
+        assertTrue(soap.assessment.contains("Secondary wound infection"))
+        assertTrue(soap.assessment.contains("80%"))
+        assertTrue(soap.plan.contains("Oxytetracycline"))
+        assertTrue(soap.plan.contains("Isolate the affected animal"))
+    }
+
+    @Test
+    fun `saving a wild photo keeps the exact wild animal in the case title`() {
+        val caseRepo = FakeCaseRepository()
+        val viewModel = SaveToCaseViewModel(
+            caseRepository = caseRepo,
+            patientRepository = FakePatientRepository(patients),
+        )
+        viewModel.openForImage(
+            ImageAnalysisUiState.Result(
+                species = Species.OTHER,
+                subject = AnimalSubject.wild(
+                    "Jackal / Fox / Wild Dog", "African Wild Dog",
+                ),
+                patientId = "p1",
+                providerId = "test",
+                narrative = "findings",
+                degraded = false,
+            ),
+        )
+
+        viewModel.save()
+
+        assertEquals(
+            "Photo analysis — African Wild Dog · Jackal / Fox / Wild Dog",
+            caseRepo.savedCases.single().presentingComplaint,
+        )
+    }
+
     private fun patient(id: String, name: String, species: Species) = Patient(
         id = id,
         name = name,
@@ -206,6 +281,7 @@ class SaveToCaseViewModelTest {
 
     private class FakeCaseRepository : CaseRepository {
         val savedCases = mutableListOf<Case>()
+        val savedArtifacts = mutableListOf<CaseArtifact>()
 
         override fun observeCases(): Flow<List<Case>> = flowOf(emptyList())
         override fun observeCasesForPatient(patientId: String): Flow<List<Case>> = flowOf(emptyList())
@@ -218,7 +294,10 @@ class SaveToCaseViewModelTest {
         override suspend fun setCaseStatus(id: String, status: CaseStatus) = Unit
         override suspend fun deleteCase(id: String) = Unit
         override fun observeArtifactsForCase(caseId: String): Flow<List<CaseArtifact>> = flowOf(emptyList())
-        override suspend fun upsertArtifact(artifact: CaseArtifact): String = artifact.id
+        override suspend fun upsertArtifact(artifact: CaseArtifact): String {
+            savedArtifacts += artifact
+            return artifact.id
+        }
         override suspend fun deleteArtifact(id: String) = Unit
     }
 }

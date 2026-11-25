@@ -51,6 +51,17 @@ internal fun rowRowHeight(lineCount: Int): Float = maxOf(14f, lineCount * 13f) +
 /** Extracts the numeric percentage from a "95%" style string. */
 internal fun rowPercent(pctText: String): Int = pctText.removeSuffix("%").toIntOrNull() ?: 0
 
+/** Full measured height of a wrapped condition label (13pt per line). */
+internal fun differentialTextHeight(lineCount: Int): Float = maxOf(1, lineCount) * 13f
+
+/** Bar always starts below every rendered label line, never over the text. */
+internal fun differentialBarTop(y: Float, lineCount: Int): Float =
+    y + differentialTextHeight(lineCount) + 4f
+
+/** Row height reserves the label block, the 8pt bar and a 4pt lower gap. */
+internal fun differentialRowHeight(lineCount: Int): Float =
+    differentialBarTop(0f, lineCount) + 12f
+
 /** Splits a single over-long word into chunks that each fit [maxWidth]. */
 private fun breakWord(
     word: String,
