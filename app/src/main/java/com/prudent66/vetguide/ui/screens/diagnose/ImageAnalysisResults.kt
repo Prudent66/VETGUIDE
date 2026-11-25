@@ -135,7 +135,6 @@ private fun ResultBody(result: ImageAnalysisUiState.Result) {
             weightKg = result.weightKg,
             condition = firstNarrativeCondition(result.narrative),
             analysisText = analysisNarrative(narrative = result.narrative),
-            modifier = Modifier.fillMaxWidth(),
         )
     }
 }

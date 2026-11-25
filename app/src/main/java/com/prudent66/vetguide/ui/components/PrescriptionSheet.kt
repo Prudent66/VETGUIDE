@@ -48,11 +48,10 @@ fun PrescriptionCard(
     weightKg: Double? = null,
     condition: String? = null,
     analysisText: String = "",
-    modifier: Modifier = Modifier,
 ) {
     if (prescriptions.isEmpty()) return
     var showSheet by rememberSaveable { mutableStateOf(false) }
-    Card(modifier = modifier.fillMaxWidth()) {
+    Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),

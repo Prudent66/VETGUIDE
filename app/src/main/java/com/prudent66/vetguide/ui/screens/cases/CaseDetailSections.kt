@@ -200,7 +200,6 @@ private fun AiAnalysisCard(ai: AiArtifactPayload, patient: Patient?) {
         weightKg = patient?.weightKg,
         condition = ai.analysisData?.suspectedConditions?.firstOrNull()?.name,
         analysisText = analysisNarrative(ai.analysisData, ai.narrative),
-        modifier = Modifier.fillMaxWidth(),
     )
 }
 
