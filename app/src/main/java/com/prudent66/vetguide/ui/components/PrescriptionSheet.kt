@@ -248,6 +248,13 @@ private fun DosageResultPanel(
                         "${formatAmount(result.concentrationMgPerMl)} mg/mL bottle",
                 )
                 ResultLine("Route & Schedule", "${result.route.label} · ${result.frequency}")
+                topicalGuidance(result.route)?.let { guidance ->
+                    Text(
+                        guidance,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
                 ResultLine("Meat Withdrawal", "${result.meatWithdrawalDays} days")
                 ResultLine("Milk Withdrawal", "${result.milkWithdrawalDays} days")
             }
@@ -291,6 +298,13 @@ private fun WildlifeDosagePanel(
                         "${formatAmount(result.weightKg)} kg",
                 )
                 ResultLine("Route & Schedule", "${result.route.label} · ${result.frequency}")
+                topicalGuidance(result.route)?.let { guidance ->
+                    Text(
+                        guidance,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
                 ResultLine("Meat Withdrawal", "${result.meatWithdrawalDays} days")
                 ResultLine("Milk Withdrawal", "${result.milkWithdrawalDays} days")
             }

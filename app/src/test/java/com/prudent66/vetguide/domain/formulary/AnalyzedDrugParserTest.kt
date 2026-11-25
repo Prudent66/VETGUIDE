@@ -49,6 +49,18 @@ class AnalyzedDrugParserTest {
     }
 
     @Test
+    fun `recognized topical brand keeps the application route and schedule`() {
+        val mentions = medicationMentions(
+            "Apply Neosporin antibiotic ointment twice daily.",
+            listOf("Neosporin"),
+        )
+        assertEquals(1, mentions.size)
+        assertEquals("Neosporin", mentions[0].name)
+        assertEquals(DoseRoute.TOPICAL, mentions[0].route)
+        assertEquals("Twice daily", mentions[0].frequency)
+    }
+
+    @Test
     fun `extracts named drugs case insensitively from narrative text`() {
         assertEquals(
             listOf("Ivermectin", "Fenbendazole"),

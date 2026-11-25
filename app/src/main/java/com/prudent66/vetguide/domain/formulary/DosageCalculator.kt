@@ -453,6 +453,11 @@ private val drugKeywords = mapOf(
     "antibiotic ointment" to "topical-antibiotic-ointment",
     "antiseptic oil" to "wound-spray-antiseptic-oil",
     "wound spray" to "wound-spray-antiseptic-oil",
+    "neosporin" to "topical-antibiotic-ointment",
+    "bacitracin" to "topical-antibiotic-ointment",
+    "polysporin" to "topical-antibiotic-ointment",
+    "triple antibiotic" to "topical-antibiotic-ointment",
+    "mupirocin" to "topical-antibiotic-ointment",
 )
 
 /**

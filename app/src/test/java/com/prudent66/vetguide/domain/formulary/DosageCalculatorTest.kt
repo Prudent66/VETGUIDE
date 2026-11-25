@@ -106,6 +106,19 @@ class DosageCalculatorTest {
     }
 
     @Test
+    fun `Build 26 topical brand names match the topical ointment product`() {
+        assertEquals(
+            "topical-antibiotic-ointment",
+            matchDrugFromText("Apply Neosporin antibiotic ointment to the lesion")!!.id,
+        )
+        assertEquals("topical-antibiotic-ointment", matchDrugFromText("Mupirocin")!!.id)
+        assertEquals(
+            "oxytetracycline-20",
+            matchDrugFromText("Oxytetracycline 20% with Neosporin available")!!.id,
+        )
+    }
+
+    @Test
     fun `generic ivermectin matches the one percent product`() {
         assertEquals("ivermectin-1", matchDrugFromText("ivermectin")!!.id)
         assertEquals("ivermectin-1", matchDrugFromText("Give IVERMECTIN 1% SC")!!.id)

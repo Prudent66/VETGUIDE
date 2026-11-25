@@ -311,4 +311,63 @@ class DrugMatchingTest {
         assertTrue(domestic.all { it.doseBySpecies.keys.none { key -> key == Species.OTHER } })
         assertTrue(wild.all { it.doseByGroup.keys.all { key -> key is WildlifeGroup } })
     }
+
+    @Test
+    fun `Build 26 domestic topical recommendation selects a topical instead of oxytetracycline`() {
+        val text = "Apply Neosporin antibiotic ointment to the lesion twice daily."
+        val drugs = domesticDrugsFor(text)
+        assertTrue(drugs.any { it.isAnalyzedFallback && it.name.startsWith("Neosporin") })
+
+        val selected = bestDomesticDrug(text, "Skin infection", Species.DOG)!!
+        assertEquals("topical-antibiotic-ointment", selected.id)
+        assertEquals(DoseRoute.TOPICAL, selected.route)
+        assertTrue(selected.id != "oxytetracycline-5")
+
+        val result = calculateDosage(selected, Species.DOG, 10.0)!!
+        assertEquals(DoseRoute.TOPICAL, result.route)
+        assertEquals(0.15, result.syringeMl, 0.001)
+        assertTrue(result.frequency.contains("Apply"))
+    }
+
+    @Test
+    fun `Build 26 domestic condition outranks an incidental oxytetracycline keyword`() {
+        val text = "Rule out oxytetracycline-responsive pneumonia; treat the skin abscess."
+        val selected = bestDomesticDrug(text, "Skin abscess", Species.DOG)!!
+        assertEquals("topical-antibiotic-ointment", selected.id)
+        assertEquals(DoseRoute.TOPICAL, selected.route)
+    }
+
+    @Test
+    fun `Build 26 recommended oxytetracycline still selects and calculates in both pathways`() {
+        val domestic = bestDomesticDrug("Oxytetracycline 20% 15 mg/kg IM", "Pneumonia", Species.CATTLE)!!
+        assertEquals("oxytetracycline-20", domestic.id)
+        val domesticResult = calculateDosage(domestic, Species.CATTLE, 100.0)!!
+        assertEquals(1500.0, domesticResult.doseMg, 0.001)
+        assertEquals(7.5, domesticResult.syringeMl, 0.001)
+        assertEquals(DoseRoute.IM, domesticResult.route)
+
+        val wildText = "Oxytetracycline 20% (wild) 15 mg/kg IM"
+        val wild = bestWildDrug(wildText, null, WildlifeGroup.WILD_RUMINANTS)!!
+        assertEquals("wild-oxytetracycline-20", wild.id)
+        val wildResult = calculateWildlifeDosage(wild, WildlifeGroup.WILD_RUMINANTS, 100.0)!!
+        assertEquals(1500.0, wildResult.doseMg, 0.001)
+        assertEquals(7.5, wildResult.syringeMl, 0.001)
+    }
+
+    @Test
+    fun `Build 26 topical weight recalculation stays in the domestic pathway`() {
+        val text = "Mupirocin ointment apply twice daily"
+        val domestic = domesticDrugsFor(text).first { it.isAnalyzedFallback }
+        assertEquals(DoseRoute.TOPICAL, domestic.route)
+        val light = calculateDosage(domestic, Species.CAT, 2.0)!!
+        val heavier = calculateDosage(domestic, Species.CAT, 4.0)!!
+        assertEquals(light.doseMg * 2.0, heavier.doseMg, 0.001)
+        assertEquals(light.syringeMl * 2.0, heavier.syringeMl, 0.001)
+        assertEquals(DoseRoute.TOPICAL, heavier.route)
+
+        val wild = wildDrugsFor(text, WildlifeGroup.WILD_CANIDS).filter { it.isAnalyzedFallback }
+        assertTrue(domestic.id.startsWith("analyzed-domestic-"))
+        assertTrue(wild.all { it.id.startsWith("analyzed-wild-") })
+        assertTrue(wild.none { it.name == domestic.name })
+    }
 }

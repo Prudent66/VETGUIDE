@@ -11,6 +11,8 @@ import com.prudent66.vetguide.domain.model.WildlifeGroup
 
 private val domesticConditionDrugs = mapOf(
     "abscess" to "topical-antibiotic-ointment",
+    "skin infection" to "topical-antibiotic-ointment",
+    "skin lesion" to "topical-antibiotic-ointment",
     "wound sepsis" to "wound-spray-antiseptic-oil",
     "mastitis" to "penicillin-streptomycin",
     "pneumonia" to "oxytetracycline-20",
@@ -52,6 +54,8 @@ private val domesticAnalyzedNames = listOf(
     "Sulfadimidine", "Trimethoprim", "Levamisole", "Closantel",
     "Doramectin", "Furosemide", "Prednisolone", "Pyrantel Pamoate",
     "Ivermectin", "Oxytetracycline", "Toltrazuril", "Moxidectin", "Selamectin",
+    "Neosporin", "Bacitracin", "Polysporin", "Triple Antibiotic Ointment",
+    "Mupirocin",
 )
 
 private val wildAnalyzedNames = listOf(
@@ -80,17 +84,30 @@ fun wildConditionDrug(condition: String?, group: WildlifeGroup): WildlifeFormula
         ?.let(::findWildlifeDrug)
         ?.takeIf { group in it.doseByGroup }
 
-/** Best domestic default: explicit text, then analyzed drug, then condition. */
+/**
+ * Best domestic default with the same analysed-first flow as wildlife. The
+ * text matcher is consulted only after an analysed medication or a condition
+ * recommendation, so an incidental oxytetracycline keyword can never become
+ * an unrequested IM default. A known topical still wins over its analysed
+ * counterpart so the application guidance comes from the formulary.
+ */
 fun bestDomesticDrug(
     text: String,
     condition: String?,
     species: Species,
 ): FormularyDrug? {
     val drugs = domesticDrugsFor(text)
-    return matchDrugFromText(text)
-        ?: drugs.firstOrNull { it.isAnalyzedFallback && species in it.doseBySpecies }
-        ?: domesticConditionDrug(condition)
-        ?: drugs.firstOrNull { species in it.doseBySpecies }
+    val analyzed = drugs.firstOrNull { it.isAnalyzedFallback && species in it.doseBySpecies }
+    val static = matchDrugFromText(text)
+    val conditionMatch = domesticConditionDrug(condition)
+    return when {
+        static?.route == DoseRoute.TOPICAL && analyzed?.route == DoseRoute.TOPICAL -> static
+        analyzed != null -> analyzed
+        conditionMatch != null && (static == null || static.id.startsWith("oxytetracycline")) ->
+            conditionMatch
+        static != null -> static
+        else -> drugs.firstOrNull { species in it.doseBySpecies }
+    }
 }
 
 /** Best wildlife default, using only the independent wildlife formulary. */
