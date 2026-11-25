@@ -68,18 +68,17 @@ internal fun extractedDrugNames(text: String, dictionary: List<String>): List<St
     medicationMentions(text, dictionary).map { it.name }
 
 /** Preferred domestic product for a suspected condition, if one is mapped. */
-fun domesticConditionDrug(condition: String?): FormularyDrug? {
-    val key = condition?.lowercase() ?: return null
-    val id = domesticConditionDrugs.entries.firstOrNull { it.key in key }?.value ?: return null
-    return findDrug(id)
-}
+fun domesticConditionDrug(condition: String?): FormularyDrug? =
+    condition?.lowercase()
+        ?.let { key -> domesticConditionDrugs.entries.firstOrNull { it.key in key }?.value }
+        ?.let(::findDrug)
 
 /** Preferred wildlife product for a condition, restricted to the selected group. */
-fun wildConditionDrug(condition: String?, group: WildlifeGroup): WildlifeFormularyEntry? {
-    val key = condition?.lowercase() ?: return null
-    val id = wildConditionDrugs.entries.firstOrNull { it.key in key }?.value ?: return null
-    return findWildlifeDrug(id)?.takeIf { group in it.doseByGroup }
-}
+fun wildConditionDrug(condition: String?, group: WildlifeGroup): WildlifeFormularyEntry? =
+    condition?.lowercase()
+        ?.let { key -> wildConditionDrugs.entries.firstOrNull { it.key in key }?.value }
+        ?.let(::findWildlifeDrug)
+        ?.takeIf { group in it.doseByGroup }
 
 /** Best domestic default: explicit text, then analyzed drug, then condition. */
 fun bestDomesticDrug(
