@@ -43,7 +43,6 @@ import com.prudent66.vetguide.ui.viewmodels.SaveToCaseViewModel
 private fun SaveButton(
     viewModel: SaveToCaseViewModel,
     state: SaveToCaseUiState.Visible,
-    onDismiss: () -> Unit,
 ) {
     Button(
         onClick = viewModel::save,
@@ -104,7 +103,7 @@ fun SaveToCaseSheet(
                     viewModel.setQuickAddCategory(AnimalCategory.WILD, group)
                 },
             )
-            SaveButton(viewModel, state, onDismiss)
+            SaveButton(viewModel, state)
         }
     }
 }

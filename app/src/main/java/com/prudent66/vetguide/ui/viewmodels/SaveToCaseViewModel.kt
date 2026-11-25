@@ -16,7 +16,6 @@ import com.prudent66.vetguide.domain.model.Patient
 import com.prudent66.vetguide.domain.model.PatientSex
 import com.prudent66.vetguide.domain.model.QuestionnaireArtifactPayload
 import com.prudent66.vetguide.domain.model.Species
-import com.prudent66.vetguide.domain.model.SoapPayload
 import com.prudent66.vetguide.domain.model.AiArtifactPayload
 import com.prudent66.vetguide.domain.model.displayName
 import com.prudent66.vetguide.domain.model.renderDifferentialsSeed
@@ -231,15 +230,7 @@ class SaveToCaseViewModel @Inject constructor(
                 viewModelScope.launch {
                     try {
                         val now = System.currentTimeMillis()
-                        // A typed new-patient name always wins: never fall back to the
-                        // patient preselected on the Diagnose screen.
-                        val patientId = if (visible.quickAddName.isNotBlank()) {
-                            quickAddPatient(visible, now)
-                        } else {
-                            assessment.defaultPatientId
-                                ?: visible.selectedPatientId
-                                ?: quickAddPatient(visible, now)
-                        }
+                        val patientId = quickAddPatient(assessment, visible, now)
                         val caseId = UUID.randomUUID().toString()
                         caseRepository.upsertCase(
                             Case(
@@ -293,7 +284,21 @@ class SaveToCaseViewModel @Inject constructor(
         )
     }
 
-    private suspend fun quickAddPatient(visible: SaveToCaseUiState.Visible, now: Long): String {
+    /**
+     * Resolves the target patient: a typed new name always creates a fresh
+     * patient, otherwise the preselected/default patient is reused.
+     */
+    private suspend fun quickAddPatient(
+        assessment: PendingAssessment,
+        visible: SaveToCaseUiState.Visible,
+        now: Long,
+    ): String {
+        val existingId = if (visible.quickAddName.isBlank()) {
+            assessment.defaultPatientId ?: visible.selectedPatientId
+        } else {
+            null
+        }
+        if (existingId != null) return existingId
         val wild = visible.quickAddCategory == AnimalCategory.WILD
         val patient = Patient(
             id = UUID.randomUUID().toString(),

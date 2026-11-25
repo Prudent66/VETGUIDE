@@ -63,23 +63,22 @@ internal class PdfCursor(
         if (y + 60f > PAGE_H - 56f) startPage()
         paginate(wrapped).forEachIndexed { index, chunk ->
             if (index > 0) startPage()
-            drawBoxChunk(title, chunk, accent, fill, body, continuation = index > 0)
+            val heading = if (index > 0) "$title (cont.)" else title
+            drawBoxChunk(chunk, accent, fill, body, heading)
         }
     }
 
     private fun drawBoxChunk(
-        title: String,
         lines: List<String>,
         accent: Int,
         fill: Int,
         body: Paint,
-        continuation: Boolean,
+        heading: String,
     ) {
         val h = maxOf(46f, lines.size * 15f + 30f)
         val top = y
         rect(RectF(EDGE, top, EDGE + WIDTH, top + h), fill, BORDER)
         rect(RectF(EDGE, top, EDGE + 6f, top + h), accent)
-        val heading = if (continuation) "$title (cont.)" else title
         text(heading, EDGE + BOX_PADDING, top + 20f, paint(accent, 12f, Typeface.BOLD))
         var baseline = top + 38f
         lines.forEach { line ->
