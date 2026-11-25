@@ -151,7 +151,7 @@ class PdfReportExporterTest {
         val barTop = differentialBarTop(top, lineCount)
 
         assertTrue(barTop > lastBaseline + 10f)
-        assertTrue(differentialRowHeight(lineCount) > barTop + 8f)
+        assertTrue(differentialRowHeight(lineCount) > differentialBarTop(0f, lineCount) + 8f)
         assertTrue(differentialRowHeight(lineCount) > differentialTextHeight(lineCount))
         assertEquals(13f, differentialTextHeight(1), 0.001f)
     }
