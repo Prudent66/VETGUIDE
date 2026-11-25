@@ -36,9 +36,6 @@ import com.prudent66.vetguide.ui.viewmodels.SaveToCaseViewModel
  * Phase 7 "Save to Case" sheet: pick an existing patient or quickly add one
  * (name + species; the rest of the signalment stays editable on the patient).
  */
-@OptIn(ExperimentalMaterial3Api::class)
-
-
 @Composable
 private fun SaveButton(
     viewModel: SaveToCaseViewModel,
@@ -59,6 +56,8 @@ private fun SaveButton(
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SaveToCaseSheet(
     state: SaveToCaseUiState.Visible,

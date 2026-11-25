@@ -155,13 +155,13 @@ object PdfReportExporter {
         c.text("Ranked Suspected Conditions", EDGE + pad, top + 20f, paint(ACCENT, 12f, Typeface.BOLD))
         var y = top + titleH
         rows.forEach { (lines, pctText, pctWidth) ->
-            val rowH = PdfTextLayout.rowRowHeight(lines.size)
+            val rowH = rowRowHeight(lines.size)
             lines.forEachIndexed { index, line -> c.text(line, EDGE + pad, y + index * 13f, namePaint) }
             c.text(pctText, pctRight - pctWidth, y, pctPaint)
             val barTop = y + rowH - 10f
             c.rect(RectF(EDGE + pad, barTop, EDGE + WIDTH - 56f, barTop + 8f), TINT)
             c.rect(
-                RectF(EDGE + pad, barTop, EDGE + pad + (WIDTH - 68f) * PdfTextLayout.rowPercent(pctText) / 100f, barTop + 8f),
+                RectF(EDGE + pad, barTop, EDGE + pad + (WIDTH - 68f) * rowPercent(pctText) / 100f, barTop + 8f),
                 ACCENT,
             )
             y += rowH
