@@ -41,6 +41,7 @@ internal fun StructuredReport(
             plan.prescriptions,
             subject = subject,
             weightKg = weightKg,
+            condition = data.suspectedConditions.firstOrNull()?.name,
             modifier = Modifier.fillMaxWidth(),
         )
         SupportiveCareSection(plan.supportiveCare)

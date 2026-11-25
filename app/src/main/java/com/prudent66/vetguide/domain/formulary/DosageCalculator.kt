@@ -13,6 +13,7 @@ enum class DoseRoute(val label: String) {
     DART("Dart"),
     ORAL("Oral"),
     BATH("Bath"),
+    TOPICAL("Topical"),
 }
 
 /** Standard per-kilogram dose range; the recommended value is its midpoint. */
@@ -39,6 +40,8 @@ data class FormularyDrug(
     val meatWithdrawalDays: Int,
     val milkWithdrawalDays: Int,
     val contraindications: Map<Species, String> = emptyMap(),
+    /** True for an analyzed drug added at runtime with conservative fallback dosing. */
+    val isAnalyzedFallback: Boolean = false,
 ) {
     val defaultConcentrationMgPerMl: Double get() = concentrationsMgPerMl.first()
 }
@@ -65,6 +68,8 @@ private fun dose(min: Double, max: Double): DoseRange = DoseRange(min, max)
 private val cattleSheepGoatPig = listOf(Species.CATTLE, Species.GOAT, Species.SHEEP, Species.PIG)
 private val companion = listOf(Species.DOG, Species.CAT)
 private val globalFarmSpecies = listOf(Species.BUFFALO, Species.CAMEL, Species.RABBIT)
+private val terrestrialDomestic =
+    cattleSheepGoatPig + companion + globalFarmSpecies + Species.EQUINE
 
 /**
  * Offline veterinary formulary covering common livestock, poultry and
@@ -272,6 +277,118 @@ val formulary: List<FormularyDrug> = listOf(
         meatWithdrawalDays = 12,
         milkWithdrawalDays = 0,
     ),
+    FormularyDrug(
+        id = "amoxicillin-la",
+        name = "Amoxicillin LA",
+        doseBySpecies = terrestrialDomestic.associateWith { dose(5.0, 10.0) },
+        concentrationsMgPerMl = listOf(150.0),
+        route = DoseRoute.IM,
+        frequency = "Every 48 hours (long acting)",
+        meatWithdrawalDays = 7,
+        milkWithdrawalDays = 3,
+    ),
+    FormularyDrug(
+        id = "amoxicillin",
+        name = "Amoxicillin",
+        doseBySpecies = terrestrialDomestic.associateWith { dose(5.0, 10.0) },
+        concentrationsMgPerMl = listOf(100.0),
+        route = DoseRoute.IM,
+        frequency = "Every 12 hours",
+        meatWithdrawalDays = 5,
+        milkWithdrawalDays = 2,
+    ),
+    FormularyDrug(
+        id = "doxycycline",
+        name = "Doxycycline",
+        doseBySpecies = terrestrialDomestic.associateWith { dose(3.0, 5.0) },
+        concentrationsMgPerMl = listOf(50.0, 100.0),
+        route = DoseRoute.PO,
+        frequency = "Once daily",
+        meatWithdrawalDays = 7,
+        milkWithdrawalDays = 3,
+    ),
+    FormularyDrug(
+        id = "gentamicin",
+        name = "Gentamicin",
+        doseBySpecies = terrestrialDomestic.associateWith { dose(2.0, 4.0) },
+        concentrationsMgPerMl = listOf(50.0),
+        route = DoseRoute.IM,
+        frequency = "Every 12 hours; short course",
+        meatWithdrawalDays = 7,
+        milkWithdrawalDays = 3,
+        contraindications = mapOf(
+            Species.CAT to "Use only with renal monitoring — narrow safety margin in cats.",
+        ),
+    ),
+    FormularyDrug(
+        id = "ceftiofur",
+        name = "Ceftiofur",
+        doseBySpecies = (cattleSheepGoatPig + globalFarmSpecies + Species.EQUINE)
+            .associateWith { dose(1.0, 2.0) },
+        concentrationsMgPerMl = listOf(50.0),
+        route = DoseRoute.SC,
+        frequency = "Once daily",
+        meatWithdrawalDays = 4,
+        milkWithdrawalDays = 0,
+    ),
+    FormularyDrug(
+        id = "flunixin-meglumine",
+        name = "Flunixin Meglumine",
+        doseBySpecies = (cattleSheepGoatPig + globalFarmSpecies + Species.EQUINE)
+            .associateWith { dose(1.0, 2.0) },
+        concentrationsMgPerMl = listOf(50.0),
+        route = DoseRoute.IV,
+        frequency = "Once daily; short course only",
+        meatWithdrawalDays = 4,
+        milkWithdrawalDays = 1,
+        contraindications = mapOf(
+            Species.EQUINE to "Do not exceed the labelled course in horses.",
+        ),
+    ),
+    FormularyDrug(
+        id = "calcium-borogluconate",
+        name = "Calcium Borogluconate",
+        doseBySpecies = (listOf(Species.CATTLE, Species.GOAT, Species.SHEEP) + globalFarmSpecies)
+            .associateWith { dose(20.0, 40.0) },
+        concentrationsMgPerMl = listOf(250.0),
+        route = DoseRoute.IV,
+        frequency = "Slow IV under direct veterinary supervision",
+        meatWithdrawalDays = 0,
+        milkWithdrawalDays = 0,
+        contraindications = mapOf(
+            Species.CATTLE to "Administer slowly and monitor cardiac response.",
+        ),
+    ),
+    FormularyDrug(
+        id = "vitamin-b-complex",
+        name = "Vitamin B-Complex",
+        doseBySpecies = terrestrialDomestic.associateWith { dose(1.0, 2.0) },
+        concentrationsMgPerMl = listOf(100.0),
+        route = DoseRoute.IM,
+        frequency = "Once daily or as directed",
+        meatWithdrawalDays = 0,
+        milkWithdrawalDays = 0,
+    ),
+    FormularyDrug(
+        id = "topical-antibiotic-ointment",
+        name = "Topical Antibiotic Ointment",
+        doseBySpecies = terrestrialDomestic.associateWith { dose(1.0, 2.0) },
+        concentrationsMgPerMl = listOf(100.0),
+        route = DoseRoute.TOPICAL,
+        frequency = "Apply to a cleaned lesion once or twice daily",
+        meatWithdrawalDays = 0,
+        milkWithdrawalDays = 0,
+    ),
+    FormularyDrug(
+        id = "wound-spray-antiseptic-oil",
+        name = "Wound Spray / Antiseptic Oil",
+        doseBySpecies = terrestrialDomestic.associateWith { dose(1.0, 2.0) },
+        concentrationsMgPerMl = listOf(100.0),
+        route = DoseRoute.TOPICAL,
+        frequency = "Apply to a cleaned wound as directed",
+        meatWithdrawalDays = 0,
+        milkWithdrawalDays = 0,
+    ),
 )
 
 /** Domestic drugs applicable to a species — keeps wild patients out of this table. */
@@ -326,6 +443,16 @@ private val drugKeywords = mapOf(
     "meloxicam" to "meloxicam",
     "enrofloxacin" to "enrofloxacin",
     "diminazene" to "diminazene-aceturate",
+    "amoxicillin" to "amoxicillin",
+    "doxycycline" to "doxycycline",
+    "gentamicin" to "gentamicin",
+    "ceftiofur" to "ceftiofur",
+    "flunixin" to "flunixin-meglumine",
+    "calcium borogluconate" to "calcium-borogluconate",
+    "vitamin b-complex" to "vitamin-b-complex",
+    "antibiotic ointment" to "topical-antibiotic-ointment",
+    "antiseptic oil" to "wound-spray-antiseptic-oil",
+    "wound spray" to "wound-spray-antiseptic-oil",
 )
 
 /**
@@ -370,6 +497,8 @@ data class WildlifeFormularyEntry(
     val contraindications: Map<WildlifeGroup, String> = emptyMap(),
     /** Overrides [doseByGroup] for named wild animals (e.g. African Wild Dog). */
     val doseByAnimal: Map<String, DoseRange> = emptyMap(),
+    /** True for an analyzed wild drug added at runtime with fallback dosing. */
+    val isAnalyzedFallback: Boolean = false,
 ) {
     val defaultConcentrationMgPerMl: Double get() = concentrationsMgPerMl.first()
 }
@@ -516,6 +645,77 @@ val wildlifeFormulary: List<WildlifeFormularyEntry> = listOf(
             WildlifeGroup.PRIMATES to "Confirm trypanosomiasis before treatment in primates.",
         ),
     ),
+    WildlifeFormularyEntry(
+        id = "wild-amoxicillin",
+        name = "Amoxicillin (wild)",
+        doseByGroup = mapOf(
+            WildlifeGroup.WILD_RUMINANTS to dose(5.0, 10.0),
+            WildlifeGroup.WILD_CANIDS to dose(5.0, 10.0),
+            WildlifeGroup.WILD_FELIDS to dose(5.0, 10.0),
+            WildlifeGroup.PRIMATES to dose(5.0, 10.0),
+            WildlifeGroup.SMALL_WILD_MAMMALS to dose(5.0, 10.0),
+        ),
+        concentrationsMgPerMl = listOf(100.0),
+        route = DoseRoute.IM,
+        frequency = "Every 12 hours; verify with wildlife protocol",
+        meatWithdrawalDays = 5,
+        milkWithdrawalDays = 2,
+    ),
+    WildlifeFormularyEntry(
+        id = "wild-doxycycline",
+        name = "Doxycycline (wild)",
+        doseByGroup = mapOf(
+            WildlifeGroup.WILD_RUMINANTS to dose(3.0, 5.0),
+            WildlifeGroup.WILD_CANIDS to dose(3.0, 5.0),
+            WildlifeGroup.WILD_FELIDS to dose(3.0, 5.0),
+            WildlifeGroup.PRIMATES to dose(3.0, 5.0),
+            WildlifeGroup.WILD_BIRDS to dose(3.0, 5.0),
+            WildlifeGroup.SMALL_WILD_MAMMALS to dose(3.0, 5.0),
+        ),
+        concentrationsMgPerMl = listOf(50.0),
+        route = DoseRoute.ORAL,
+        frequency = "Once daily; verify species-specific safety",
+        meatWithdrawalDays = 7,
+        milkWithdrawalDays = 3,
+    ),
+    WildlifeFormularyEntry(
+        id = "wild-ceftiofur",
+        name = "Ceftiofur (wild)",
+        doseByGroup = mapOf(
+            WildlifeGroup.WILD_RUMINANTS to dose(1.0, 2.0),
+            WildlifeGroup.WILD_CANIDS to dose(1.0, 2.0),
+            WildlifeGroup.PRIMATES to dose(1.0, 2.0),
+            WildlifeGroup.WILD_BIRDS to dose(1.0, 2.0),
+        ),
+        concentrationsMgPerMl = listOf(50.0),
+        route = DoseRoute.SC,
+        frequency = "Once daily under wildlife authority direction",
+        meatWithdrawalDays = 4,
+        milkWithdrawalDays = 0,
+    ),
+    WildlifeFormularyEntry(
+        id = "wild-atropine",
+        name = "Atropine / Supportive (wild)",
+        doseByGroup = allWildGroups.associateWith { dose(0.02, 0.05) },
+        concentrationsMgPerMl = listOf(1.0),
+        route = DoseRoute.IM,
+        frequency = "Emergency use only — veterinary direction required",
+        meatWithdrawalDays = 0,
+        milkWithdrawalDays = 0,
+        contraindications = mapOf(
+            WildlifeGroup.WILD_RUMINANTS to "Species sensitivity varies — do not use without veterinary direction.",
+        ),
+    ),
+    WildlifeFormularyEntry(
+        id = "wild-topical-wound",
+        name = "Topical Wound / Antiseptic Ointment (wild)",
+        doseByGroup = allWildGroups.associateWith { dose(1.0, 2.0) },
+        concentrationsMgPerMl = listOf(100.0),
+        route = DoseRoute.TOPICAL,
+        frequency = "Apply to a cleaned wound under restraint protocol",
+        meatWithdrawalDays = 0,
+        milkWithdrawalDays = 0,
+    ),
 )
 
 fun findWildlifeDrug(id: String): WildlifeFormularyEntry? =
@@ -534,10 +734,15 @@ fun matchWildlifeDrugFromText(text: String, group: WildlifeGroup): WildlifeFormu
         "albendazole" in haystack -> "wild-albendazole"
         "meloxicam" in haystack -> "wild-meloxicam"
         "diminazene" in haystack -> "wild-diminazene"
+        "amoxicillin" in haystack -> "wild-amoxicillin"
+        "doxycycline" in haystack -> "wild-doxycycline"
+        "ceftiofur" in haystack -> "wild-ceftiofur"
+        "atropine" in haystack -> "wild-atropine"
+        "ointment" in haystack || "antiseptic" in haystack -> "wild-topical-wound"
         "ketamine" in haystack || "xylazine" in haystack -> "wild-ketamine-xylazine"
-        else -> wildlifeDrugsFor(group).firstOrNull()?.id.orEmpty()
+        else -> null
     }
-    return findWildlifeDrug(id)?.takeIf { group in it.doseByGroup }
+    return id?.let(::findWildlifeDrug)?.takeIf { group in it.doseByGroup }
 }
 
 /**

@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.prudent66.vetguide.domain.ai.OFFLINE_PROVIDER_ID
 import com.prudent66.vetguide.domain.ai.buildPrescriptionPlan
+import com.prudent66.vetguide.domain.ai.firstNarrativeCondition
 import com.prudent66.vetguide.domain.ai.isQueueableFallbackReason
 import com.prudent66.vetguide.domain.model.AnimalSubject
 import com.prudent66.vetguide.ui.components.PrescriptionCard
@@ -131,6 +132,7 @@ private fun ResultBody(result: ImageAnalysisUiState.Result) {
             prescriptions,
             subject = result.subject,
             weightKg = result.weightKg,
+            condition = firstNarrativeCondition(result.narrative),
             modifier = Modifier.fillMaxWidth(),
         )
     }

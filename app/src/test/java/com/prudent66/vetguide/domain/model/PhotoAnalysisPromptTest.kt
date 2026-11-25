@@ -93,6 +93,14 @@ class PhotoAnalysisPromptTest {
     }
 
     @Test
+    fun `top suspected condition is read from an offline narrative`() {
+        val narrative = "Findings: skin lesion. Suspected conditions " +
+            "(decision support, not a diagnosis): Mange (confidence 70%); " +
+            "Infected abscess (confidence 50%). Requires veterinary review."
+        assertEquals("Mange", firstNarrativeCondition(narrative))
+    }
+
+    @Test
     fun `narrative without a next steps clause is unchanged`() {
         val narrative = "Findings: mild swelling. Requires veterinary review."
         assertEquals(narrative, withoutNextSteps(narrative))

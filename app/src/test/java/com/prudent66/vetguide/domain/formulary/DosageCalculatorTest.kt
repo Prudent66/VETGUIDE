@@ -115,8 +115,8 @@ class DosageCalculatorTest {
     }
 
     @Test
-    fun `all twelve formulary entries are discoverable by id and name`() {
-        assertEquals(12, formulary.size)
+    fun `all twenty two formulary entries are discoverable by id and name`() {
+        assertEquals(22, formulary.size)
         assertEquals("Enrofloxacin", findDrugByName("enrofloxacin")!!.name)
         assertEquals("Diminazene Aceturate", findDrug("diminazene-aceturate")!!.name)
         assertTrue(findDrugByName("not-a-real-drug") == null)
@@ -193,7 +193,7 @@ class DosageCalculatorTest {
             DoseRoute.ORAL,
             calculateWildlifeDosage(oral, WildlifeGroup.WILD_FELIDS, 10.0, 50.0)!!.route,
         )
-        assertEquals(4, wildlifeDrugsFor(WildlifeGroup.WILD_FELIDS).size)
+        assertEquals(7, wildlifeDrugsFor(WildlifeGroup.WILD_FELIDS).size)
     }
 
     @Test

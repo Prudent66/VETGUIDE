@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import com.prudent66.vetguide.data.report.FarmerHandoutExporter
 import com.prudent66.vetguide.domain.ai.buildPrescriptionPlan
 import com.prudent66.vetguide.domain.formulary.matchDrugFromText
+import com.prudent66.vetguide.domain.formulary.matchWildlifeDrugFromText
 import com.prudent66.vetguide.domain.ai.sanitizeAiItem
 import com.prudent66.vetguide.domain.ai.withoutDuplicateSuspectedConditions
 import com.prudent66.vetguide.domain.ai.withoutNextSteps
@@ -44,6 +45,7 @@ import com.prudent66.vetguide.domain.model.AnimalCategory
 import com.prudent66.vetguide.domain.model.AnimalSubject
 import com.prudent66.vetguide.domain.model.ClinicalSpeciesCatalog
 import com.prudent66.vetguide.domain.model.Patient
+import com.prudent66.vetguide.domain.model.WildlifeGroup
 import com.prudent66.vetguide.domain.model.SoapPayload
 import com.prudent66.vetguide.domain.model.ageLabel
 import com.prudent66.vetguide.domain.model.clinicalAnalysisText
@@ -112,19 +114,35 @@ private fun CaseActionButtons(state: CaseDetailUiState.Success) {
     val scheduler = remember { ReminderScheduler() }
     val plan = buildPrescriptionPlan(state.ai?.analysisData, state.ai?.narrative)
     val rxLine = plan.prescriptions.firstOrNull().orEmpty()
-    val drug = matchDrugFromText(rxLine)
+    val subject = state.patient?.let(AnimalSubject::fromPatient)
+    val drugName: String
+    val meatDays: Int
+    val milkDays: Int
+    if (subject?.category == AnimalCategory.WILD) {
+        val group = ClinicalSpeciesCatalog.wildlifeGroup(subject.groupLabel ?: subject.wildlifeGroup)
+            ?: WildlifeGroup.WILD_RUMINANTS
+        val wild = matchWildlifeDrugFromText(rxLine, group)
+        drugName = wild?.name ?: "Prescribed treatment"
+        meatDays = wild?.meatWithdrawalDays ?: 0
+        milkDays = wild?.milkWithdrawalDays ?: 0
+    } else {
+        val domestic = matchDrugFromText(rxLine)
+        drugName = domestic?.name ?: "Prescribed treatment"
+        meatDays = domestic?.meatWithdrawalDays ?: 0
+        milkDays = domestic?.milkWithdrawalDays ?: 0
+    }
     Button(
         onClick = {
             val handout = FarmerHandoutExporter.buildHandout(
                 com.prudent66.vetguide.data.report.HandoutInput(
                     patientName = state.patient?.name ?: "Patient",
-                    drugName = drug?.name ?: "Prescribed treatment",
+                    drugName = drugName,
                     doseInstructions = rxLine.ifBlank { "Follow your veterinarian's directions." },
                     isolationSteps = "Keep the animal separated from healthy animals and clean equipment daily.",
                     fromEpochMs = System.currentTimeMillis(),
                     withdrawal = com.prudent66.vetguide.data.report.HandoutWithdrawal(
-                        meatDays = drug?.meatWithdrawalDays ?: 0,
-                        milkDays = drug?.milkWithdrawalDays ?: 0,
+                        meatDays = meatDays,
+                        milkDays = milkDays,
                     ),
                 ),
             )

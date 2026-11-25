@@ -1,5 +1,6 @@
 package com.prudent66.vetguide.ui.components
 
+import com.prudent66.vetguide.domain.formulary.DoseRoute
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -17,5 +18,12 @@ class PrescriptionSheetMessageTest {
     @Test
     fun `valid weight keeps the formulary specific message`() {
         assertEquals("fallback", dosageMessage(false, "fallback"))
+    }
+
+    @Test
+    fun `topicals show application guidance instead of syringe volume`() {
+        assertEquals("Application Amount (mL)", volumeLabel(DoseRoute.TOPICAL))
+        assertEquals("Syringe Volume to Draw (mL)", volumeLabel(DoseRoute.IM))
+        assertEquals("Syringe Volume to Draw (mL)", volumeLabel(DoseRoute.DART))
     }
 }
