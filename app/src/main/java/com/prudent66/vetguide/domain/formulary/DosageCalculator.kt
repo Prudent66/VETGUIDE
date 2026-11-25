@@ -495,7 +495,7 @@ fun matchWildlifeDrugFromText(text: String, group: WildlifeGroup): WildlifeFormu
         "meloxicam" in haystack -> "wild-meloxicam"
         "diminazene" in haystack -> "wild-diminazene"
         "ketamine" in haystack || "xylazine" in haystack -> "wild-ketamine-xylazine"
-        else -> wildlifeDrugsFor(group).firstOrNull()?.id
+        else -> wildlifeDrugsFor(group).firstOrNull()?.id.orEmpty()
     }
     return findWildlifeDrug(id)?.takeIf { group in it.doseByGroup }
 }
