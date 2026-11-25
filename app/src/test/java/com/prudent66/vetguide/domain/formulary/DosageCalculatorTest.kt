@@ -204,7 +204,9 @@ class DosageCalculatorTest {
             assertTrue("no drug for $species", formularyForSpecies(species).isNotEmpty())
             assertTrue(
                 "wild formulary leaked into $species",
-                wildlifeFormulary.none { drug -> species in drug.doseByGroup },
+                wildlifeFormulary.none { drug ->
+                    drug.doseByGroup.keys.any { group -> group.name == species.name }
+                },
             )
         }
         // Wild placeholder never resolves in the domestic calculator.
