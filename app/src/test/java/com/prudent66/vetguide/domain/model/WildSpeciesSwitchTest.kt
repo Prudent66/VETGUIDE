@@ -9,12 +9,15 @@ import org.junit.Test
 class WildSpeciesSwitchTest {
 
     @Test
-    fun `domestic path lists the eight supported species`() {
+    fun `domestic path lists global species and the legacy other option`() {
         val labels = ClinicalSpeciesCatalog.labels(AnimalCategory.DOMESTIC)
 
-        assertEquals(8, labels.size)
+        assertEquals(13, labels.size)
         assertEquals(
-            listOf("Cattle", "Goat", "Sheep", "Poultry", "Pig", "Equine", "Dog", "Cat"),
+            listOf(
+                "Cattle", "Goat", "Sheep", "Poultry", "Pig", "Equine", "Dog", "Cat",
+                "Buffalo", "Camel", "Rabbit", "Fish", "Other Domestic",
+            ),
             labels,
         )
         assertEquals("Cattle", ClinicalSpeciesCatalog.first(AnimalCategory.DOMESTIC))

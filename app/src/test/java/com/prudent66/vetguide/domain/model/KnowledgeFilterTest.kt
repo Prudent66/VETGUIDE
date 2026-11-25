@@ -60,6 +60,7 @@ class KnowledgeFilterTest {
         assertEquals(
             listOf(
                 "All species", "Cattle", "Goat", "Sheep", "Poultry", "Pig", "Equine", "Dog", "Cat",
+                "Buffalo", "Camel", "Rabbit", "Fish", "Other Domestic",
             ),
             KnowledgeFilters.filterOptions(AnimalCategory.DOMESTIC),
         )

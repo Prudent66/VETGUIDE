@@ -68,7 +68,7 @@ internal data class DifferentialRowLayout(
  * the accumulated [y] previously lagged behind the wrapped text.
  */
 internal fun differentialRowLayout(y: Float, lineCount: Int): DifferentialRowLayout {
-    val labelHeight = (maxOf(1, lineCount) * 13f).coerceAtLeast(14f)
+    val labelHeight = maxOf(1, lineCount) * 13f
     val labelBottom = y + labelHeight
     val barTop = labelBottom + DIFFERENTIAL_LABEL_PADDING
     val rowHeight = (barTop - y) + DIFFERENTIAL_BAR_HEIGHT + DIFFERENTIAL_ROW_SPACING
