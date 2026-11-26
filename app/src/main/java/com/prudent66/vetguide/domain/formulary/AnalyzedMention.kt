@@ -145,4 +145,4 @@ fun recommendedMedicationMentions(
         .map { it.trim() }
         .filter { it.isNotBlank() && !isWarningClause(it) }
         .flatMap { clause -> medicationMentions(clause, dictionary) }
-        .distinctBy(::normalizedDrugName)
+        .distinctBy { mention -> normalizedDrugName(mention.name) }
