@@ -66,6 +66,89 @@ class MedicationRecommendationsTest {
     }
 
     @Test
+    fun `warned prednisolone is absent from prescriptions defaults and choices`() {
+        val domesticDefault = bestDomesticDrug(multiItem, null, Species.CATTLE)
+        val wildDefault = bestWildDrug(multiItem, null, WildlifeGroup.WILD_RUMINANTS)
+        val offered = listOf(
+            domesticMedicationsFor(multiItem).map { it.drug },
+            domesticDrugsFor(multiItem),
+            domesticDrugChoices(multiItem, domesticDefault),
+            wildMedicationsFor(multiItem, WildlifeGroup.WILD_RUMINANTS).map { it.drug },
+            wildDrugsFor(multiItem, WildlifeGroup.WILD_RUMINANTS),
+            wildDrugChoices(multiItem, WildlifeGroup.WILD_RUMINANTS, wildDefault),
+        )
+        offered.forEach { drugs ->
+            assertTrue(drugs.none {
+                it.name.contains("prednisolone", ignoreCase = true) ||
+                    it.id.contains("prednisolone", ignoreCase = true)
+            })
+        }
+        assertTrue(domesticDefault?.name?.contains("prednisolone", true) != true)
+        assertTrue(wildDefault?.name?.contains("prednisolone", true) != true)
+    }
+
+    @Test
+    fun `static products named only in warnings are not offered`() {
+        val text = "Apply Neosporin ointment twice daily. " +
+            "Do not use ivermectin 1% in this patient."
+        assertTrue(domesticDrugsFor(text).none { it.id == "ivermectin-1" })
+        assertTrue(
+            wildDrugsFor(text, WildlifeGroup.WILD_RUMINANTS)
+                .none { it.id == "wild-ivermectin" },
+        )
+    }
+
+    @Test
+    fun `replaceable alternatives are identified and recalculate in both pathways`() {
+        val alternatives = "Apply Oxytetracycline 2% ophthalmic ointment twice daily " +
+            "or Flurbiprofen 0.03% ophthalmic solution twice daily."
+        assertTrue(domesticHasAlternatives(alternatives))
+        assertTrue(wildHasAlternatives(alternatives))
+        assertFalse(domesticHasAlternatives(multiItem))
+        assertFalse(wildHasAlternatives(multiItem))
+
+        val domestic = domesticMedicationsFor(alternatives)
+        val wild = wildMedicationsFor(alternatives, WildlifeGroup.WILD_RUMINANTS)
+        assertEquals(2, domestic.size)
+        assertEquals(2, wild.size)
+        domestic.forEach { medication ->
+            val light = calculateDosage(medication.drug, Species.CATTLE, 10.0)!!
+            val heavy = calculateDosage(medication.drug, Species.CATTLE, 20.0)!!
+            assertEquals(light.doseMg * 2.0, heavy.doseMg, 0.001)
+            assertEquals(light.syringeMl * 2.0, heavy.syringeMl, 0.001)
+        }
+        wild.forEach { medication ->
+            val light = calculateWildlifeDosage(
+                medication.drug, WildlifeGroup.WILD_RUMINANTS, 10.0,
+            )!!
+            val heavy = calculateWildlifeDosage(
+                medication.drug, WildlifeGroup.WILD_RUMINANTS, 20.0,
+            )!!
+            assertEquals(light.doseMg * 2.0, heavy.doseMg, 0.001)
+            assertEquals(light.syringeMl * 2.0, heavy.syringeMl, 0.001)
+        }
+    }
+
+    @Test
+    fun `conditional alternatives are identified without being warning filtered`() {
+        val text = "Apply Oxytetracycline ointment twice daily. " +
+            "If no improvement, apply Flurbiprofen solution twice daily."
+        assertTrue(domesticHasAlternatives(text))
+        assertTrue(wildHasAlternatives(text))
+        assertEquals(2, recommendedMedicationMentions(text, domesticAnalyzedNames).size)
+    }
+
+    @Test
+    fun `standalone calculator keeps the full formulary when no assessment exists`() {
+        assertEquals(formulary.size, domesticDrugsFor("").size)
+        assertEquals(formulary.size, domesticDrugChoices("").size)
+        assertEquals(
+            wildlifeDrugsFor(WildlifeGroup.WILD_RUMINANTS).size,
+            wildDrugsFor("", WildlifeGroup.WILD_RUMINANTS).size,
+        )
+    }
+
+    @Test
     fun `user facing prescription and report sources never mention AI`() {
         val offending = mutableListOf<String>()
         sourceDirs().forEach { dir ->

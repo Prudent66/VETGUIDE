@@ -1,5 +1,7 @@
 package com.prudent66.vetguide.domain.ai
 
+import com.prudent66.vetguide.domain.formulary.isWarningClause
+
 /**
  * Clinical split used by the results screen, the case view and the SOAP/PDF
  * exports: drug/injection prescriptions (with dosages) stay in their own
@@ -62,13 +64,7 @@ internal fun isPrescriptionLine(line: String): Boolean {
 }
 
 /** A do-not-use clause is a safety note, never an active prescription. */
-internal fun isWarningLine(line: String): Boolean {
-    val lower = line.lowercase()
-    return listOf(
-        "do not use", "don't use", "do not administer", "avoid", "contraindicated",
-        "not recommended", "never use", "should not be used", "unless", "caution",
-    ).any { it in lower }
-}
+internal fun isWarningLine(line: String): Boolean = isWarningClause(line)
 
 /**
  * Pulls prescription sentences out of free-form narrative (offline fallback or
@@ -78,7 +74,7 @@ fun extractPrescriptionLines(text: String): List<String> =
     text.lineSequence()
         .flatMap { line -> line.split(SENTENCE_BOUNDARY_REGEX) }
         .map { it.replace(BULLET_PREFIX_REGEX, "").trim() }
-        .filter { isPrescriptionLine(it) }
+        .filter { isPrescriptionLine(it) && !isWarningLine(it) }
         .map { sanitizeAiItem(it) }
         .filter { it.isNotEmpty() }
         .distinct()

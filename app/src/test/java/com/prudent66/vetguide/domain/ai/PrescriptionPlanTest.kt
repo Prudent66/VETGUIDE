@@ -108,6 +108,17 @@ class PrescriptionPlanTest {
     }
 
     @Test
+    fun `narrative do not use lines are not extracted as prescriptions`() {
+        val plan = buildPrescriptionPlan(
+            analysisData = null,
+            narrative = "Apply Flurbiprofen 0.03% ophthalmic solution twice daily. " +
+                "Do not use prednisolone eye drops unless an ulcer has been ruled out.",
+        )
+        assertEquals(1, plan.prescriptions.size)
+        assertTrue(plan.prescriptions.first().contains("Flurbiprofen"))
+    }
+
+    @Test
     fun `no structured plan and no narrative is empty`() {
         assertFalse(buildPrescriptionPlan(null).hasPrescriptions)
         assertFalse(buildPrescriptionPlan(data()).hasPrescriptions)

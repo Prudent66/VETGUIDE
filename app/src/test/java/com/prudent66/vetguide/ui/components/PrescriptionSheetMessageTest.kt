@@ -26,4 +26,11 @@ class PrescriptionSheetMessageTest {
         assertEquals("Syringe Volume to Draw (mL)", volumeLabel(DoseRoute.IM))
         assertEquals("Syringe Volume to Draw (mL)", volumeLabel(DoseRoute.DART))
     }
+
+    @Test
+    fun `alternatives are explained as replaceable against weight`() {
+        assertTrue(REPLACEABLE_ALTERNATIVES_NOTE.contains("replaceable alternatives"))
+        assertTrue(REPLACEABLE_ALTERNATIVES_NOTE.contains("Weight (kg)"))
+        assertTrue(REPLACEABLE_ALTERNATIVES_NOTE.contains("Choose one option"))
+    }
 }

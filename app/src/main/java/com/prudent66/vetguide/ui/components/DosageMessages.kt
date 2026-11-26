@@ -13,6 +13,12 @@ internal fun volumeLabel(route: DoseRoute): String = if (route == DoseRoute.TOPI
 internal const val ANALYZED_DRUG_NOTE =
     "Analyzed drug — fallback dose only; confirm before use."
 
+/** Shown once when assessed medicines are interchangeable "or" options. */
+internal const val REPLACEABLE_ALTERNATIVES_NOTE =
+    "The listed options are replaceable alternatives, not medicines to give together. " +
+        "Choose one option and dose it against the current Weight (kg); " +
+        "confirm the dose before use."
+
 /** Application instructions for ointments, oils, sprays and eye preparations. */
 internal fun topicalGuidance(route: DoseRoute, name: String = ""): String? =
     if (route == DoseRoute.TOPICAL) {

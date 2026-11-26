@@ -30,9 +30,11 @@ import com.prudent66.vetguide.domain.formulary.bestDomesticDrug
 import com.prudent66.vetguide.domain.formulary.bestWildDrug
 import com.prudent66.vetguide.domain.formulary.calculateDosage
 import com.prudent66.vetguide.domain.formulary.calculateWildlifeDosage
-import com.prudent66.vetguide.domain.formulary.domesticDrugsFor
+import com.prudent66.vetguide.domain.formulary.domesticDrugChoices
+import com.prudent66.vetguide.domain.formulary.domesticHasAlternatives
 import com.prudent66.vetguide.domain.formulary.domesticMedicationsFor
-import com.prudent66.vetguide.domain.formulary.wildDrugsFor
+import com.prudent66.vetguide.domain.formulary.wildDrugChoices
+import com.prudent66.vetguide.domain.formulary.wildHasAlternatives
 import com.prudent66.vetguide.domain.formulary.wildMedicationsFor
 import com.prudent66.vetguide.domain.model.AnimalCategory
 import com.prudent66.vetguide.domain.model.AnimalSubject
@@ -145,8 +147,9 @@ private fun DomesticDosageSection(
     var weightText by rememberSaveable { mutableStateOf(weightKg?.let(::formatAmount).orEmpty()) }
     val weight = weightText.toDoubleOrNull() ?: 0.0
     val medications = remember(text) { domesticMedicationsFor(text) }
-    val drugs = remember(text) { domesticDrugsFor(text) }
     val auto = remember(text, condition, selected) { bestDomesticDrug(text, condition, selected) }
+    val drugs = remember(text, auto) { domesticDrugChoices(text, auto) }
+    val replaceable = remember(text) { domesticHasAlternatives(text) }
     var chosenId by rememberSaveable(text) { mutableStateOf<String?>(null) }
     val drug = remember(drugs, auto, chosenId) {
         drugs.firstOrNull { it.id == (chosenId ?: auto?.id) } ?: drugs.first()
@@ -159,6 +162,7 @@ private fun DomesticDosageSection(
     }
     WeightField(weightText) { weightText = it }
     Text("Medications named in this assessment", style = MaterialTheme.typography.titleSmall)
+    AlternativesNote(replaceable)
     if (medications.isEmpty()) {
         Text(
             "No medication was named — use the formulary picker below.",
@@ -167,7 +171,7 @@ private fun DomesticDosageSection(
     }
     medications.forEach { medication ->
         key(medication.drug.id) {
-            DomesticMedicationCard(medication, selected, weight)
+            DomesticMedicationCard(medication, selected, weight, replaceable)
         }
     }
     HorizontalDivider()
@@ -193,6 +197,7 @@ private fun DomesticMedicationCard(
     medication: DomesticMedication,
     species: Species,
     weightKg: Double,
+    replaceable: Boolean = false,
 ) {
     val drug = medication.drug
     var concentration by rememberSaveable(drug.id) {
@@ -208,7 +213,7 @@ private fun DomesticMedicationCard(
         ) { label -> label.removeSuffix(" mg/mL").toDoubleOrNull()?.let { concentration = it } }
         DosageResultPanel(
             result, drug.contraindications[species], weightKg <= 0.0,
-            drug.isAnalyzedFallback, medication.label,
+            drug.isAnalyzedFallback && !replaceable, medication.label,
         )
     }
 }
@@ -225,8 +230,9 @@ private fun WildlifeDosageSection(
     var weightText by rememberSaveable { mutableStateOf(weightKg?.let(::formatAmount).orEmpty()) }
     val weight = weightText.toDoubleOrNull() ?: 0.0
     val medications = remember(text, group) { wildMedicationsFor(text, group) }
-    val drugs = remember(text, group) { wildDrugsFor(text, group) }
     val auto = remember(text, condition, group) { bestWildDrug(text, condition, group) }
+    val drugs = remember(text, group, auto) { wildDrugChoices(text, group, auto) }
+    val replaceable = remember(text) { wildHasAlternatives(text) }
     var chosenId by rememberSaveable(text) { mutableStateOf<String?>(null) }
     val drug = remember(drugs, auto, chosenId) {
         drugs.firstOrNull { it.id == (chosenId ?: auto?.id) } ?: drugs.first()
@@ -241,12 +247,13 @@ private fun WildlifeDosageSection(
     }
     WeightField(weightText) { weightText = it }
     Text("Medications named in this assessment", style = MaterialTheme.typography.titleSmall)
+    AlternativesNote(replaceable)
     if (medications.isEmpty()) {
         Text("No medication was named — use the formulary picker below.",
             style = MaterialTheme.typography.bodySmall)
     }
     medications.forEach { medication ->
-        key(medication.drug.id) { WildMedicationCard(medication, group, wildAnimal, weight) }
+        key(medication.drug.id) { WildMedicationCard(medication, group, wildAnimal, weight, replaceable) }
     }
     HorizontalDivider()
     Text("Formulary picker — adjust one drug manually", style = MaterialTheme.typography.titleSmall)
@@ -278,6 +285,7 @@ private fun WildMedicationCard(
     group: WildlifeGroup,
     wildAnimal: String,
     weightKg: Double,
+    replaceable: Boolean = false,
 ) {
     val drug = medication.drug
     var concentration by rememberSaveable(drug.id) {
@@ -295,12 +303,23 @@ private fun WildMedicationCard(
         ) { label -> label.removeSuffix(" mg/mL").toDoubleOrNull()?.let { concentration = it } }
         WildlifeDosagePanel(
             result, drug.contraindications[group], weightKg <= 0.0,
-            drug.isAnalyzedFallback, medication.label,
+            drug.isAnalyzedFallback && !replaceable, medication.label,
         )
     }
 }
 
 private val domesticSpeciesNames: List<String> = ClinicalSpeciesCatalog.domesticLabels
+
+/** One shared explanation instead of a repeated fallback block per option. */
+@Composable
+private fun AlternativesNote(visible: Boolean) {
+    if (!visible) return
+    Text(
+        REPLACEABLE_ALTERNATIVES_NOTE,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
 
 @Composable
 private fun DosageResultPanel(

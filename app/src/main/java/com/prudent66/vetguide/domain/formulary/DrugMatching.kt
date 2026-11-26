@@ -98,7 +98,7 @@ fun bestDomesticDrug(
 ): FormularyDrug? {
     val drugs = domesticDrugsFor(text)
     val analyzed = drugs.firstOrNull { it.isAnalyzedFallback && species in it.doseBySpecies }
-    val static = matchDrugFromText(text)
+    val static = matchDrugFromText(actionableText(text))
     val conditionMatch = domesticConditionDrug(condition)
     return when {
         static?.route == DoseRoute.TOPICAL && analyzed?.route == DoseRoute.TOPICAL -> static
@@ -117,27 +117,40 @@ fun bestWildDrug(
     group: WildlifeGroup,
 ): WildlifeFormularyEntry? {
     val drugs = wildDrugsFor(text, group)
-    return matchWildlifeDrugFromText(text, group)
+    return matchWildlifeDrugFromText(actionableText(text), group)
         ?: drugs.firstOrNull { it.isAnalyzedFallback && group in it.doseByGroup }
         ?: wildConditionDrug(condition, group)
         ?: drugs.firstOrNull { group in it.doseByGroup }
 }
 
+/** Normalized names that appear only in warning clauses, so must not be offered. */
+private fun warnedNames(text: String, dictionary: List<String>): Set<String> {
+    val all = medicationMentions(text, dictionary)
+        .map { normalizedDrugName(it.name) }.toSet()
+    val recommended = recommendedMedicationMentions(text, dictionary)
+        .map { normalizedDrugName(it.name) }.toSet()
+    return all - recommended
+}
+
 /** Full domestic picker: analyzed additions pinned above the static products. */
 fun domesticDrugsFor(text: String): List<FormularyDrug> {
-    val analyzed = medicationMentions(text, domesticAnalyzedNames)
+    val warned = warnedNames(text, domesticAnalyzedNames + formulary.map { it.name })
+    val analyzed = recommendedMedicationMentions(text, domesticAnalyzedNames)
         .filter { mention -> formulary.none { namesMatch(it.name, mention.name) } }
         .map(::syntheticDomesticDrug)
-    return analyzed + formulary
+    val statics = formulary.filterNot { normalizedDrugName(it.name) in warned }
+    return (analyzed + statics).distinctBy { it.id }
 }
 
 /** Wildlife picker: analyzed additions pinned above the group-only products. */
 fun wildDrugsFor(text: String, group: WildlifeGroup): List<WildlifeFormularyEntry> {
     val static = wildlifeDrugsFor(group)
-    val analyzed = medicationMentions(text, wildAnalyzedNames)
+    val warned = warnedNames(text, wildAnalyzedNames + static.map { it.name })
+    val analyzed = recommendedMedicationMentions(text, wildAnalyzedNames)
         .filter { mention -> static.none { namesMatch(it.name, mention.name) } }
         .map { syntheticWildDrug(it, group) }
-    return analyzed + static
+    val available = static.filterNot { normalizedDrugName(it.name) in warned }
+    return (analyzed + available).distinctBy { it.id }
 }
 
 private fun slug(name: String): String =

@@ -40,10 +40,17 @@ private val genericMedicationRegex = Regex(
 )
 
 /** A clause that only warns against a medicine is never a recommendation. */
-private val warningMarkers = listOf(
-    "do not use", "don't use", "do not administer", "avoid", "contraindicated",
-    "not recommended", "never use", "should not be used", "unless", "caution",
-    "withhold", "discontinue", "not for use",
+internal val warningMarkers = listOf(
+    "do not use", "don't use", "do not administer", "do not give", "don't give",
+    "avoid", "contraindicated", "contraindication", "not recommended",
+    "never use", "must not", "should not be used", "unless", "caution",
+    "withhold", "discontinue", "not for use", "not advisable",
+)
+
+/** Wording that makes two assessed medicines interchangeable choices. */
+private val alternativeMarkers = listOf(
+    " or ", "alternatively", "either ", "instead", "if not", "if no improvement",
+    "second-line", "second line", "or else",
 )
 
 /** Findings and recommendations are often separate sentences in one narrative. */
@@ -95,10 +102,6 @@ private fun routeFrom(window: String): DoseRoute? {
     }
 }
 
-/** Reads a dosing schedule phrase when one accompanies the medication. */
-private fun frequencyFrom(window: String): String =
-    frequencyRegex.find(window)?.value?.replaceFirstChar { it.uppercase() }.orEmpty()
-
 /**
  * Medication names from findings, differentials and prescriptions. Known names
  * win first; a capitalized topical/injection phrase is accepted as a fallback.
@@ -120,17 +123,27 @@ fun medicationMentions(text: String, dictionary: List<String>): List<AnalyzedMen
                 name = name,
                 doseRange = doseRangeFrom(window),
                 route = routeFrom(window) ?: if (topicalName) DoseRoute.TOPICAL else null,
-                frequency = frequencyFrom(window),
+                frequency = frequencyRegex.find(window)?.value
+                    ?.replaceFirstChar { it.uppercase() }.orEmpty(),
                 context = text,
             )
         }
 }
 
 /** True when a clause only forbids or cautions against a medication. */
-private fun isWarningClause(clause: String): Boolean {
+internal fun isWarningClause(clause: String): Boolean {
     val lower = clause.lowercase()
     return warningMarkers.any { it in lower }
 }
+
+/** Clauses that may safely drive drug selection — warnings are kept out. */
+internal fun actionableClauses(text: String): List<String> =
+    clauseRegex.split(text)
+        .map { it.trim() }
+        .filter { it.isNotBlank() && !isWarningClause(it) }
+
+/** The assessment text stripped of do-not-use and contraindication clauses. */
+fun actionableText(text: String): String = actionableClauses(text).joinToString(" ")
 
 /**
  * Every actionable medication in an assessment. Drugs mentioned only in a
@@ -141,8 +154,19 @@ fun recommendedMedicationMentions(
     text: String,
     dictionary: List<String>,
 ): List<AnalyzedMention> =
-    clauseRegex.split(text)
-        .map { it.trim() }
-        .filter { it.isNotBlank() && !isWarningClause(it) }
+    actionableClauses(text)
         .flatMap { clause -> medicationMentions(clause, dictionary) }
         .distinctBy { mention -> normalizedDrugName(mention.name) }
+
+/**
+ * True when assessed medicines are interchangeable "or" options rather than
+ * stacked treatments. The marker may sit in the same clause or in a later
+ * conditional clause ("if no improvement, ...").
+ */
+fun hasReplaceableAlternatives(mentions: List<AnalyzedMention>): Boolean {
+    if (mentions.size < 2) return false
+    return mentions.any { mention ->
+        val clause = mention.context.lowercase()
+        alternativeMarkers.any { it in clause }
+    }
+}
