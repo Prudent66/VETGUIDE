@@ -61,6 +61,15 @@ internal fun isPrescriptionLine(line: String): Boolean {
         (DOSAGE_UNIT_REGEX.containsMatchIn(text) && ROUTE_REGEX.containsMatchIn(text))
 }
 
+/** A do-not-use clause is a safety note, never an active prescription. */
+internal fun isWarningLine(line: String): Boolean {
+    val lower = line.lowercase()
+    return listOf(
+        "do not use", "don't use", "do not administer", "avoid", "contraindicated",
+        "not recommended", "never use", "should not be used", "unless", "caution",
+    ).any { it in lower }
+}
+
 /**
  * Pulls prescription sentences out of free-form narrative (offline fallback or
  * legacy saved analyses that only carried a single text blob).
@@ -157,16 +166,16 @@ fun buildPrescriptionPlan(
 ): PrescriptionPlan {
     val explicit = analysisData?.prescriptions.orEmpty()
         .map { sanitizeAiItem(it) }
-        .filter { it.isNotEmpty() }
+        .filter { it.isNotEmpty() && !isWarningLine(it) }
         .distinct()
     val steps = analysisData?.recommendedNextSteps.orEmpty()
         .map { sanitizeAiItem(it) }
-        .filter { it.isNotEmpty() }
+        .filter { it.isNotEmpty() && !isWarningLine(it) }
     val extractedFromSteps = steps.filter { isPrescriptionLine(it) }
     return PrescriptionPlan(
         prescriptions = explicit.ifEmpty {
             if (steps.isNotEmpty()) extractedFromSteps else extractPrescriptionLines(narrative.orEmpty())
         },
-        supportiveCare = if (explicit.isNotEmpty()) steps else steps.filterNot { isPrescriptionLine(it) },
+        supportiveCare = if (explicit.isNotEmpty()) steps else steps.filterNot(::isPrescriptionLine),
     )
 }

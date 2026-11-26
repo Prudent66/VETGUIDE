@@ -13,14 +13,20 @@ internal fun volumeLabel(route: DoseRoute): String = if (route == DoseRoute.TOPI
 internal const val ANALYZED_DRUG_NOTE =
     "Analyzed drug — fallback dose only; confirm before use."
 
-/** Application instructions shown for ointments, sprays and other topicals. */
-internal fun topicalGuidance(route: DoseRoute): String? = if (route == DoseRoute.TOPICAL) {
-    "Topical use — clean and dry the area, then apply a thin layer. The calculated " +
-        "amount is an estimate; adjust to the treated area and verify the product with " +
-        "a veterinary professional."
-} else {
-    null
-}
+/** Application instructions for ointments, oils, sprays and eye preparations. */
+internal fun topicalGuidance(route: DoseRoute, name: String = ""): String? =
+    if (route == DoseRoute.TOPICAL) {
+        if (listOf("ophthalmic", "eye").any { it in name.lowercase() }) {
+            "Ophthalmic preparation — apply the calculated amount to the affected eye " +
+                "as directed. Do not draw this preparation into a syringe."
+        } else {
+            "Topical use — clean and dry the area, then apply a thin layer. The calculated " +
+                "amount is an estimate; adjust to the treated area and verify the product with " +
+                "a veterinary professional."
+        }
+    } else {
+        null
+    }
 
 /** Shown in the dosage panels whenever the weight field is blank or <= 0. */
 internal const val ENTER_WEIGHT_MESSAGE =

@@ -92,6 +92,22 @@ class PrescriptionPlanTest {
     }
 
     @Test
+    fun `do not use warnings are not returned as prescriptions`() {
+        val plan = buildPrescriptionPlan(
+            data(
+                nextSteps = listOf(
+                    "Apply Flurbiprofen 0.03% ophthalmic solution twice daily",
+                    "Do not use prednisolone eye drops unless an ulcer has been ruled out",
+                ),
+            ),
+        )
+
+        assertEquals(1, plan.prescriptions.size)
+        assertTrue(plan.prescriptions.first().contains("Flurbiprofen"))
+        assertTrue(plan.supportiveCare.isEmpty())
+    }
+
+    @Test
     fun `no structured plan and no narrative is empty`() {
         assertFalse(buildPrescriptionPlan(null).hasPrescriptions)
         assertFalse(buildPrescriptionPlan(data()).hasPrescriptions)

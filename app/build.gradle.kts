@@ -18,8 +18,8 @@ android {
         applicationId = "com.prudent66.vetguide"
         minSdk = 26
         targetSdk = 36
-        versionCode = 26
-        versionName = "1.0.26"
+        versionCode = 27
+        versionName = "1.0.27"
     }
 
     /**

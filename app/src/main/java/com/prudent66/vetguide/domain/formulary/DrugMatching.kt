@@ -46,7 +46,7 @@ private val wildConditionDrugs = mapOf(
     "septicaemia" to "wild-amoxicillin",
 )
 
-private val domesticAnalyzedNames = listOf(
+internal val domesticAnalyzedNames = listOf(
     "Amoxicillin LA", "Amoxicillin", "Doxycycline", "Gentamicin", "Ceftiofur",
     "Flunixin Meglumine", "Calcium Borogluconate", "Vitamin B-Complex",
     "Topical Antibiotic Ointment", "Wound Spray / Antiseptic Oil",
@@ -55,14 +55,14 @@ private val domesticAnalyzedNames = listOf(
     "Doramectin", "Furosemide", "Prednisolone", "Pyrantel Pamoate",
     "Ivermectin", "Oxytetracycline", "Toltrazuril", "Moxidectin", "Selamectin",
     "Neosporin", "Bacitracin", "Polysporin", "Triple Antibiotic Ointment",
-    "Mupirocin",
+    "Mupirocin", "Flurbiprofen",
 )
 
-private val wildAnalyzedNames = listOf(
+internal val wildAnalyzedNames = listOf(
     "Fenbendazole", "Pyrantel Pamoate", "Prednisolone", "Ivermectin",
     "Oxytetracycline", "Albendazole", "Levamisole", "Meloxicam",
     "Enrofloxacin", "Amoxicillin", "Doxycycline", "Ceftiofur",
-    "Dexamethasone", "Metronidazole", "Praziquantel", "Furosemide",
+    "Dexamethasone", "Metronidazole", "Praziquantel", "Furosemide", "Flurbiprofen",
     "Atropine / Supportive (wild)", "Topical Wound / Antiseptic Ointment (wild)",
     "Metronidazole (wild)", "Ketamine (wild)", "Xylazine (wild)",
 )
@@ -143,7 +143,7 @@ fun wildDrugsFor(text: String, group: WildlifeGroup): List<WildlifeFormularyEntr
 private fun slug(name: String): String =
     name.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-')
 
-private fun syntheticDomesticDrug(mention: AnalyzedMention): FormularyDrug {
+internal fun syntheticDomesticDrug(mention: AnalyzedMention): FormularyDrug {
     val lower = mention.name.lowercase()
     val topical = listOf("ointment", "oil", "spray", "drench").any { it in lower }
     return FormularyDrug(
@@ -160,7 +160,7 @@ private fun syntheticDomesticDrug(mention: AnalyzedMention): FormularyDrug {
     )
 }
 
-private fun syntheticWildDrug(
+internal fun syntheticWildDrug(
     mention: AnalyzedMention,
     group: WildlifeGroup,
 ): WildlifeFormularyEntry {

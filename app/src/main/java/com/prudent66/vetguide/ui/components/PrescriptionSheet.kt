@@ -15,6 +15,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -23,12 +24,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.prudent66.vetguide.domain.formulary.DosageResult
 import com.prudent66.vetguide.domain.formulary.WildlifeDosageResult
+import com.prudent66.vetguide.domain.formulary.DomesticMedication
+import com.prudent66.vetguide.domain.formulary.WildMedication
 import com.prudent66.vetguide.domain.formulary.bestDomesticDrug
 import com.prudent66.vetguide.domain.formulary.bestWildDrug
 import com.prudent66.vetguide.domain.formulary.calculateDosage
 import com.prudent66.vetguide.domain.formulary.calculateWildlifeDosage
 import com.prudent66.vetguide.domain.formulary.domesticDrugsFor
+import com.prudent66.vetguide.domain.formulary.domesticMedicationsFor
 import com.prudent66.vetguide.domain.formulary.wildDrugsFor
+import com.prudent66.vetguide.domain.formulary.wildMedicationsFor
 import com.prudent66.vetguide.domain.model.AnimalCategory
 import com.prudent66.vetguide.domain.model.AnimalSubject
 import com.prudent66.vetguide.domain.model.ClinicalSpeciesCatalog
@@ -137,6 +142,9 @@ private fun DomesticDosageSection(
         mutableStateOf(ClinicalSpeciesCatalog.label(species))
     }
     val selected = ClinicalSpeciesCatalog.domesticSpecies(speciesName) ?: Species.CATTLE
+    var weightText by rememberSaveable { mutableStateOf(weightKg?.let(::formatAmount).orEmpty()) }
+    val weight = weightText.toDoubleOrNull() ?: 0.0
+    val medications = remember(text) { domesticMedicationsFor(text) }
     val drugs = remember(text) { domesticDrugsFor(text) }
     val auto = remember(text, condition, selected) { bestDomesticDrug(text, condition, selected) }
     var chosenId by rememberSaveable(text) { mutableStateOf<String?>(null) }
@@ -146,11 +154,24 @@ private fun DomesticDosageSection(
     var concentration by rememberSaveable(drug.id) {
         mutableStateOf(drug.defaultConcentrationMgPerMl)
     }
-    var weightText by rememberSaveable { mutableStateOf(weightKg?.let(::formatAmount).orEmpty()) }
-    val result = remember(drug, selected, weightText, concentration) {
-        calculateDosage(drug, selected, weightText.toDoubleOrNull() ?: 0.0, concentration)
+    val result = remember(drug, selected, weight, concentration) {
+        calculateDosage(drug, selected, weight, concentration)
     }
-    val weightMissing = weightText.toDoubleOrNull()?.let { it <= 0.0 } ?: true
+    WeightField(weightText) { weightText = it }
+    Text("Medications named in this assessment", style = MaterialTheme.typography.titleSmall)
+    if (medications.isEmpty()) {
+        Text(
+            "No medication was named — use the formulary picker below.",
+            style = MaterialTheme.typography.bodySmall,
+        )
+    }
+    medications.forEach { medication ->
+        key(medication.drug.id) {
+            DomesticMedicationCard(medication, selected, weight)
+        }
+    }
+    HorizontalDivider()
+    Text("Formulary picker — adjust one drug manually", style = MaterialTheme.typography.titleSmall)
     SelectionDialogField("Species", speciesName, domesticSpeciesNames) { speciesName = it }
     SelectionDialogField("Drug", drug.name, drugs.map { it.name }) { name ->
         drugs.firstOrNull { it.name == name }?.let { chosenId = it.id }
@@ -161,10 +182,35 @@ private fun DomesticDosageSection(
         value = "${formatAmount(concentration)} mg/mL",
         options = drug.concentrationsMgPerMl.map { "${formatAmount(it)} mg/mL" },
     ) { label -> label.removeSuffix(" mg/mL").toDoubleOrNull()?.let { concentration = it } }
-    WeightField(weightText) { weightText = it }
     DosageResultPanel(
-        result, drug.contraindications[selected], weightMissing, drug.isAnalyzedFallback,
+        result, drug.contraindications[selected], weight <= 0.0,
+        drug.isAnalyzedFallback, drug.name,
     )
+}
+
+@Composable
+private fun DomesticMedicationCard(
+    medication: DomesticMedication,
+    species: Species,
+    weightKg: Double,
+) {
+    val drug = medication.drug
+    var concentration by rememberSaveable(drug.id) {
+        mutableStateOf(drug.defaultConcentrationMgPerMl)
+    }
+    val result = calculateDosage(drug, species, weightKg, concentration)
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(medication.label, style = MaterialTheme.typography.titleSmall)
+        SelectionDialogField(
+            label = "Bottle concentration",
+            value = "${formatAmount(concentration)} mg/mL",
+            options = drug.concentrationsMgPerMl.map { "${formatAmount(it)} mg/mL" },
+        ) { label -> label.removeSuffix(" mg/mL").toDoubleOrNull()?.let { concentration = it } }
+        DosageResultPanel(
+            result, drug.contraindications[species], weightKg <= 0.0,
+            drug.isAnalyzedFallback, medication.label,
+        )
+    }
 }
 
 @Composable
@@ -176,6 +222,9 @@ private fun WildlifeDosageSection(
     }
     val group = ClinicalSpeciesCatalog.wildlifeGroup(groupLabel) ?: WildlifeGroup.WILD_RUMINANTS
     var wildAnimal by rememberSaveable(subject) { mutableStateOf(subject.wildAnimal.orEmpty()) }
+    var weightText by rememberSaveable { mutableStateOf(weightKg?.let(::formatAmount).orEmpty()) }
+    val weight = weightText.toDoubleOrNull() ?: 0.0
+    val medications = remember(text, group) { wildMedicationsFor(text, group) }
     val drugs = remember(text, group) { wildDrugsFor(text, group) }
     val auto = remember(text, condition, group) { bestWildDrug(text, condition, group) }
     var chosenId by rememberSaveable(text) { mutableStateOf<String?>(null) }
@@ -185,14 +234,22 @@ private fun WildlifeDosageSection(
     var concentration by rememberSaveable(drug.id) {
         mutableStateOf(drug.defaultConcentrationMgPerMl)
     }
-    var weightText by rememberSaveable { mutableStateOf(weightKg?.let(::formatAmount).orEmpty()) }
-    val result = remember(drug, group, wildAnimal, weightText, concentration) {
+    val result = remember(drug, group, wildAnimal, weight, concentration) {
         calculateWildlifeDosage(
-            drug, group, weightText.toDoubleOrNull() ?: 0.0, concentration,
-            wildAnimal.takeIf { it.isNotBlank() },
+            drug, group, weight, concentration, wildAnimal.takeIf { it.isNotBlank() },
         )
     }
-    val weightMissing = weightText.toDoubleOrNull()?.let { it <= 0.0 } ?: true
+    WeightField(weightText) { weightText = it }
+    Text("Medications named in this assessment", style = MaterialTheme.typography.titleSmall)
+    if (medications.isEmpty()) {
+        Text("No medication was named — use the formulary picker below.",
+            style = MaterialTheme.typography.bodySmall)
+    }
+    medications.forEach { medication ->
+        key(medication.drug.id) { WildMedicationCard(medication, group, wildAnimal, weight) }
+    }
+    HorizontalDivider()
+    Text("Formulary picker — adjust one drug manually", style = MaterialTheme.typography.titleSmall)
     SelectionDialogField("Wild species", groupLabel, ClinicalSpeciesCatalog.wildlifeLabels) {
         groupLabel = it
     }
@@ -209,10 +266,38 @@ private fun WildlifeDosageSection(
         value = "${formatAmount(concentration)} mg/mL",
         options = drug.concentrationsMgPerMl.map { "${formatAmount(it)} mg/mL" },
     ) { label -> label.removeSuffix(" mg/mL").toDoubleOrNull()?.let { concentration = it } }
-    WeightField(weightText) { weightText = it }
     WildlifeDosagePanel(
-        result, drug.contraindications[group], weightMissing, drug.isAnalyzedFallback,
+        result, drug.contraindications[group], weight <= 0.0,
+        drug.isAnalyzedFallback, drug.name,
     )
+}
+
+@Composable
+private fun WildMedicationCard(
+    medication: WildMedication,
+    group: WildlifeGroup,
+    wildAnimal: String,
+    weightKg: Double,
+) {
+    val drug = medication.drug
+    var concentration by rememberSaveable(drug.id) {
+        mutableStateOf(drug.defaultConcentrationMgPerMl)
+    }
+    val result = calculateWildlifeDosage(
+        drug, group, weightKg, concentration, wildAnimal.takeIf { it.isNotBlank() },
+    )
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(medication.label, style = MaterialTheme.typography.titleSmall)
+        SelectionDialogField(
+            label = "Bottle concentration",
+            value = "${formatAmount(concentration)} mg/mL",
+            options = drug.concentrationsMgPerMl.map { "${formatAmount(it)} mg/mL" },
+        ) { label -> label.removeSuffix(" mg/mL").toDoubleOrNull()?.let { concentration = it } }
+        WildlifeDosagePanel(
+            result, drug.contraindications[group], weightKg <= 0.0,
+            drug.isAnalyzedFallback, medication.label,
+        )
+    }
 }
 
 private val domesticSpeciesNames: List<String> = ClinicalSpeciesCatalog.domesticLabels
@@ -220,7 +305,7 @@ private val domesticSpeciesNames: List<String> = ClinicalSpeciesCatalog.domestic
 @Composable
 private fun DosageResultPanel(
     result: DosageResult?, speciesAlert: String?, weightMissing: Boolean = false,
-    isAnalyzed: Boolean = false,
+    isAnalyzed: Boolean = false, name: String = "",
 ) {
     if (isAnalyzed) AnalyzedDrugNote()
     if (result == null) {
@@ -248,7 +333,7 @@ private fun DosageResultPanel(
                         "${formatAmount(result.concentrationMgPerMl)} mg/mL bottle",
                 )
                 ResultLine("Route & Schedule", "${result.route.label} · ${result.frequency}")
-                topicalGuidance(result.route)?.let { guidance ->
+                topicalGuidance(result.route, name)?.let { guidance ->
                     Text(
                         guidance,
                         style = MaterialTheme.typography.bodySmall,
@@ -270,6 +355,7 @@ private fun WildlifeDosagePanel(
     speciesAlert: String?,
     weightMissing: Boolean = false,
     isAnalyzed: Boolean = false,
+    name: String = "",
 ) {
     if (isAnalyzed) AnalyzedDrugNote()
     if (result == null) {
@@ -298,7 +384,7 @@ private fun WildlifeDosagePanel(
                         "${formatAmount(result.weightKg)} kg",
                 )
                 ResultLine("Route & Schedule", "${result.route.label} · ${result.frequency}")
-                topicalGuidance(result.route)?.let { guidance ->
+                topicalGuidance(result.route, name)?.let { guidance ->
                     Text(
                         guidance,
                         style = MaterialTheme.typography.bodySmall,

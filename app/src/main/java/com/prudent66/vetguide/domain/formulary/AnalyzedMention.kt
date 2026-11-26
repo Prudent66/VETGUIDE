@@ -12,6 +12,8 @@ data class AnalyzedMention(
     val doseRange: DoseRange? = null,
     val route: DoseRoute? = null,
     val frequency: String = "",
+    /** Sentence the mention came from, so a strength-aware product can be resolved. */
+    val context: String = "",
 )
 
 private val strengthSuffixRegex = Regex(
@@ -33,8 +35,19 @@ private val frequencyRegex = Regex(
     RegexOption.IGNORE_CASE,
 )
 private val genericMedicationRegex = Regex(
-    """\b[A-Z][A-Za-z-]*(?:\s+[A-Za-z-]+){0,2}\s+(?i:ointment|oil|spray|injection|drench)\b""",
+    """\b[A-Z][A-Za-z-]*(?:\s+[A-Za-z-]+){0,2}\s+""" +
+        """(?i:ointment|oil|spray|solution|drops|cream|injection|drench)\b""",
 )
+
+/** A clause that only warns against a medicine is never a recommendation. */
+private val warningMarkers = listOf(
+    "do not use", "don't use", "do not administer", "avoid", "contraindicated",
+    "not recommended", "never use", "should not be used", "unless", "caution",
+    "withhold", "discontinue", "not for use",
+)
+
+/** Findings and recommendations are often separate sentences in one narrative. */
+private val clauseRegex = Regex("""(?<=[.;])\s+|\n+""")
 
 /** Strips strength/category suffixes so "Ivermectin" matches "Ivermectin 1%". */
 fun normalizedDrugName(name: String): String =
@@ -68,7 +81,10 @@ private fun doseRangeFrom(window: String): DoseRange? =
 private fun routeFrom(window: String): DoseRoute? {
     val short = abbreviatedRouteRegex.find(window)?.value?.lowercase()
     return when {
-        listOf("topical", "ointment", "oil", "spray").any { it in window } -> DoseRoute.TOPICAL
+        listOf(
+            "topical", "ointment", "oil", "spray", "solution", "ophthalmic",
+            "eye drop", "cream", "liniment",
+        ).any { it in window } -> DoseRoute.TOPICAL
         "bath" in window || "water" in window -> DoseRoute.WATER
         "dart" in window -> DoseRoute.DART
         "oral" in window || short == "po" -> DoseRoute.ORAL
@@ -105,6 +121,28 @@ fun medicationMentions(text: String, dictionary: List<String>): List<AnalyzedMen
                 doseRange = doseRangeFrom(window),
                 route = routeFrom(window) ?: if (topicalName) DoseRoute.TOPICAL else null,
                 frequency = frequencyFrom(window),
+                context = text,
             )
         }
 }
+
+/** True when a clause only forbids or cautions against a medication. */
+private fun isWarningClause(clause: String): Boolean {
+    val lower = clause.lowercase()
+    return warningMarkers.any { it in lower }
+}
+
+/**
+ * Every actionable medication in an assessment. Drugs mentioned only in a
+ * do-not-use/contraindication clause are dropped so they can never be
+ * auto-selected or calculated as active treatments.
+ */
+fun recommendedMedicationMentions(
+    text: String,
+    dictionary: List<String>,
+): List<AnalyzedMention> =
+    clauseRegex.split(text)
+        .map { it.trim() }
+        .filter { it.isNotBlank() && !isWarningClause(it) }
+        .flatMap { clause -> medicationMentions(clause, dictionary) }
+        .distinctBy(::normalizedDrugName)

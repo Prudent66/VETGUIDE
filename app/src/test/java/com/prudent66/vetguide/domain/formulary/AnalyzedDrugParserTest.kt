@@ -61,6 +61,19 @@ class AnalyzedDrugParserTest {
     }
 
     @Test
+    fun `drops drugs that appear only in do not use warnings`() {
+        val text = "Apply Neosporin ointment twice daily. " +
+            "Do not use prednisolone eye drops unless an ulcer has been ruled out."
+        val mentions = recommendedMedicationMentions(
+            text, listOf("Neosporin", "Prednisolone"),
+        )
+        assertEquals(1, mentions.size)
+        assertEquals("Neosporin", mentions[0].name)
+        assertEquals(DoseRoute.TOPICAL, mentions[0].route)
+        assertTrue(mentions[0].frequency.contains("Twice"))
+    }
+
+    @Test
     fun `extracts named drugs case insensitively from narrative text`() {
         assertEquals(
             listOf("Ivermectin", "Fenbendazole"),
