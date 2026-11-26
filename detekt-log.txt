@@ -1,0 +1,336 @@
+﻿2026-11-26T11:18:48.0649441Z Current runner version: '2.338.2'
+2026-11-26T11:18:48.0670942Z ##[group]Runner Image Provisioner
+2026-11-26T11:18:48.0671834Z Hosted Compute Agent
+2026-11-26T11:18:48.0672208Z Version: 20261111.635
+2026-11-26T11:18:48.0672710Z Commit: b8a594ea514ff44cadb5342986c68b1eac6e22ed
+2026-11-26T11:18:48.0673166Z Build Date: 2026-11-11T01:49:01Z
+2026-11-26T11:18:48.0673587Z Worker ID: {4be1e511-f34d-42c6-80a0-81dfd79d3d09}
+2026-11-26T11:18:48.0674106Z Region: southcentralus
+2026-11-26T11:18:48.0674479Z Cloud: Azure
+2026-11-26T11:18:48.0674908Z ##[endgroup]
+2026-11-26T11:18:48.0675986Z ##[group]Operating System
+2026-11-26T11:18:48.0676539Z Ubuntu
+2026-11-26T11:18:48.0676886Z 26.04.1
+2026-11-26T11:18:48.0677218Z LTS
+2026-11-26T11:18:48.0677650Z ##[endgroup]
+2026-11-26T11:18:48.0678008Z ##[group]Runner Image
+2026-11-26T11:18:48.0678426Z Image: ubuntu-26.04
+2026-11-26T11:18:48.0678833Z Version: 20261116.202.1
+2026-11-26T11:18:48.0679722Z Included Software: https://github.com/actions/runner-images/blob/ubuntu26/20261116.202/images/ubuntu/Ubuntu2604-Readme.md
+2026-11-26T11:18:48.0680623Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu26%2F20261116.202
+2026-11-26T11:18:48.0681498Z ##[endgroup]
+2026-11-26T11:18:48.0682280Z ##[group]GITHUB_TOKEN Permissions
+2026-11-26T11:18:48.0683732Z Contents: read
+2026-11-26T11:18:48.0684096Z Metadata: read
+2026-11-26T11:18:48.0684525Z Packages: read
+2026-11-26T11:18:48.0684873Z ##[endgroup]
+2026-11-26T11:18:48.0686416Z Secret source: Actions
+2026-11-26T11:18:48.0687166Z Cache mode: write
+2026-11-26T11:18:48.0687685Z Prepare workflow directory
+2026-11-26T11:18:48.0926265Z Prepare all required actions
+2026-11-26T11:18:48.0959203Z Getting action download info
+2026-11-26T11:18:48.3857691Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-11-26T11:18:48.4809586Z Download action repository 'actions/setup-java@v5' (SHA:b6effb05e454b25005698d916606bdc6ffcbf961)
+2026-11-26T11:18:49.0756601Z Download action repository 'gradle/actions@v4' (SHA:ed408507eac070d1f99cc633dbcf757c94c7933a)
+2026-11-26T11:18:50.2315675Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-11-26T11:18:50.4086844Z Complete job name: build-and-test
+2026-11-26T11:18:50.4751508Z ##[group]Run actions/checkout@v4
+2026-11-26T11:18:50.4751923Z with:
+2026-11-26T11:18:50.4752134Z   fetch-depth: 0
+2026-11-26T11:18:50.4752360Z   repository: Prudent66/VETGUIDE
+2026-11-26T11:18:50.4754133Z   token: ***
+2026-11-26T11:18:50.4754341Z   ssh-strict: true
+2026-11-26T11:18:50.4754555Z   ssh-user: git
+2026-11-26T11:18:50.4754763Z   persist-credentials: true
+2026-11-26T11:18:50.4754994Z   clean: true
+2026-11-26T11:18:50.4755215Z   sparse-checkout-cone-mode: true
+2026-11-26T11:18:50.4755451Z   fetch-tags: false
+2026-11-26T11:18:50.4755661Z   show-progress: true
+2026-11-26T11:18:50.4755882Z   lfs: false
+2026-11-26T11:18:50.4756088Z   submodules: false
+2026-11-26T11:18:50.4756301Z   set-safe-directory: true
+2026-11-26T11:18:50.4756561Z   allow-unsafe-pr-checkout: false
+2026-11-26T11:18:50.4756870Z ##[endgroup]
+2026-11-26T11:18:50.6622078Z Syncing repository: Prudent66/VETGUIDE
+2026-11-26T11:18:50.6623542Z ##[group]Getting Git version info
+2026-11-26T11:18:50.6623979Z Working directory is '/home/runner/work/VETGUIDE/VETGUIDE'
+2026-11-26T11:18:50.6624434Z [command]/usr/bin/git version
+2026-11-26T11:18:50.6628961Z git version 2.56.1
+2026-11-26T11:18:50.6640421Z ##[endgroup]
+2026-11-26T11:18:50.6651882Z Temporarily overriding HOME='/home/runner/work/_temp/263ac325-521c-473e-abac-c08ddcad6fd1' before making global git config changes
+2026-11-26T11:18:50.6652843Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-26T11:18:50.6655375Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/VETGUIDE/VETGUIDE
+2026-11-26T11:18:50.6714739Z Deleting the contents of '/home/runner/work/VETGUIDE/VETGUIDE'
+2026-11-26T11:18:50.6717300Z ##[group]Initializing the repository
+2026-11-26T11:18:50.6720888Z [command]/usr/bin/git init /home/runner/work/VETGUIDE/VETGUIDE
+2026-11-26T11:18:50.6799392Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-26T11:18:50.6800186Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-26T11:18:50.6800806Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-26T11:18:50.6801497Z hint: call:
+2026-11-26T11:18:50.6801776Z hint:
+2026-11-26T11:18:50.6802203Z hint: 	git config --global init.defaultBranch <name>
+2026-11-26T11:18:50.6802613Z hint:
+2026-11-26T11:18:50.6803004Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-26T11:18:50.6803618Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-26T11:18:50.6804093Z hint:
+2026-11-26T11:18:50.6804397Z hint: 	git branch -m <name>
+2026-11-26T11:18:50.6804724Z hint:
+2026-11-26T11:18:50.6805145Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-26T11:18:50.6805902Z Initialized empty Git repository in /home/runner/work/VETGUIDE/VETGUIDE/.git/
+2026-11-26T11:18:50.6815741Z [command]/usr/bin/git remote add origin https://github.com/Prudent66/VETGUIDE
+2026-11-26T11:18:50.6861609Z ##[endgroup]
+2026-11-26T11:18:50.6862291Z ##[group]Disabling automatic garbage collection
+2026-11-26T11:18:50.6864870Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-26T11:18:50.6897296Z ##[endgroup]
+2026-11-26T11:18:50.6897873Z ##[group]Setting up auth
+2026-11-26T11:18:50.6903090Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-26T11:18:50.6934403Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-26T11:18:50.7295996Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-26T11:18:50.7324278Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-26T11:18:50.7547746Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-26T11:18:50.7577271Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-26T11:18:50.7810694Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-26T11:18:50.7848688Z ##[endgroup]
+2026-11-26T11:18:50.7849150Z ##[group]Fetching the repository
+2026-11-26T11:18:50.7855675Z [command]/usr/bin/git -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+2026-11-26T11:18:51.4035156Z From https://github.com/Prudent66/VETGUIDE
+2026-11-26T11:18:51.4035609Z  * [new branch]      main       -> origin/main
+2026-11-26T11:18:51.4045223Z [command]/usr/bin/git branch --list --remote origin/main
+2026-11-26T11:18:51.4072356Z   origin/main
+2026-11-26T11:18:51.4079980Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
+2026-11-26T11:18:51.4102223Z 090d028d60f64450de9661c0cfe44c8714b29e77
+2026-11-26T11:18:51.4105972Z ##[endgroup]
+2026-11-26T11:18:51.4106446Z ##[group]Determining the checkout info
+2026-11-26T11:18:51.4107362Z ##[endgroup]
+2026-11-26T11:18:51.4111729Z [command]/usr/bin/git sparse-checkout disable
+2026-11-26T11:18:51.4238372Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-26T11:18:51.4269606Z ##[group]Checking out the ref
+2026-11-26T11:18:51.4272527Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-11-26T11:18:51.4450652Z Switched to a new branch 'main'
+2026-11-26T11:18:51.4467657Z branch 'main' set up to track 'origin/main'.
+2026-11-26T11:18:51.4469214Z ##[endgroup]
+2026-11-26T11:18:51.4532522Z [command]/usr/bin/git log -1 --format=%H
+2026-11-26T11:18:51.4551842Z 090d028d60f64450de9661c0cfe44c8714b29e77
+2026-11-26T11:18:51.4768337Z ##[group]Run actions/setup-java@v5
+2026-11-26T11:18:51.4768560Z with:
+2026-11-26T11:18:51.4768713Z   distribution: temurin
+2026-11-26T11:18:51.4768883Z   java-version: 17
+2026-11-26T11:18:51.4769038Z   java-package: jdk
+2026-11-26T11:18:51.4769200Z   check-latest: false
+2026-11-26T11:18:51.4769360Z   set-default: true
+2026-11-26T11:18:51.4769516Z   verify-signature: false
+2026-11-26T11:18:51.4769691Z   server-id: github
+2026-11-26T11:18:51.4769857Z   server-username: GITHUB_ACTOR
+2026-11-26T11:18:51.4770038Z   server-password: GITHUB_TOKEN
+2026-11-26T11:18:51.4770227Z   overwrite-settings: true
+2026-11-26T11:18:51.4770397Z   job-status: success
+2026-11-26T11:18:51.4771999Z   token: ***
+2026-11-26T11:18:51.4772160Z   show-download-progress: false
+2026-11-26T11:18:51.4772338Z ##[endgroup]
+2026-11-26T11:18:51.5779371Z ##[group]Installed distributions
+2026-11-26T11:18:51.5816103Z Resolved Java 17.0.21+9 from tool-cache
+2026-11-26T11:18:51.5816537Z Setting Java 17.0.21+9 as the default
+2026-11-26T11:18:51.5822768Z Creating toolchains.xml for JDK version 17 from temurin
+2026-11-26T11:18:51.5868015Z Writing to /home/runner/.m2/toolchains.xml
+2026-11-26T11:18:51.5868451Z 
+2026-11-26T11:18:51.5868572Z Java configuration:
+2026-11-26T11:18:51.5868820Z   Distribution: temurin
+2026-11-26T11:18:51.5868990Z   Version: 17.0.21+9
+2026-11-26T11:18:51.5869287Z   Path: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-26T11:18:51.5869527Z 
+2026-11-26T11:18:51.5869809Z ##[endgroup]
+2026-11-26T11:18:51.5904099Z Creating settings.xml with server-id: github
+2026-11-26T11:18:51.5904441Z Writing to /home/runner/.m2/settings.xml
+2026-11-26T11:18:51.5904956Z Configured MAVEN_ARGS to include -ntp to suppress Maven transfer progress logs. Set 'show-download-progress: true' to keep the download progress output.
+2026-11-26T11:18:51.6098967Z ##[group]Run gradle/actions/setup-gradle@v4
+2026-11-26T11:18:51.6099255Z with:
+2026-11-26T11:18:51.6099441Z   gradle-version: 8.13
+2026-11-26T11:18:51.6099618Z   cache-overwrite-existing: true
+2026-11-26T11:18:51.6099862Z   cache-disabled: false
+2026-11-26T11:18:51.6100148Z   cache-read-only: false
+2026-11-26T11:18:51.6100419Z   cache-write-only: false
+2026-11-26T11:18:51.6100694Z   cache-cleanup: on-success
+2026-11-26T11:18:51.6101032Z   gradle-home-cache-includes: caches
+notifications
+
+2026-11-26T11:18:51.6101524Z   add-job-summary: always
+2026-11-26T11:18:51.6101804Z   add-job-summary-as-pr-comment: never
+2026-11-26T11:18:51.6102098Z   dependency-graph: disabled
+2026-11-26T11:18:51.6102413Z   dependency-graph-report-dir: dependency-graph-reports
+2026-11-26T11:18:51.6102819Z   dependency-graph-continue-on-failure: true
+2026-11-26T11:18:51.6103156Z   build-scan-publish: false
+2026-11-26T11:18:51.6103437Z   validate-wrappers: true
+2026-11-26T11:18:51.6103763Z   allow-snapshot-wrappers: false
+2026-11-26T11:18:51.6104078Z   gradle-home-cache-strict-match: false
+2026-11-26T11:18:51.6104384Z   workflow-job-context: null
+2026-11-26T11:18:51.6106725Z   github-token: ***
+2026-11-26T11:18:51.6106961Z env:
+2026-11-26T11:18:51.6107278Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-26T11:18:51.6107774Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-26T11:18:51.6108194Z   MAVEN_ARGS: -ntp
+2026-11-26T11:18:51.6108444Z ##[endgroup]
+2026-11-26T11:18:51.9619883Z Merged default JDK locations into /home/runner/.m2/toolchains.xml
+2026-11-26T11:18:51.9620649Z Preparing cache for cleanup.
+2026-11-26T11:18:51.9622628Z ##[group]Restore Gradle state from cache
+2026-11-26T11:18:52.1283882Z Cache hit for restore-key: gradle-home-v1|Linux-X64|build-and-test[5e8323548b8d0ea0319ace29df4badd8]-d1290325491cfea11ee10175d67f5ac86565fb3c
+2026-11-26T11:18:53.0215671Z Received 45513381 of 45513381 (100.0%), 60.1 MBs/sec
+2026-11-26T11:18:53.0216419Z Cache Size: ~43 MB (45513381 B)
+2026-11-26T11:18:53.0235360Z [command]/usr/bin/tar -xf /home/runner/work/_temp/632a0198-5f1a-40ac-9120-4499a7de844b/cache.tzst -P -C /home/runner/work/VETGUIDE/VETGUIDE --use-compress-program unzstd
+2026-11-26T11:18:53.1976688Z Cache restored successfully
+2026-11-26T11:18:53.1999572Z Restored cache entry with key gradle-home-v1|Linux-X64|build-and-test[5e8323548b8d0ea0319ace29df4badd8]-090d028d60f64450de9661c0cfe44c8714b29e77 to /home/runner/.gradle/caches,/home/runner/.gradle/notifications,/home/runner/.gradle/.setup-gradle in 1236ms
+2026-11-26T11:18:53.3889695Z Cache hit for: gradle-transforms-v1-c8f643ad016f7751e660861bedaa09d9
+2026-11-26T11:18:53.3895167Z Cache hit for: gradle-kotlin-dsl-v1-cbd29fa54c3ae11219e4da0c72ea5c02
+2026-11-26T11:18:53.3958211Z Cache hit for: gradle-dependencies-v1-1f335566aa64249950bdcd61f58c09fb
+2026-11-26T11:18:53.3962997Z Cache hit for: gradle-generated-gradle-jars-v1-697f81ec8d80712ce7da03f513960371
+2026-11-26T11:18:53.3990482Z Cache hit for: gradle-groovy-dsl-v1-ad35df6539f4eb6881dcbcebb6a3d29c
+2026-11-26T11:18:53.4177641Z Cache hit for: gradle-instrumented-jars-v1-1c60924e8f99411656b1a61bd1acc33c
+2026-11-26T11:18:53.8003231Z Received 118667 of 118667 (100.0%), 0.5 MBs/sec
+2026-11-26T11:18:53.8003753Z Cache Size: ~0 MB (118667 B)
+2026-11-26T11:18:53.8022379Z [command]/usr/bin/tar -xf /home/runner/work/_temp/f4a18cdf-c31c-49ec-bd36-665f7a48f33e/cache.tzst -P -C /home/runner/work/VETGUIDE/VETGUIDE --use-compress-program unzstd
+2026-11-26T11:18:53.8150967Z Cache restored successfully
+2026-11-26T11:18:53.8152382Z Restored cache entry with key gradle-groovy-dsl-v1-ad35df6539f4eb6881dcbcebb6a3d29c to /home/runner/.gradle/caches/*/groovy-dsl/*/ in 614ms
+2026-11-26T11:18:53.9580930Z Received 76436 of 76436 (100.0%), 0.2 MBs/sec
+2026-11-26T11:18:53.9582604Z Cache Size: ~0 MB (76436 B)
+2026-11-26T11:18:53.9690947Z Received 550271 of 550271 (100.0%), 1.3 MBs/sec
+2026-11-26T11:18:53.9691485Z Cache Size: ~1 MB (550271 B)
+2026-11-26T11:18:54.0044437Z [command]/usr/bin/tar -xf /home/runner/work/_temp/37191ff0-5868-4559-b0cd-0c48d4ef7b25/cache.tzst -P -C /home/runner/work/VETGUIDE/VETGUIDE --use-compress-program unzstd
+2026-11-26T11:18:54.0229837Z [command]/usr/bin/tar -xf /home/runner/work/_temp/5c6d6697-fe18-49ec-82fb-0d9ba8364f09/cache.tzst -P -C /home/runner/work/VETGUIDE/VETGUIDE --use-compress-program unzstd
+2026-11-26T11:18:54.0477553Z Cache restored successfully
+2026-11-26T11:18:54.0505997Z Restored cache entry with key gradle-instrumented-jars-v1-1c60924e8f99411656b1a61bd1acc33c to /home/runner/.gradle/caches/jars-*/*/ in 849ms
+2026-11-26T11:18:54.2003991Z Cache restored successfully
+2026-11-26T11:18:54.2005613Z Restored cache entry with key gradle-kotlin-dsl-v1-cbd29fa54c3ae11219e4da0c72ea5c02 to /home/runner/.gradle/caches/*/kotlin-dsl/accessors/*/,/home/runner/.gradle/caches/*/kotlin-dsl/scripts/*/ in 999ms
+2026-11-26T11:18:54.3027616Z Received 40868782 of 40868782 (100.0%), 51.3 MBs/sec
+2026-11-26T11:18:54.3028434Z Cache Size: ~39 MB (40868782 B)
+2026-11-26T11:18:54.3286020Z [command]/usr/bin/tar -xf /home/runner/work/_temp/b0024b1d-2e1a-420e-a20c-87e2f1265de6/cache.tzst -P -C /home/runner/work/VETGUIDE/VETGUIDE --use-compress-program unzstd
+2026-11-26T11:18:54.5222710Z Received 117440512 of 158686446 (74.0%), 112.0 MBs/sec
+2026-11-26T11:18:54.5603433Z Received 62914560 of 492473673 (12.8%), 59.5 MBs/sec
+2026-11-26T11:18:54.6634930Z Cache restored successfully
+2026-11-26T11:18:54.6693495Z Restored cache entry with key gradle-generated-gradle-jars-v1-697f81ec8d80712ce7da03f513960371 to /home/runner/.gradle/caches/8.13/generated-gradle-jars/gradle-api-8.13.jar in 1466ms
+2026-11-26T11:18:54.9185165Z Received 158686446 of 158686446 (100.0%), 108.3 MBs/sec
+2026-11-26T11:18:54.9189014Z Cache Size: ~151 MB (158686446 B)
+2026-11-26T11:18:54.9221709Z [command]/usr/bin/tar -xf /home/runner/work/_temp/c2aa3db2-3acb-430d-b57b-de8b2131441e/cache.tzst -P -C /home/runner/work/VETGUIDE/VETGUIDE --use-compress-program unzstd
+2026-11-26T11:18:55.5600640Z Received 188743680 of 492473673 (38.3%), 89.6 MBs/sec
+2026-11-26T11:18:56.5641500Z Received 306184192 of 492473673 (62.2%), 97.0 MBs/sec
+2026-11-26T11:18:56.6534075Z Cache restored successfully
+2026-11-26T11:18:56.6676219Z Restored cache entry with key gradle-transforms-v1-c8f643ad016f7751e660861bedaa09d9 to /home/runner/.gradle/caches/transforms-4/*/,/home/runner/.gradle/caches/*/transforms/*/ in 3466ms
+2026-11-26T11:18:57.4194824Z Received 492473673 of 492473673 (100.0%), 121.4 MBs/sec
+2026-11-26T11:18:57.4195616Z Cache Size: ~470 MB (492473673 B)
+2026-11-26T11:18:57.4312672Z [command]/usr/bin/tar -xf /home/runner/work/_temp/960f30d3-666e-4820-9a00-00a11f0710a8/cache.tzst -P -C /home/runner/work/VETGUIDE/VETGUIDE --use-compress-program unzstd
+2026-11-26T11:18:57.9695225Z Cache restored successfully
+2026-11-26T11:18:57.9901409Z Restored cache entry with key gradle-dependencies-v1-1f335566aa64249950bdcd61f58c09fb to /home/runner/.gradle/caches/modules-*/files-*/*/*/*/* in 4789ms
+2026-11-26T11:18:57.9958896Z ##[endgroup]
+2026-11-26T11:18:58.0009777Z ##[group]All Gradle Wrapper jars are valid
+2026-11-26T11:18:58.0010414Z 
+2026-11-26T11:18:58.0010694Z ##[endgroup]
+2026-11-26T11:18:58.1279753Z ##[group]Provision Gradle 8.13
+2026-11-26T11:18:59.5409468Z Cache hit for: gradle-8.13
+2026-11-26T11:19:00.5776571Z Received 134217728 of 136904052 (98.0%), 128.0 MBs/sec
+2026-11-26T11:19:00.6496267Z Received 136904052 of 136904052 (100.0%), 121.8 MBs/sec
+2026-11-26T11:19:00.6497261Z Cache Size: ~131 MB (136904052 B)
+2026-11-26T11:19:00.6512346Z [command]/usr/bin/tar -xf /home/runner/work/_temp/63a612d7-e5f6-44e7-bc23-9ad1047ad967/cache.tzst -P -C /home/runner/work/VETGUIDE/VETGUIDE --use-compress-program unzstd
+2026-11-26T11:19:00.7794189Z Cache restored successfully
+2026-11-26T11:19:00.7853191Z Restored Gradle distribution gradle-8.13 from cache to /home/runner/work/_temp/.gradle-actions/gradle-installations/downloads/gradle-8.13-bin.zip
+2026-11-26T11:19:00.7864586Z [command]/usr/bin/unzip -o -q /home/runner/work/_temp/.gradle-actions/gradle-installations/downloads/gradle-8.13-bin.zip
+2026-11-26T11:19:01.5091952Z Extracted Gradle 8.13 to /home/runner/work/_temp/.gradle-actions/gradle-installations/installs/gradle-8.13
+2026-11-26T11:19:01.5093745Z Provisioned Gradle executable /home/runner/work/_temp/.gradle-actions/gradle-installations/installs/gradle-8.13/bin/gradle
+2026-11-26T11:19:01.5094643Z ##[endgroup]
+2026-11-26T11:19:01.5617631Z ##[group]Run curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+2026-11-26T11:19:01.5618338Z [36;1mcurl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \[0m
+2026-11-26T11:19:01.5618926Z [36;1m  | sudo tar -xz -C /usr/local/bin gitleaks[0m
+2026-11-26T11:19:01.5619211Z [36;1mgitleaks detect --source . --redact --no-banner --verbose[0m
+2026-11-26T11:19:01.5649526Z shell: /usr/bin/bash -e {0}
+2026-11-26T11:19:01.5649725Z env:
+2026-11-26T11:19:01.5649953Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-26T11:19:01.5650369Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-26T11:19:01.5650759Z   MAVEN_ARGS: -ntp
+2026-11-26T11:19:01.5651174Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-11-26T11:19:01.5651537Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-11-26T11:19:01.5651843Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-11-26T11:19:01.5652129Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-11-26T11:19:01.5652488Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-11-26T11:19:01.5652957Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-11-26T11:19:01.5653316Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-11-26T11:19:01.5653605Z   GITLEAKS_VERSION: 8.30.1
+2026-11-26T11:19:01.5653871Z ##[endgroup]
+2026-11-26T11:19:02.2392850Z [90m11:19AM[0m [32mINF[0m [1m162 commits scanned.[0m
+2026-11-26T11:19:02.2393490Z [90m11:19AM[0m [32mINF[0m [1mscanned ~1254391 bytes (1.25 MB) in 173ms[0m
+2026-11-26T11:19:02.2393955Z [90m11:19AM[0m [32mINF[0m [1mno leaks found[0m
+2026-11-26T11:19:02.2805350Z ##[group]Run gradle detekt
+2026-11-26T11:19:02.2805598Z [36;1mgradle detekt[0m
+2026-11-26T11:19:02.2833780Z shell: /usr/bin/bash -e {0}
+2026-11-26T11:19:02.2833981Z env:
+2026-11-26T11:19:02.2834209Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-26T11:19:02.2834533Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-26T11:19:02.2834791Z   MAVEN_ARGS: -ntp
+2026-11-26T11:19:02.2834986Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-11-26T11:19:02.2835206Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-11-26T11:19:02.2835418Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-11-26T11:19:02.2835633Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-11-26T11:19:02.2835931Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-11-26T11:19:02.2836245Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-11-26T11:19:02.2836474Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-11-26T11:19:02.2836732Z ##[endgroup]
+2026-11-26T11:19:02.8388482Z Starting a Gradle Daemon (subsequent builds will be faster)
+2026-11-26T11:19:14.6401910Z 
+2026-11-26T11:19:14.6452065Z > Configure project :app
+2026-11-26T11:19:14.6478924Z w: file:///home/runner/work/VETGUIDE/VETGUIDE/app/build.gradle.kts:80:9: 'jvmTarget: String' is deprecated. Please migrate to the compilerOptions DSL. More details are here: https://kotl.in/u1r8ln
+2026-11-26T11:19:18.7411615Z 
+2026-11-26T11:19:18.7412261Z > Task :app:detekt FAILED
+2026-11-26T11:19:18.7414234Z /home/runner/work/VETGUIDE/VETGUIDE/app/src/main/java/com/prudent66/***/domain/formulary/DrugMatching.kt:1:1: File '/home/runner/work/VETGUIDE/VETGUIDE/app/src/main/java/com/prudent66/***/domain/formulary/DrugMatching.kt' with '11' functions detected. Defined threshold inside files is set to '11' [TooManyFunctions]
+2026-11-26T11:19:18.7416089Z /home/runner/work/VETGUIDE/VETGUIDE/app/src/main/java/com/prudent66/***/domain/formulary/AnalyzedMention.kt:1:1: File '/home/runner/work/VETGUIDE/VETGUIDE/app/src/main/java/com/prudent66/***/domain/formulary/AnalyzedMention.kt' with '11' functions detected. Defined threshold inside files is set to '11' [TooManyFunctions]
+2026-11-26T11:19:18.7417115Z 
+2026-11-26T11:19:18.7417473Z gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1795691945728.json
+2026-11-26T11:19:18.8398258Z 
+2026-11-26T11:19:18.8402177Z 1 actionable task: 1 executed
+2026-11-26T11:19:18.8422139Z FAILURE: Build failed with an exception.
+2026-11-26T11:19:18.8422575Z 
+2026-11-26T11:19:18.8460607Z * What went wrong:
+2026-11-26T11:19:18.8480078Z Execution failed for task ':app:detekt'.
+2026-11-26T11:19:18.8480509Z > Analysis failed with 2 weighted issues.
+2026-11-26T11:19:18.8480720Z 
+2026-11-26T11:19:18.8480821Z * Try:
+2026-11-26T11:19:18.8481258Z > Run with --stacktrace option to get the stack trace.
+2026-11-26T11:19:18.8481648Z > Run with --info or --debug option to get more log output.
+2026-11-26T11:19:18.8482056Z > Run with --scan to get full insights.
+2026-11-26T11:19:18.8482366Z > Get more help at https://help.gradle.org.
+2026-11-26T11:19:18.8482563Z 
+2026-11-26T11:19:18.8482679Z BUILD FAILED in 16s
+2026-11-26T11:19:19.2166914Z ##[error]Process completed with exit code 1.
+2026-11-26T11:19:19.2337559Z Post job cleanup.
+2026-11-26T11:19:19.3989261Z In post-action step
+2026-11-26T11:19:19.3996527Z ##[group]Stopping Gradle daemons
+2026-11-26T11:19:19.3997063Z Stopping Gradle daemons for /home/runner/work/_temp/.gradle-actions/gradle-installations/installs/gradle-8.13
+2026-11-26T11:19:19.4007662Z [command]/home/runner/work/_temp/.gradle-actions/gradle-installations/installs/gradle-8.13/bin/gradle --stop
+2026-11-26T11:19:19.9289007Z Stopping Daemon(s)
+2026-11-26T11:19:19.9289891Z 1 Daemon stopped
+2026-11-26T11:19:19.9537089Z ##[endgroup]
+2026-11-26T11:19:19.9537779Z Not performing cache-cleanup due to build failure
+2026-11-26T11:19:19.9538581Z ##[group]Caching Gradle state
+2026-11-26T11:19:20.3223872Z [command]/usr/bin/tar --posix -cf cache.tzst --exclude cache.tzst -P -C /home/runner/work/VETGUIDE/VETGUIDE --files-from manifest.txt --use-compress-program zstdmt
+2026-11-26T11:19:22.3789814Z Sent 131072 of 544477 (24.1%), 0.1 MBs/sec
+2026-11-26T11:19:22.5619126Z Sent 544477 of 544477 (100.0%), 0.3 MBs/sec
+2026-11-26T11:19:22.7602979Z Saved cache entry with key gradle-kotlin-dsl-v1-b81660ab75b6c618c16ef6133fe90744 from /home/runner/.gradle/caches/*/kotlin-dsl/accessors/*/,/home/runner/.gradle/caches/*/kotlin-dsl/scripts/*/ in 2492ms
+2026-11-26T11:19:23.3871902Z [command]/usr/bin/tar --posix -cf cache.tzst --exclude cache.tzst -P -C /home/runner/work/VETGUIDE/VETGUIDE --files-from manifest.txt --use-compress-program zstdmt
+2026-11-26T11:19:24.7024742Z Sent 39583744 of 45616361 (86.8%), 37.8 MBs/sec
+2026-11-26T11:19:25.1492968Z Sent 45616361 of 45616361 (100.0%), 30.1 MBs/sec
+2026-11-26T11:19:25.3148729Z Saved cache entry with key gradle-home-v1|Linux-X64|build-and-test[5e8323548b8d0ea0319ace29df4badd8]-090d028d60f64450de9661c0cfe44c8714b29e77 from /home/runner/.gradle/caches,/home/runner/.gradle/notifications,/home/runner/.gradle/.setup-gradle in 1935ms
+2026-11-26T11:19:25.3150001Z ##[endgroup]
+2026-11-26T11:19:25.3155258Z Generating Job Summary
+2026-11-26T11:19:25.3164309Z Completed post-action step
+2026-11-26T11:19:25.3382340Z Post job cleanup.
+2026-11-26T11:19:25.4437007Z Post job cleanup.
+2026-11-26T11:19:25.5045995Z [command]/usr/bin/git version
+2026-11-26T11:19:25.5082184Z git version 2.56.1
+2026-11-26T11:19:25.5108520Z Temporarily overriding HOME='/home/runner/work/_temp/9546a1a0-7c91-4b9b-9521-3571dc81ba8b' before making global git config changes
+2026-11-26T11:19:25.5109486Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-26T11:19:25.5131765Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/VETGUIDE/VETGUIDE
+2026-11-26T11:19:25.5181857Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-26T11:19:25.5193303Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-26T11:19:25.5455924Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-26T11:19:25.5493811Z http.https://github.com/.extraheader
+2026-11-26T11:19:25.5508500Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-11-26T11:19:25.5559862Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-26T11:19:25.5814284Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-26T11:19:25.5844188Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-26T11:19:25.6210787Z Cleaning up orphan processes
+2026-11-26T11:19:25.6496392Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, gradle/actions/setup-gradle@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

@@ -142,9 +142,6 @@ internal fun actionableClauses(text: String): List<String> =
         .map { it.trim() }
         .filter { it.isNotBlank() && !isWarningClause(it) }
 
-/** The assessment text stripped of do-not-use and contraindication clauses. */
-fun actionableText(text: String): String = actionableClauses(text).joinToString(" ")
-
 /**
  * Every actionable medication in an assessment. Drugs mentioned only in a
  * do-not-use/contraindication clause are dropped so they can never be

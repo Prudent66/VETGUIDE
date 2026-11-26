@@ -98,7 +98,7 @@ fun bestDomesticDrug(
 ): FormularyDrug? {
     val drugs = domesticDrugsFor(text)
     val analyzed = drugs.firstOrNull { it.isAnalyzedFallback && species in it.doseBySpecies }
-    val static = matchDrugFromText(actionableText(text))
+    val static = matchDrugFromText(actionableClauses(text).joinToString(" "))
     val conditionMatch = domesticConditionDrug(condition)
     return when {
         static?.route == DoseRoute.TOPICAL && analyzed?.route == DoseRoute.TOPICAL -> static
@@ -117,7 +117,7 @@ fun bestWildDrug(
     group: WildlifeGroup,
 ): WildlifeFormularyEntry? {
     val drugs = wildDrugsFor(text, group)
-    return matchWildlifeDrugFromText(actionableText(text), group)
+    return matchWildlifeDrugFromText(actionableClauses(text).joinToString(" "), group)
         ?: drugs.firstOrNull { it.isAnalyzedFallback && group in it.doseByGroup }
         ?: wildConditionDrug(condition, group)
         ?: drugs.firstOrNull { group in it.doseByGroup }
@@ -153,14 +153,13 @@ fun wildDrugsFor(text: String, group: WildlifeGroup): List<WildlifeFormularyEntr
     return (analyzed + available).distinctBy { it.id }
 }
 
-private fun slug(name: String): String =
-    name.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-')
+private val idSlugRegex = Regex("[^a-z0-9]+")
 
 internal fun syntheticDomesticDrug(mention: AnalyzedMention): FormularyDrug {
     val lower = mention.name.lowercase()
     val topical = listOf("ointment", "oil", "spray", "drench").any { it in lower }
     return FormularyDrug(
-        id = "analyzed-domestic-${slug(mention.name)}",
+        id = "analyzed-domestic-" + lower.replace(idSlugRegex, "-").trim('-'),
         name = "${mention.name} (analyzed — verify dose)",
         doseBySpecies = Species.entries.filter { it != Species.OTHER }
             .associateWith { mention.doseRange ?: DoseRange(5.0, 10.0) },
@@ -180,7 +179,7 @@ internal fun syntheticWildDrug(
     val lower = mention.name.lowercase()
     val topical = listOf("ointment", "oil", "spray", "drench").any { it in lower }
     return WildlifeFormularyEntry(
-        id = "analyzed-wild-${slug(mention.name)}",
+        id = "analyzed-wild-" + lower.replace(idSlugRegex, "-").trim('-'),
         name = "${mention.name.removeSuffix(" (wild)")} (wild; analyzed — verify dose)",
         doseByGroup = WildlifeGroup.entries.associateWith {
             mention.doseRange ?: DoseRange(5.0, 10.0)
