@@ -70,17 +70,19 @@ class MedicationRecommendationsTest {
         val domesticDefault = bestDomesticDrug(multiItem, null, Species.CATTLE)
         val wildDefault = bestWildDrug(multiItem, null, WildlifeGroup.WILD_RUMINANTS)
         val offered = listOf(
-            domesticMedicationsFor(multiItem).map { it.drug },
-            domesticDrugsFor(multiItem),
-            domesticDrugChoices(multiItem, domesticDefault),
-            wildMedicationsFor(multiItem, WildlifeGroup.WILD_RUMINANTS).map { it.drug },
-            wildDrugsFor(multiItem, WildlifeGroup.WILD_RUMINANTS),
-            wildDrugChoices(multiItem, WildlifeGroup.WILD_RUMINANTS, wildDefault),
+            domesticMedicationsFor(multiItem).map { it.drug.name to it.drug.id },
+            domesticDrugsFor(multiItem).map { it.name to it.id },
+            domesticDrugChoices(multiItem, domesticDefault).map { it.name to it.id },
+            wildMedicationsFor(multiItem, WildlifeGroup.WILD_RUMINANTS)
+                .map { it.drug.name to it.drug.id },
+            wildDrugsFor(multiItem, WildlifeGroup.WILD_RUMINANTS).map { it.name to it.id },
+            wildDrugChoices(multiItem, WildlifeGroup.WILD_RUMINANTS, wildDefault)
+                .map { it.name to it.id },
         )
-        offered.forEach { drugs ->
-            assertTrue(drugs.none {
-                it.name.contains("prednisolone", ignoreCase = true) ||
-                    it.id.contains("prednisolone", ignoreCase = true)
+        offered.forEach { items ->
+            assertTrue(items.none { (name, id) ->
+                name.contains("prednisolone", ignoreCase = true) ||
+                    id.contains("prednisolone", ignoreCase = true)
             })
         }
         assertTrue(domesticDefault?.name?.contains("prednisolone", true) != true)
