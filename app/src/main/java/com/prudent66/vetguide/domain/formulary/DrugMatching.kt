@@ -55,7 +55,7 @@ internal val domesticAnalyzedNames = listOf(
     "Doramectin", "Furosemide", "Prednisolone", "Pyrantel Pamoate",
     "Ivermectin", "Oxytetracycline", "Toltrazuril", "Moxidectin", "Selamectin",
     "Neosporin", "Bacitracin", "Polysporin", "Triple Antibiotic Ointment",
-    "Mupirocin", "Flurbiprofen", "Neomycin", "Miconazole", "Clotrimazole",
+    "Mupirocin", "Flurbiprofen", "Meloxicam", "Neomycin", "Miconazole", "Clotrimazole",
     "Ketoconazole", "Fluconazole", "Nystatin", "Griseofulvin", "Albendazole",
     "Enrofloxacin", "Amprolium", "Tylosin", "Diminazene Aceturate",
     "Penicillin-Streptomycin", "Florfenicol (Aquatic)", "Florfenicol",

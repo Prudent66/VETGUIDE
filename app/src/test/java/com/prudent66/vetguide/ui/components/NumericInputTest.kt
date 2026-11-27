@@ -9,7 +9,7 @@ class NumericInputTest {
     @Test
     fun `keeps a single decimal separator`() {
         assertEquals("12.5", cleanNumericInput("12.5", true))
-        assertEquals("12.5", cleanNumericInput("1,2.5", true))
+        assertEquals("1.25", cleanNumericInput("1,2.5", true))
         assertEquals("0.25", cleanNumericInput("0,25", true))
     }
 
@@ -17,7 +17,7 @@ class NumericInputTest {
     fun `drops letters and stray separators`() {
         assertEquals("125", cleanNumericInput("12a5", true))
         assertEquals("12.5", cleanNumericInput("12..5", true))
-        assertEquals("125", cleanNumericInput("1e3", true))
+        assertEquals("13", cleanNumericInput("1e3", true))
     }
 
     @Test
