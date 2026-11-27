@@ -85,10 +85,7 @@ fun CaseListScreen(
             // its parent Box — so no scroll offset or scrim can intercept taps.
             FloatingActionButton(
                 onClick = {
-                    scope.launch {
-                        viewModel.createCase()
-                        snackbarHostState.showSnackbar("Demo case created")
-                    }
+                    scope.launch { viewModel.createCase(); snackbarHostState.showSnackbar("Demo case created") }
                 },
                 modifier = Modifier
                     .navigationBarsPadding()
