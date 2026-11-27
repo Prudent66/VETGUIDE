@@ -192,7 +192,7 @@ private fun DomesticDosageSection(
         options = activeDrug.concentrationsMgPerMl.map { "${formatAmount(it)} mg/mL" },
     ) { label -> label.removeSuffix(" mg/mL").toDoubleOrNull()?.let { concentration = it } }
     val pickerOcular = medications.firstOrNull { it.drug.id == activeDrug.id }?.ocular ?: false
-    DosageResultPanel(result, activeDrug.contraindications[selected], weight <= 0.0, activeDrug.isAnalyzedFallback, pickerOcular, domesticDoseFallback(activeDrug, selected, activeDrug.route, concentration))
+    DosageResultPanel(result, weight <= 0.0, activeDrug.isAnalyzedFallback, pickerOcular, domesticDoseFallback(activeDrug, selected, activeDrug.route, concentration))
 }
 
 @Composable
@@ -215,7 +215,7 @@ private fun DomesticMedicationCard(
             options = drug.concentrationsMgPerMl.map { "${formatAmount(it)} mg/mL" },
         ) { label -> label.removeSuffix(" mg/mL").toDoubleOrNull()?.let { concentration = it } }
         DosageResultPanel(
-            result, drug.contraindications[species], weightKg <= 0.0,
+            result, weightKg <= 0.0,
             drug.isAnalyzedFallback && !replaceable, medication.ocular,
             domesticDoseFallback(drug, species, drug.route, concentration),
         )
@@ -279,7 +279,7 @@ private fun WildlifeDosageSection(
         options = activeDrug.concentrationsMgPerMl.map { "${formatAmount(it)} mg/mL" },
     ) { label -> label.removeSuffix(" mg/mL").toDoubleOrNull()?.let { concentration = it } }
     val pickerOcular = medications.firstOrNull { it.drug.id == activeDrug.id }?.ocular ?: false
-    WildlifeDosagePanel(result, activeDrug.contraindications[group], weight <= 0.0, activeDrug.isAnalyzedFallback, pickerOcular, wildDoseFallback(activeDrug, group, activeDrug.route, concentration))
+    WildlifeDosagePanel(result, weight <= 0.0, activeDrug.isAnalyzedFallback, pickerOcular, wildDoseFallback(activeDrug, group, activeDrug.route, concentration))
 }
 
 @Composable
@@ -305,7 +305,7 @@ private fun WildMedicationCard(
             options = drug.concentrationsMgPerMl.map { "${formatAmount(it)} mg/mL" },
         ) { label -> label.removeSuffix(" mg/mL").toDoubleOrNull()?.let { concentration = it } }
         WildlifeDosagePanel(
-            result, drug.contraindications[group], weightKg <= 0.0,
+            result, weightKg <= 0.0,
             drug.isAnalyzedFallback && !replaceable, medication.ocular,
             wildDoseFallback(drug, group, drug.route, concentration),
         )
@@ -327,7 +327,7 @@ private fun AlternativesNote(visible: Boolean) {
 
 @Composable
 private fun DosageResultPanel(
-    result: DosageResult?, speciesAlert: String?, weightMissing: Boolean = false,
+    result: DosageResult?, weightMissing: Boolean = false,
     isAnalyzed: Boolean = false, ocular: Boolean = false, fallback: String = "",
 ) {
     if (isAnalyzed) AnalyzedDrugNote()
@@ -366,14 +366,13 @@ private fun DosageResultPanel(
             }
         }
     }
-    val alerts = (listOfNotNull(speciesAlert) + result?.safetyAlerts.orEmpty()).distinct()
+    val alerts = result?.safetyAlerts.orEmpty().distinct()
     SafetyAlertCard(alerts)
 }
 
 @Composable
 private fun WildlifeDosagePanel(
     result: WildlifeDosageResult?,
-    speciesAlert: String?,
     weightMissing: Boolean = false,
     isAnalyzed: Boolean = false,
     ocular: Boolean = false,
@@ -416,6 +415,6 @@ private fun WildlifeDosagePanel(
             }
         }
     }
-    val alerts = (listOfNotNull(speciesAlert) + result?.safetyAlerts.orEmpty()).distinct()
+    val alerts = result?.safetyAlerts.orEmpty().distinct()
     SafetyAlertCard(alerts)
 }
