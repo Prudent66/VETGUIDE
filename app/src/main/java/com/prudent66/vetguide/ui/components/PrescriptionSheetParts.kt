@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -22,8 +21,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.prudent66.vetguide.domain.formulary.DoseRoute
 import java.util.Locale
 
 /** Shared pieces of the prescription sheet, split out to keep file size low. */
@@ -36,12 +35,10 @@ internal fun AnalyzedDrugNote() {
 
 @Composable
 internal fun WeightField(value: String, onChange: (String) -> Unit) {
-    OutlinedTextField(
+    NumericTextField(
         value = value,
         onValueChange = onChange,
-        label = { Text("Weight (kg)") },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-        singleLine = true,
+        label = "Weight (kg)",
         modifier = Modifier.fillMaxWidth(),
     )
 }
@@ -82,6 +79,16 @@ internal fun SelectionDialogField(
             confirmButton = { TextButton(onClick = { open = false }) { Text("Close") } },
         )
     }
+}
+
+/** Route picker; the displayed value follows the selected card until changed here. */
+@Composable
+internal fun RouteField(route: DoseRoute, onSelect: (DoseRoute) -> Unit) {
+    SelectionDialogField(
+        label = "Route",
+        value = route.label,
+        options = DoseRoute.entries.map { it.label },
+    ) { label -> DoseRoute.entries.firstOrNull { it.label == label }?.let(onSelect) }
 }
 
 @Composable

@@ -14,6 +14,8 @@ data class AnalyzedMention(
     val frequency: String = "",
     /** Sentence the mention came from, so a strength-aware product can be resolved. */
     val context: String = "",
+    /** Shared key for mutually exclusive "or" options from the same clause. */
+    val alternativeGroup: String? = null,
 )
 
 private val strengthSuffixRegex = Regex(
@@ -24,10 +26,6 @@ private val separatorRegex = Regex("""\s*/\s*|\s{2,}""")
 
 private val doseRegex = Regex(
     """(\d+(?:[.,]\d+)?)\s*(?:[-–to]{1,3}\s*(\d+(?:[.,]\d+)?)\s*)?mg\s*/\s*kg""",
-    RegexOption.IGNORE_CASE,
-)
-private val abbreviatedRouteRegex = Regex(
-    """\b(?:po|im|iv|sc)\b|\bi\.[mvs]\.\b|\bs\.c\.\b""",
     RegexOption.IGNORE_CASE,
 )
 private val frequencyRegex = Regex(
@@ -55,6 +53,15 @@ private val alternativeMarkers = listOf(
 
 /** Findings and recommendations are often separate sentences in one narrative. */
 private val clauseRegex = Regex("""(?<=[.;])\s+|\n+""")
+
+/**
+ * Formulation labels that describe a class rather than an active ingredient.
+ * They are normalized names so strengths and category suffixes compare cleanly.
+ */
+private val genericWrapperNames = setOf(
+    "topical antibiotic ointment", "triple antibiotic ointment",
+    "wound spray antiseptic oil", "topical wound antiseptic ointment",
+)
 
 /** Strips strength/category suffixes so "Ivermectin" matches "Ivermectin 1%". */
 fun normalizedDrugName(name: String): String =
@@ -84,24 +91,6 @@ private fun doseRangeFrom(window: String): DoseRange? =
         low?.let { DoseRange(it, high?.takeIf { value -> value > it } ?: it) }
     }
 
-/** Derives a route from explicit route words or abbreviations. */
-private fun routeFrom(window: String): DoseRoute? {
-    val short = abbreviatedRouteRegex.find(window)?.value?.lowercase()
-    return when {
-        listOf(
-            "topical", "ointment", "oil", "spray", "solution", "ophthalmic",
-            "eye drop", "cream", "liniment",
-        ).any { it in window } -> DoseRoute.TOPICAL
-        "bath" in window || "water" in window -> DoseRoute.WATER
-        "dart" in window -> DoseRoute.DART
-        "oral" in window || short == "po" -> DoseRoute.ORAL
-        short == "im" || "intramuscular" in window -> DoseRoute.IM
-        short == "iv" || "intravenous" in window -> DoseRoute.IV
-        short == "sc" || "subcut" in window -> DoseRoute.SC
-        else -> null
-    }
-}
-
 /**
  * Medication names from findings, differentials and prescriptions. Known names
  * win first; a capitalized topical/injection phrase is accepted as a fallback.
@@ -122,7 +111,8 @@ fun medicationMentions(text: String, dictionary: List<String>): List<AnalyzedMen
             AnalyzedMention(
                 name = name,
                 doseRange = doseRangeFrom(window),
-                route = routeFrom(window) ?: if (topicalName) DoseRoute.TOPICAL else null,
+                route = AdministrationRoute.resolve(window)
+                    ?: if (topicalName) DoseRoute.TOPICAL else null,
                 frequency = frequencyRegex.find(window)?.value
                     ?.replaceFirstChar { it.uppercase() }.orEmpty(),
                 context = text,
@@ -150,20 +140,45 @@ internal fun actionableClauses(text: String): List<String> =
 fun recommendedMedicationMentions(
     text: String,
     dictionary: List<String>,
-): List<AnalyzedMention> =
-    actionableClauses(text)
+): List<AnalyzedMention> {
+    val mentions = actionableClauses(text)
         .flatMap { clause -> medicationMentions(clause, dictionary) }
         .distinctBy { mention -> normalizedDrugName(mention.name) }
+    val specificContexts = mentions
+        .filterNot { normalizedDrugName(it.name) in genericWrapperNames }
+        .map { it.context }.toSet()
+    val wrappers = mentions.filter {
+        normalizedDrugName(it.name) in genericWrapperNames && it.context in specificContexts
+    }
+    val actionable = mentions.filterNot { it in wrappers }.map { mention ->
+        val inherited = wrappers.firstOrNull { it.context == mention.context }?.route
+        if (mention.route == null && inherited != null) {
+            mention.copy(route = inherited)
+        } else {
+            mention
+        }
+    }
+    return actionable.map { mention ->
+        val peers = actionable.count { it.context == mention.context }
+        val alternatives = peers > 1 &&
+            alternativeMarkers.any { it in mention.context.lowercase() }
+        mention.copy(alternativeGroup = if (alternatives) mention.context else null)
+    }
+}
+
+/** Mutually exclusive options grouped by the clause that offered them. */
+fun alternativeGroups(mentions: List<AnalyzedMention>): Map<String, List<AnalyzedMention>> =
+    mentions.filter { it.alternativeGroup != null }
+        .groupBy { it.alternativeGroup.orEmpty() }
+        .filter { it.value.size > 1 }
 
 /**
  * True when assessed medicines are interchangeable "or" options rather than
- * stacked treatments. The marker may sit in the same clause or in a later
- * conditional clause ("if no improvement, ...").
+ * stacked treatments. Metadata from the same clause wins; a plain text marker
+ * is kept as a fallback for manually built mention lists.
  */
-fun hasReplaceableAlternatives(mentions: List<AnalyzedMention>): Boolean {
-    if (mentions.size < 2) return false
-    return mentions.any { mention ->
-        val clause = mention.context.lowercase()
-        alternativeMarkers.any { it in clause }
-    }
-}
+fun hasReplaceableAlternatives(mentions: List<AnalyzedMention>): Boolean =
+    mentions.size >= 2 && (
+        alternativeGroups(mentions).isNotEmpty() ||
+            mentions.any { m -> alternativeMarkers.any { it in m.context.lowercase() } }
+    )

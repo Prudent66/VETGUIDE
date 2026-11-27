@@ -4,11 +4,13 @@ import com.prudent66.vetguide.domain.model.WildlifeGroup
 
 /**
  * One wildlife medication recommended by an assessment, resolved only through
- * the wildlife formulary and the selected group.
+ * the wildlife formulary and the selected group. [ocular] is true only for an
+ * explicitly stated eye preparation or ocular finding.
  */
 data class WildMedication(
     val label: String,
     val drug: WildlifeFormularyEntry,
+    val ocular: Boolean = false,
 )
 
 /** Every actionable wildlife medication; warning-only mentions are excluded. */
@@ -18,6 +20,7 @@ fun wildMedicationsFor(text: String, group: WildlifeGroup): List<WildMedication>
             WildMedication(
                 label = medicationLabel(mention),
                 drug = wildDrugFor(mention, group),
+                ocular = AdministrationRoute.ocular(mention.context),
             )
         }
         .distinctBy { it.drug.id }
@@ -44,11 +47,11 @@ fun wildDrugChoices(
 fun wildHasAlternatives(text: String): Boolean =
     hasReplaceableAlternatives(recommendedMedicationMentions(text, wildAnalyzedNames))
 
-/** Carries the preparation site into the visible medication label. */
+/** Carries an explicitly stated preparation site into the visible label. */
 private fun medicationLabel(mention: AnalyzedMention): String = when {
-    listOf("ophthalmic", "eye").any { it in mention.context.lowercase() } ->
-        "${mention.name} (ophthalmic)"
-    "wound" in mention.context.lowercase() -> "${mention.name} (wound care)"
+    AdministrationRoute.ocular(mention.context) -> "${mention.name} (ophthalmic)"
+    "wound" in mention.context.lowercase() ||
+        "lesion" in mention.context.lowercase() -> "${mention.name} (wound care)"
     else -> mention.name
 }
 
@@ -63,6 +66,6 @@ private fun wildDrugFor(
     return if (mention.route == DoseRoute.TOPICAL) {
         syntheticWildDrug(mention, group)
     } else {
-        matching ?: syntheticWildDrug(mention, group)
+        AdministrationRoute.apply(matching ?: syntheticWildDrug(mention, group), mention)
     }
 }

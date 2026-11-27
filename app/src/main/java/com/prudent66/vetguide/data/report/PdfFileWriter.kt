@@ -34,10 +34,24 @@ object PdfFileWriter {
         val stamp = SimpleDateFormat("yyyyMMdd-HHmm", Locale.US).format(Date(generatedAtMs))
         val safeName = patientName?.trim()
             ?.replace(Regex("[^A-Za-z0-9_-]+"), "_")
-            ?.take(24)
+            ?.trim('_')
+            ?.let { truncateAtWordBoundary(it, 40) }
+            ?.trimEnd('_', '-')
             ?.takeIf { it.isNotEmpty() }
             ?: "case"
         return "VETGUIDE-$safeName-$stamp.pdf"
+    }
+
+    /** Truncates on a word boundary so names are never chopped mid-word. */
+    private fun truncateAtWordBoundary(value: String, maxLength: Int): String {
+        if (value.length <= maxLength) return value
+        val cut = value.take(maxLength)
+        val boundary = cut.indexOfLast { it == '_' || it == '-' }
+        return if (boundary > maxLength / 2) {
+            cut.substring(0, boundary)
+        } else {
+            cut.trimEnd('_', '-')
+        }
     }
 
     private fun writeToMediaStore(

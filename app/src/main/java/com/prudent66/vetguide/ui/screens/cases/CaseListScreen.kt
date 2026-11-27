@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -80,12 +81,24 @@ fun CaseListScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
-            FloatingActionButton(onClick = {
-                scope.launch {
-                    viewModel.createCase()
-                    snackbarHostState.showSnackbar("Demo case created")
-                }
-            }) {
+            // Stays in the Scaffold's FAB slot — outside the scrolling list and
+            // its parent Box — so no scroll offset or scrim can intercept taps.
+            FloatingActionButton(
+                onClick = {
+                    scope.launch {
+                        viewModel.createCase()
+                        snackbarHostState.showSnackbar("Demo case created")
+                    }
+                },
+                modifier = Modifier
+                    .navigationBarsPadding()
+                    .padding(
+                        start = 16.dp,
+                        top = 16.dp,
+                        end = 16.dp,
+                        bottom = 16.dp + LocalBottomBarClearance.current,
+                    ),
+            ) {
                 Icon(
                     painter = painterResource(R.drawable.nav_add),
                     contentDescription = "Add demo case",
@@ -216,6 +229,9 @@ private fun DeletePatientDialog(
     )
 }
 
+/** FAB diameter plus breathing room so the last timeline card clears it. */
+private val fabListClearance = 72.dp
+
 @Composable
 internal fun CaseList(
     cases: List<Case>,
@@ -228,7 +244,7 @@ internal fun CaseList(
             start = 16.dp,
             top = 16.dp,
             end = 16.dp,
-            bottom = 16.dp + LocalBottomBarClearance.current,
+            bottom = 16.dp + LocalBottomBarClearance.current + fabListClearance,
         ),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {

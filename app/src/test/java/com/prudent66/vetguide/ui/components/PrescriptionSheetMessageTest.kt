@@ -2,6 +2,7 @@ package com.prudent66.vetguide.ui.components
 
 import com.prudent66.vetguide.domain.formulary.DoseRoute
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -25,6 +26,16 @@ class PrescriptionSheetMessageTest {
         assertEquals("Application Amount (mL)", volumeLabel(DoseRoute.TOPICAL))
         assertEquals("Syringe Volume to Draw (mL)", volumeLabel(DoseRoute.IM))
         assertEquals("Syringe Volume to Draw (mL)", volumeLabel(DoseRoute.DART))
+    }
+
+    @Test
+    fun `eye guidance is gated by explicit ocular involvement`() {
+        val ocular = topicalGuidance(DoseRoute.TOPICAL, true)!!
+        val skin = topicalGuidance(DoseRoute.TOPICAL, false)!!
+        assertTrue(ocular.contains("affected eye"))
+        assertTrue(skin.contains("skin or lesion"))
+        assertFalse(skin.contains("eye"))
+        assertEquals(null, topicalGuidance(DoseRoute.IM, true))
     }
 
     @Test

@@ -55,7 +55,10 @@ internal val domesticAnalyzedNames = listOf(
     "Doramectin", "Furosemide", "Prednisolone", "Pyrantel Pamoate",
     "Ivermectin", "Oxytetracycline", "Toltrazuril", "Moxidectin", "Selamectin",
     "Neosporin", "Bacitracin", "Polysporin", "Triple Antibiotic Ointment",
-    "Mupirocin", "Flurbiprofen",
+    "Mupirocin", "Flurbiprofen", "Neomycin", "Miconazole", "Clotrimazole",
+    "Ketoconazole", "Fluconazole", "Nystatin", "Griseofulvin", "Albendazole",
+    "Enrofloxacin", "Amprolium", "Tylosin", "Diminazene Aceturate",
+    "Penicillin-Streptomycin", "Florfenicol (Aquatic)", "Florfenicol",
 )
 
 internal val wildAnalyzedNames = listOf(
@@ -65,6 +68,9 @@ internal val wildAnalyzedNames = listOf(
     "Dexamethasone", "Metronidazole", "Praziquantel", "Furosemide", "Flurbiprofen",
     "Atropine / Supportive (wild)", "Topical Wound / Antiseptic Ointment (wild)",
     "Metronidazole (wild)", "Ketamine (wild)", "Xylazine (wild)",
+    "Neomycin", "Bacitracin", "Miconazole", "Clotrimazole", "Ketoconazole",
+    "Fluconazole", "Nystatin", "Griseofulvin", "Amprolium", "Tylosin",
+    "Diminazene", "Neosporin", "Doramectin",
 )
 
 /** Medication names found in findings/recommendations, known ones first. */
@@ -100,7 +106,7 @@ fun bestDomesticDrug(
     val analyzed = drugs.firstOrNull { it.isAnalyzedFallback && species in it.doseBySpecies }
     val static = matchDrugFromText(actionableClauses(text).joinToString(" "))
     val conditionMatch = domesticConditionDrug(condition)
-    return when {
+    val selected = when {
         static?.route == DoseRoute.TOPICAL && analyzed?.route == DoseRoute.TOPICAL -> static
         analyzed != null -> analyzed
         conditionMatch != null && (static == null || static.id.startsWith("oxytetracycline")) ->
@@ -108,6 +114,9 @@ fun bestDomesticDrug(
         static != null -> static
         else -> drugs.firstOrNull { species in it.doseBySpecies }
     }
+    val mention = recommendedMedicationMentions(text, domesticAnalyzedNames)
+        .firstOrNull { m -> selected?.let { drug -> namesMatch(drug.name, m.name) } == true }
+    return selected?.let { drug -> AdministrationRoute.apply(drug, mention) }
 }
 
 /** Best wildlife default, using only the independent wildlife formulary. */
@@ -117,10 +126,13 @@ fun bestWildDrug(
     group: WildlifeGroup,
 ): WildlifeFormularyEntry? {
     val drugs = wildDrugsFor(text, group)
-    return matchWildlifeDrugFromText(actionableClauses(text).joinToString(" "), group)
+    val selected = matchWildlifeDrugFromText(actionableClauses(text).joinToString(" "), group)
         ?: drugs.firstOrNull { it.isAnalyzedFallback && group in it.doseByGroup }
         ?: wildConditionDrug(condition, group)
         ?: drugs.firstOrNull { group in it.doseByGroup }
+    val mention = recommendedMedicationMentions(text, wildAnalyzedNames)
+        .firstOrNull { m -> selected?.let { drug -> namesMatch(drug.name, m.name) } == true }
+    return selected?.let { drug -> AdministrationRoute.apply(drug, mention) }
 }
 
 /** Normalized names that appear only in warning clauses, so must not be offered. */

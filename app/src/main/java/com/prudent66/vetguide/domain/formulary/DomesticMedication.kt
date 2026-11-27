@@ -3,11 +3,13 @@ package com.prudent66.vetguide.domain.formulary
 /**
  * One domestic medication recommended by an assessment, resolved only through
  * the domestic formulary. [label] keeps the ophthalmic/wound context that the
- * formulary product name alone does not carry.
+ * formulary product name alone does not carry; [ocular] is true only when eye
+ * involvement was stated in the assessment.
  */
 data class DomesticMedication(
     val label: String,
     val drug: FormularyDrug,
+    val ocular: Boolean = false,
 )
 
 /** Every actionable domestic medication; warning-only mentions are excluded. */
@@ -17,6 +19,7 @@ fun domesticMedicationsFor(text: String): List<DomesticMedication> =
             DomesticMedication(
                 label = medicationLabel(mention),
                 drug = domesticDrugFor(mention),
+                ocular = AdministrationRoute.ocular(mention.context),
             )
         }
         .distinctBy { it.drug.id }
@@ -42,11 +45,11 @@ fun domesticDrugChoices(
 fun domesticHasAlternatives(text: String): Boolean =
     hasReplaceableAlternatives(recommendedMedicationMentions(text, domesticAnalyzedNames))
 
-/** Carries the preparation site into the visible medication label. */
+/** Carries an explicitly stated preparation site into the visible label. */
 private fun medicationLabel(mention: AnalyzedMention): String = when {
-    listOf("ophthalmic", "eye").any { it in mention.context.lowercase() } ->
-        "${mention.name} (ophthalmic)"
-    "wound" in mention.context.lowercase() -> "${mention.name} (wound care)"
+    AdministrationRoute.ocular(mention.context) -> "${mention.name} (ophthalmic)"
+    "wound" in mention.context.lowercase() ||
+        "lesion" in mention.context.lowercase() -> "${mention.name} (wound care)"
     else -> mention.name
 }
 
@@ -57,6 +60,6 @@ private fun domesticDrugFor(mention: AnalyzedMention): FormularyDrug {
     return if (mention.route == DoseRoute.TOPICAL) {
         syntheticDomesticDrug(mention)
     } else {
-        matching ?: syntheticDomesticDrug(mention)
+        AdministrationRoute.apply(matching ?: syntheticDomesticDrug(mention), mention)
     }
 }

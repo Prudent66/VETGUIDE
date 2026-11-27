@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
@@ -28,7 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.prudent66.vetguide.R
 import com.prudent66.vetguide.domain.formulary.BatchTreatment
@@ -43,6 +41,7 @@ import com.prudent66.vetguide.domain.formulary.wildlifeQuarantineChecklist
 import com.prudent66.vetguide.domain.model.AnimalCategory
 import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.ui.components.AnimalCategoryToggle
+import com.prudent66.vetguide.ui.components.NumericTextField
 
 /** Full-screen herd/flock triage: headcount, batch medication and quarantine. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -103,38 +102,33 @@ private fun HerdFormFields(form: HerdFormState) {
             modifier = Modifier.fillMaxWidth(),
         )
         HerdCategoryAndSpeciesFields(form)
-        OutlinedTextField(
+        NumericTextField(
             value = form.headcountText,
             onValueChange = { form.headcountText = it },
-            label = { Text("Total headcount") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            singleLine = true,
+            label = "Total headcount",
+            allowDecimal = false,
             modifier = Modifier.fillMaxWidth(),
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(
+            NumericTextField(
                 value = form.sickText,
                 onValueChange = { form.sickText = it },
-                label = { Text("Sick / affected") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true,
+                label = "Sick / affected",
+                allowDecimal = false,
                 modifier = Modifier.weight(1f),
             )
-            OutlinedTextField(
+            NumericTextField(
                 value = form.deadText,
                 onValueChange = { form.deadText = it },
-                label = { Text("Dead") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true,
+                label = "Dead",
+                allowDecimal = false,
                 modifier = Modifier.weight(1f),
             )
         }
-        OutlinedTextField(
+        NumericTextField(
             value = form.weightText,
             onValueChange = { form.weightText = it },
-            label = { Text("Average weight (kg)") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            singleLine = true,
+            label = "Average weight (kg)",
             modifier = Modifier.fillMaxWidth(),
         )
         DrugAndBottleFields(form)
@@ -147,12 +141,10 @@ private fun DrugAndBottleFields(form: HerdFormState) {
     SelectionField("Drug", findDrug(form.drugId)?.name.orEmpty(), drugs.map { it.name }) { name ->
         drugs.firstOrNull { it.name == name }?.let { form.drugId = it.id }
     }
-    OutlinedTextField(
+    NumericTextField(
         value = form.bottleSizeText,
         onValueChange = { form.bottleSizeText = it },
-        label = { Text("Bottle size (mL)") },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-        singleLine = true,
+        label = "Bottle size (mL)",
         modifier = Modifier.fillMaxWidth(),
     )
 }

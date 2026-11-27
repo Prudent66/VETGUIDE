@@ -10,7 +10,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,6 +21,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.prudent66.vetguide.domain.formulary.DoseRoute
 import com.prudent66.vetguide.domain.formulary.DosageResult
 import com.prudent66.vetguide.domain.formulary.WildlifeDosageResult
 import com.prudent66.vetguide.domain.formulary.DomesticMedication
@@ -79,7 +79,7 @@ fun PrescriptionCard(
         }
     }
     if (showSheet) {
-        ModalBottomSheet(onDismissRequest = { showSheet = false }) {
+        StableBottomSheet(onDismiss = { showSheet = false }) {
             PrescriptionSheetBody(prescriptions, subject, weightKg, condition, analysisText)
         }
     }
@@ -110,6 +110,8 @@ private fun PrescriptionSheetBody(
         prescriptions.forEachIndexed { index, item ->
             Text("${index + 1}. $item", style = MaterialTheme.typography.bodyMedium)
         }
+        Text(RESOLVED_DOSE_PRECEDENCE_NOTE, style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
         HorizontalDivider()
         DosageCalculatorSection(prescriptions, subject, weightKg, condition, analysisText)
     }
@@ -151,14 +153,16 @@ private fun DomesticDosageSection(
     val drugs = remember(text, auto) { domesticDrugChoices(text, auto) }
     val replaceable = remember(text) { domesticHasAlternatives(text) }
     var chosenId by rememberSaveable(text) { mutableStateOf<String?>(null) }
+    var routeOverride by remember(text) { mutableStateOf<DoseRoute?>(null) }
     val drug = remember(drugs, auto, chosenId) {
         drugs.firstOrNull { it.id == (chosenId ?: auto?.id) } ?: drugs.first()
     }
+    val activeDrug = remember(drug, routeOverride) { routeOverride?.let { drug.copy(route = it) } ?: drug }
     var concentration by rememberSaveable(drug.id) {
         mutableStateOf(drug.defaultConcentrationMgPerMl)
     }
-    val result = remember(drug, selected, weight, concentration) {
-        calculateDosage(drug, selected, weight, concentration)
+    val result = remember(activeDrug, selected, weight, concentration) {
+        calculateDosage(activeDrug, selected, weight, concentration)
     }
     WeightField(weightText) { weightText = it }
     Text("Medications named in this assessment", style = MaterialTheme.typography.titleSmall)
@@ -178,18 +182,17 @@ private fun DomesticDosageSection(
     Text("Formulary picker — adjust one drug manually", style = MaterialTheme.typography.titleSmall)
     SelectionDialogField("Species", speciesName, domesticSpeciesNames) { speciesName = it }
     SelectionDialogField("Drug", drug.name, drugs.map { it.name }) { name ->
-        drugs.firstOrNull { it.name == name }?.let { chosenId = it.id }
+        drugs.firstOrNull { it.name == name }?.let { chosenId = it.id; routeOverride = null }
     }
-    if (drug.isAnalyzedFallback) AnalyzedDrugNote()
+    RouteField(activeDrug.route) { routeOverride = it }
+    if (activeDrug.isAnalyzedFallback) AnalyzedDrugNote()
     SelectionDialogField(
         label = "Bottle concentration",
         value = "${formatAmount(concentration)} mg/mL",
-        options = drug.concentrationsMgPerMl.map { "${formatAmount(it)} mg/mL" },
+        options = activeDrug.concentrationsMgPerMl.map { "${formatAmount(it)} mg/mL" },
     ) { label -> label.removeSuffix(" mg/mL").toDoubleOrNull()?.let { concentration = it } }
-    DosageResultPanel(
-        result, drug.contraindications[selected], weight <= 0.0,
-        drug.isAnalyzedFallback, drug.name,
-    )
+    val pickerOcular = medications.firstOrNull { it.drug.id == activeDrug.id }?.ocular ?: false
+    DosageResultPanel(result, activeDrug.contraindications[selected], weight <= 0.0, activeDrug.isAnalyzedFallback, pickerOcular, domesticDoseFallback(activeDrug, selected, activeDrug.route, concentration))
 }
 
 @Composable
@@ -213,7 +216,8 @@ private fun DomesticMedicationCard(
         ) { label -> label.removeSuffix(" mg/mL").toDoubleOrNull()?.let { concentration = it } }
         DosageResultPanel(
             result, drug.contraindications[species], weightKg <= 0.0,
-            drug.isAnalyzedFallback && !replaceable, medication.label,
+            drug.isAnalyzedFallback && !replaceable, medication.ocular,
+            domesticDoseFallback(drug, species, drug.route, concentration),
         )
     }
 }
@@ -234,16 +238,16 @@ private fun WildlifeDosageSection(
     val drugs = remember(text, group, auto) { wildDrugChoices(text, group, auto) }
     val replaceable = remember(text) { wildHasAlternatives(text) }
     var chosenId by rememberSaveable(text) { mutableStateOf<String?>(null) }
+    var routeOverride by remember(text) { mutableStateOf<DoseRoute?>(null) }
     val drug = remember(drugs, auto, chosenId) {
         drugs.firstOrNull { it.id == (chosenId ?: auto?.id) } ?: drugs.first()
     }
+    val activeDrug = remember(drug, routeOverride) { routeOverride?.let { drug.copy(route = it) } ?: drug }
     var concentration by rememberSaveable(drug.id) {
         mutableStateOf(drug.defaultConcentrationMgPerMl)
     }
-    val result = remember(drug, group, wildAnimal, weight, concentration) {
-        calculateWildlifeDosage(
-            drug, group, weight, concentration, wildAnimal.takeIf { it.isNotBlank() },
-        )
+    val result = remember(activeDrug, group, wildAnimal, weight, concentration) {
+        calculateWildlifeDosage(activeDrug, group, weight, concentration, wildAnimal.takeIf { it.isNotBlank() })
     }
     WeightField(weightText) { weightText = it }
     Text("Medications named in this assessment", style = MaterialTheme.typography.titleSmall)
@@ -265,18 +269,17 @@ private fun WildlifeDosageSection(
         wildAnimal = it
     }
     SelectionDialogField("Drug (wildlife formulary)", drug.name, drugs.map { it.name }) {
-        name -> drugs.firstOrNull { it.name == name }?.let { chosenId = it.id }
+        name -> drugs.firstOrNull { it.name == name }?.let { chosenId = it.id; routeOverride = null }
     }
-    if (drug.isAnalyzedFallback) AnalyzedDrugNote()
+    RouteField(activeDrug.route) { routeOverride = it }
+    if (activeDrug.isAnalyzedFallback) AnalyzedDrugNote()
     SelectionDialogField(
         label = "Bottle concentration",
         value = "${formatAmount(concentration)} mg/mL",
-        options = drug.concentrationsMgPerMl.map { "${formatAmount(it)} mg/mL" },
+        options = activeDrug.concentrationsMgPerMl.map { "${formatAmount(it)} mg/mL" },
     ) { label -> label.removeSuffix(" mg/mL").toDoubleOrNull()?.let { concentration = it } }
-    WildlifeDosagePanel(
-        result, drug.contraindications[group], weight <= 0.0,
-        drug.isAnalyzedFallback, drug.name,
-    )
+    val pickerOcular = medications.firstOrNull { it.drug.id == activeDrug.id }?.ocular ?: false
+    WildlifeDosagePanel(result, activeDrug.contraindications[group], weight <= 0.0, activeDrug.isAnalyzedFallback, pickerOcular, wildDoseFallback(activeDrug, group, activeDrug.route, concentration))
 }
 
 @Composable
@@ -303,7 +306,8 @@ private fun WildMedicationCard(
         ) { label -> label.removeSuffix(" mg/mL").toDoubleOrNull()?.let { concentration = it } }
         WildlifeDosagePanel(
             result, drug.contraindications[group], weightKg <= 0.0,
-            drug.isAnalyzedFallback && !replaceable, medication.label,
+            drug.isAnalyzedFallback && !replaceable, medication.ocular,
+            wildDoseFallback(drug, group, drug.route, concentration),
         )
     }
 }
@@ -324,16 +328,12 @@ private fun AlternativesNote(visible: Boolean) {
 @Composable
 private fun DosageResultPanel(
     result: DosageResult?, speciesAlert: String?, weightMissing: Boolean = false,
-    isAnalyzed: Boolean = false, name: String = "",
+    isAnalyzed: Boolean = false, ocular: Boolean = false, fallback: String = "",
 ) {
     if (isAnalyzed) AnalyzedDrugNote()
     if (result == null) {
         Text(
-            dosageMessage(
-                weightMissing,
-                "No standard dose is defined for this species and weight. Adjust the " +
-                    "selection and verify against a current formulary.",
-            ),
+            dosageMessage(weightMissing, fallback),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.error,
         )
@@ -352,7 +352,9 @@ private fun DosageResultPanel(
                         "${formatAmount(result.concentrationMgPerMl)} mg/mL bottle",
                 )
                 ResultLine("Route & Schedule", "${result.route.label} · ${result.frequency}")
-                topicalGuidance(result.route, name)?.let { guidance ->
+                Text(domesticDoseNote(result), style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                topicalGuidance(result.route, ocular)?.let { guidance ->
                     Text(
                         guidance,
                         style = MaterialTheme.typography.bodySmall,
@@ -374,16 +376,13 @@ private fun WildlifeDosagePanel(
     speciesAlert: String?,
     weightMissing: Boolean = false,
     isAnalyzed: Boolean = false,
-    name: String = "",
+    ocular: Boolean = false,
+    fallback: String = "",
 ) {
     if (isAnalyzed) AnalyzedDrugNote()
     if (result == null) {
         Text(
-            dosageMessage(
-                weightMissing,
-                "No wildlife dose is defined for this group and weight. Adjust the " +
-                    "selection and verify against a current wildlife formulary.",
-            ),
+            dosageMessage(weightMissing, fallback),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.error,
         )
@@ -403,7 +402,9 @@ private fun WildlifeDosagePanel(
                         "${formatAmount(result.weightKg)} kg",
                 )
                 ResultLine("Route & Schedule", "${result.route.label} · ${result.frequency}")
-                topicalGuidance(result.route, name)?.let { guidance ->
+                Text(wildDoseNote(result), style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                topicalGuidance(result.route, ocular)?.let { guidance ->
                     Text(
                         guidance,
                         style = MaterialTheme.typography.bodySmall,
