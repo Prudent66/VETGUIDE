@@ -16,10 +16,11 @@ data class DomesticMedication(
 fun domesticMedicationsFor(text: String): List<DomesticMedication> =
     recommendedMedicationMentions(text, domesticAnalyzedNames)
         .map { mention ->
+            val ocular = AdministrationRoute.ocular(AdministrationRoute.ocularEvidence(mention))
             DomesticMedication(
-                label = medicationLabel(mention),
+                label = medicationLabel(mention, ocular),
                 drug = domesticDrugFor(mention),
-                ocular = AdministrationRoute.ocular(mention.context),
+                ocular = ocular,
             )
         }
         .distinctBy { it.drug.id }
@@ -46,8 +47,8 @@ fun domesticHasAlternatives(text: String): Boolean =
     hasReplaceableAlternatives(recommendedMedicationMentions(text, domesticAnalyzedNames))
 
 /** Carries an explicitly stated preparation site into the visible label. */
-private fun medicationLabel(mention: AnalyzedMention): String = when {
-    AdministrationRoute.ocular(mention.context) -> "${mention.name} (ophthalmic)"
+private fun medicationLabel(mention: AnalyzedMention, ocular: Boolean): String = when {
+    ocular -> "${mention.name} (ophthalmic)"
     "wound" in mention.context.lowercase() ||
         "lesion" in mention.context.lowercase() -> "${mention.name} (wound care)"
     else -> mention.name

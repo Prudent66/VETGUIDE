@@ -226,11 +226,11 @@ private fun DomesticMedicationCard(
 private fun WildlifeDosageSection(
     text: String, subject: AnimalSubject, weightKg: Double?, condition: String?,
 ) {
-    var groupLabel by rememberSaveable(subject) {
-        mutableStateOf(subject.groupLabel ?: ClinicalSpeciesCatalog.first(AnimalCategory.WILD))
-    }
+    val contextGroup = subject.groupLabel ?: ClinicalSpeciesCatalog.first(AnimalCategory.WILD)
+    val contextAnimal = subject.wildAnimal.orEmpty()
+    var groupLabel by rememberSaveable(contextGroup) { mutableStateOf(contextGroup) }
     val group = ClinicalSpeciesCatalog.wildlifeGroup(groupLabel) ?: WildlifeGroup.WILD_RUMINANTS
-    var wildAnimal by rememberSaveable(subject) { mutableStateOf(subject.wildAnimal.orEmpty()) }
+    var wildAnimal by rememberSaveable(contextGroup, contextAnimal) { mutableStateOf(contextAnimal) }
     var weightText by rememberSaveable { mutableStateOf(weightKg?.let(::formatAmount).orEmpty()) }
     val weight = weightText.toDoubleOrNull() ?: 0.0
     val medications = remember(text, group) { wildMedicationsFor(text, group) }
@@ -346,13 +346,15 @@ private fun DosageResultPanel(
                         "(range ${formatAmount(result.doseRange.minMgPerKg)}–" +
                         "${formatAmount(result.doseRange.maxMgPerKg)} mg/kg)",
                 )
+                val semisolid = isSemisolidTopical(result.route, result.drugName)
                 ResultLine(
-                    volumeLabel(result.route),
-                    "${formatAmount(result.syringeMl)} mL from a " +
-                        "${formatAmount(result.concentrationMgPerMl)} mg/mL bottle",
+                    volumeLabel(result.route, semisolid),
+                    topicalApplicationText(result.route, result.drugName, ocular)
+                        ?: "${formatAmount(result.syringeMl)} mL from a " +
+                            "${formatAmount(result.concentrationMgPerMl)} mg/mL bottle",
                 )
                 ResultLine("Route & Schedule", "${result.route.label} · ${result.frequency}")
-                Text(domesticDoseNote(result), style = MaterialTheme.typography.bodySmall,
+                Text(domesticDoseNote(result, ocular), style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 topicalGuidance(result.route, ocular)?.let { guidance ->
                     Text(
@@ -394,14 +396,16 @@ private fun WildlifeDosagePanel(
                         "(range ${formatAmount(result.doseRange.minMgPerKg)}–" +
                         "${formatAmount(result.doseRange.maxMgPerKg)} mg/kg)",
                 )
+                val semisolid = isSemisolidTopical(result.route, result.drugName)
                 ResultLine(
-                    volumeLabel(result.route),
-                    "${formatAmount(result.syringeMl)} mL from a " +
-                        "${formatAmount(result.concentrationMgPerMl)} mg/mL bottle for " +
-                        "${formatAmount(result.weightKg)} kg",
+                    volumeLabel(result.route, semisolid),
+                    topicalApplicationText(result.route, result.drugName, ocular)
+                        ?: "${formatAmount(result.syringeMl)} mL from a " +
+                            "${formatAmount(result.concentrationMgPerMl)} mg/mL bottle for " +
+                            "${formatAmount(result.weightKg)} kg",
                 )
                 ResultLine("Route & Schedule", "${result.route.label} · ${result.frequency}")
-                Text(wildDoseNote(result), style = MaterialTheme.typography.bodySmall,
+                Text(wildDoseNote(result, ocular), style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 topicalGuidance(result.route, ocular)?.let { guidance ->
                     Text(

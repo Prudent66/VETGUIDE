@@ -81,6 +81,21 @@ object ClinicalSpeciesCatalog {
     fun wildAnimalsFor(group: WildlifeGroup): List<String> =
         wildAnimals.getValue(group)
 
+    /**
+     * Default pathway and wildlife group when a diagnosis is opened on a
+     * patient. A wild patient keeps its own group (e.g. Jackal / Fox / Wild
+     * Dog) and never falls into the domestic Cattle picker. Callers may still
+     * override both values from a manual selection afterwards.
+     */
+    fun assessmentContext(patient: Patient?): Pair<AnimalCategory, String> =
+        if (patient?.animalCategory == AnimalCategory.WILD) {
+            AnimalCategory.WILD to (
+                wildlifeGroup(patient.wildlifeGroup)?.label ?: first(AnimalCategory.WILD)
+                )
+        } else {
+            AnimalCategory.DOMESTIC to first(AnimalCategory.WILD)
+        }
+
     /** Human-readable species for a patient record in lists and pickers. */
     fun display(patient: Patient): String = when {
         patient.animalCategory == AnimalCategory.WILD && !patient.wildlifeGroup.isNullOrBlank() ->

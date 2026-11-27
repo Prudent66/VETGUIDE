@@ -12,10 +12,18 @@ object AdministrationRoute {
         """\b(?:po|im|iv|sc)\b|\bi\.[mvs]\.\b|\bs\.c\.\b""",
         RegexOption.IGNORE_CASE,
     )
-    private val ocularCues = listOf(
-        "ophthalmic", "ocular", "eye", "eyelid", "conjunctiv", "corneal",
+    /**
+     * Explicit eye-preparation or eye-administration wording only. A bare
+     * "eye" anywhere in a clause is deliberately not enough: a dermal ointment
+     * on a facial/head/muzzle lesion must stay a wound-care topical.
+     */
+    private val ocularInstruction = Regex(
+        """\b(?:ophthalmic|ocular|conjunctival|corneal|""" +
+            """eye\s*(?:drops?|ointment|solution|preparation|instillation)|""" +
+            """(?:in|into|to|onto)\s+(?:the\s+)?(?:affected\s+)?eyes?|both\s+eyes?)\b""",
+        RegexOption.IGNORE_CASE,
     )
-    private val topicalCues = ocularCues + listOf(
+    private val topicalCues = listOf(
         "apply to", "on the skin", "to the wound", "to the lesion", "topical",
     )
     private val oralCues = listOf("oral", "by mouth")
@@ -33,7 +41,7 @@ object AdministrationRoute {
             (short == "sc" || contains(listOf("subcut"))) to DoseRoute.SC,
             (short == "im" || contains(listOf("intramuscular"))) to DoseRoute.IM,
             (short == "iv" || contains(listOf("intravenous"))) to DoseRoute.IV,
-            contains(topicalCues) to DoseRoute.TOPICAL,
+            (ocularInstruction.containsMatchIn(text) || contains(topicalCues)) to DoseRoute.TOPICAL,
             (short == "po" || contains(oralCues)) to DoseRoute.ORAL,
             contains(waterCues) to DoseRoute.WATER,
             contains(listOf("dart")) to DoseRoute.DART,
@@ -52,10 +60,19 @@ object AdministrationRoute {
         }
     }
 
-    /** True only for explicit ocular involvement or eye administration. */
-    fun ocular(text: String): Boolean {
-        val lower = text.lowercase()
-        return ocularCues.any { it in lower }
+    /** True only for an explicit eye preparation or eye-administration instruction. */
+    fun ocular(text: String): Boolean = ocularInstruction.containsMatchIn(text)
+
+    /**
+     * Tight evidence for an eye preparation: the medication name plus the
+     * administration window right after it. Findings elsewhere in the clause
+     * (facial/head/muzzle lesions) must not turn a dermal ointment into an
+     * ophthalmic one.
+     */
+    internal fun ocularEvidence(mention: AnalyzedMention): String {
+        val lower = mention.context.lowercase()
+        val name = mention.name.lowercase()
+        return "$name ${windowAfterMention(lower, name)}"
     }
 
     /**

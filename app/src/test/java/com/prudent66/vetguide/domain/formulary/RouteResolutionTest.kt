@@ -57,6 +57,30 @@ class RouteResolutionTest {
     }
 
     @Test
+    fun `facial lesion near the eye keeps a dermal ointment wound care`() {
+        val text = "Apply Mupirocin ointment to a facial and head lesion near the eye twice daily."
+        val mention = recommendedMedicationMentions(text, domesticAnalyzedNames).single()
+        assertFalse(AdministrationRoute.ocular(AdministrationRoute.ocularEvidence(mention)))
+        val domestic = domesticMedicationsFor(text).single()
+        val wild = wildMedicationsFor(text, WildlifeGroup.WILD_CANIDS).single()
+        assertFalse(domestic.ocular)
+        assertFalse(wild.ocular)
+        assertFalse(domestic.label.contains("ophthalmic"))
+        assertFalse(wild.label.contains("ophthalmic"))
+        assertTrue(domestic.label.contains("wound care"))
+        assertTrue(wild.label.contains("wound care"))
+    }
+
+    @Test
+    fun `only explicit eye preparations count as ophthalmic`() {
+        assertTrue(AdministrationRoute.ocular("Use Neosporin eye ointment twice daily."))
+        assertTrue(AdministrationRoute.ocular("Apply the solution to both eyes."))
+        assertTrue(AdministrationRoute.ocular("Instil one drop into the affected eye."))
+        assertFalse(AdministrationRoute.ocular("Apply ointment to the muzzle and facial lesions."))
+        assertFalse(AdministrationRoute.ocular("Clean the head wound and treat the body lesion."))
+    }
+
+    @Test
     fun `picker reuses card route and frequency in both pathways`() {
         val domesticText = "Give meloxicam 0.2 mg/kg IV every 8 hours for 3 days."
         val domesticCard = domesticMedicationsFor(domesticText).single()

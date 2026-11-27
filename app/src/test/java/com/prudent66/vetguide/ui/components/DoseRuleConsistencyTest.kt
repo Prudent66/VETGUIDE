@@ -88,6 +88,17 @@ class DoseRuleConsistencyTest {
     }
 
     @Test
+    fun `semisolid topical note uses application wording instead of syringe volume`() {
+        val drug = findDrug("topical-antibiotic-ointment")!!
+        val result = calculateDosage(drug, Species.CATTLE, 10.0)!!
+        val note = domesticDoseNote(result)
+        assertTrue(note.contains("thin layer"))
+        assertTrue(note.contains("15 mg"))
+        assertFalse(note.contains("mL"))
+        assertFalse(note.contains("bottle"))
+    }
+
+    @Test
     fun `missing species preset explains how to adjust or verify`() {
         val drug = findDrug("ivermectin-1")!!
         val message = domesticDoseFallback(drug, Species.POULTRY, DoseRoute.SC, 10.0)

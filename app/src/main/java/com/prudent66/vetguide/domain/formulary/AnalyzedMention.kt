@@ -75,7 +75,7 @@ fun namesMatch(first: String, second: String): Boolean =
     normalizedDrugName(first) == normalizedDrugName(second)
 
 /** Window after a mention where an explicit dose/route/frequency may appear. */
-private fun windowAfterMention(text: String, name: String): String {
+internal fun windowAfterMention(text: String, name: String): String {
     val index = text.indexOf(name)
     if (index < 0) return ""
     val start = index + name.length

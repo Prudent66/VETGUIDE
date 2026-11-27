@@ -130,3 +130,43 @@ internal fun formatAmount(value: Double): String =
     } else {
         String.format(Locale.US, "%.2f", value)
     }
+
+/** Semisolids are applied as a layer, not drawn up in a syringe. */
+internal fun isSemisolidTopical(route: DoseRoute, drugName: String): Boolean =
+    route == DoseRoute.TOPICAL &&
+        listOf("ointment", "cream", "paste", "gel", "salve", "powder")
+            .any { it in drugName.lowercase() }
+
+/** Non-syringe value for semisolid topicals; null keeps the mL line for liquids. */
+internal fun topicalApplicationText(
+    route: DoseRoute,
+    drugName: String,
+    ocular: Boolean = false,
+): String? = if (isSemisolidTopical(route, drugName)) {
+    if (ocular) {
+        "Thin layer on the affected eye as directed — do not draw into a syringe"
+    } else {
+        "Thin layer on cleaned skin or wound — apply enough to cover the treated area; " +
+            "do not draw into a syringe"
+    }
+} else {
+    null
+}
+
+/** One dose-note phrase shared by the domestic and wildlife result panels. */
+internal fun administrationPhrase(
+    route: DoseRoute,
+    amountMl: Double,
+    concentration: Double,
+    semisolid: Boolean,
+    ocular: Boolean = false,
+): String = if (semisolid) {
+    if (ocular) {
+        "as an estimated thin layer on the affected eye; do not draw into a syringe"
+    } else {
+        "as an estimated thin layer on cleaned skin or wound; do not draw into a syringe"
+    }
+} else {
+    "gives ${formatAmount(amountMl)} mL from a ${formatAmount(concentration)} mg/mL bottle " +
+        "by ${route.label}"
+}

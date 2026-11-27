@@ -10,11 +10,11 @@ import com.prudent66.vetguide.domain.model.ClinicalSpeciesCatalog
 import com.prudent66.vetguide.domain.model.Species
 import com.prudent66.vetguide.domain.model.WildlifeGroup
 
-/** Topicals describe an application amount rather than a syringe draw. */
-internal fun volumeLabel(route: DoseRoute): String = if (route == DoseRoute.TOPICAL) {
-    "Application Amount (mL)"
-} else {
-    "Syringe Volume to Draw (mL)"
+/** Semisolid topicals describe an application, not a syringe draw. */
+internal fun volumeLabel(route: DoseRoute, semisolid: Boolean = false): String = when {
+    semisolid -> "Estimated Topical Amount"
+    route == DoseRoute.TOPICAL -> "Application Amount (mL)"
+    else -> "Syringe Volume to Draw (mL)"
 }
 
 /** Flag shown when an analyzed drug is supplied with conservative fallback dosing. */
@@ -55,27 +55,32 @@ internal const val RESOLVED_DOSE_PRECEDENCE_NOTE =
 private fun doseNoteText(
     range: DoseRange,
     doseMg: Double,
-    amountMl: Double,
-    concentration: Double,
-    route: DoseRoute,
+    administration: String,
 ): String =
     "Calculated at ${formatAmount(range.recommended())} mg/kg " +
         "(range ${formatAmount(range.minMgPerKg)}–${formatAmount(range.maxMgPerKg)} mg/kg): " +
-        "${formatAmount(doseMg)} mg gives ${formatAmount(amountMl)} mL from a " +
-        "${formatAmount(concentration)} mg/mL bottle by ${route.label}. " +
+        "${formatAmount(doseMg)} mg $administration. " +
         "Verify against a current formulary before use."
 
 /** Domestic note derived from the already-calculated result. */
-internal fun domesticDoseNote(result: DosageResult): String = doseNoteText(
-    result.doseRange, result.doseMg, result.syringeMl,
-    result.concentrationMgPerMl, result.route,
-)
+internal fun domesticDoseNote(result: DosageResult, ocular: Boolean = false): String =
+    doseNoteText(
+        result.doseRange, result.doseMg,
+        administrationPhrase(
+            result.route, result.syringeMl, result.concentrationMgPerMl,
+            isSemisolidTopical(result.route, result.drugName), ocular,
+        ),
+    )
 
 /** Wildlife note derived from the already-calculated result. */
-internal fun wildDoseNote(result: WildlifeDosageResult): String = doseNoteText(
-    result.doseRange, result.doseMg, result.syringeMl,
-    result.concentrationMgPerMl, result.route,
-)
+internal fun wildDoseNote(result: WildlifeDosageResult, ocular: Boolean = false): String =
+    doseNoteText(
+        result.doseRange, result.doseMg,
+        administrationPhrase(
+            result.route, result.syringeMl, result.concentrationMgPerMl,
+            isSemisolidTopical(result.route, result.drugName), ocular,
+        ),
+    )
 
 /** Actionable explanation for a missing species/route/concentration preset. */
 internal fun doseFallbackMessage(

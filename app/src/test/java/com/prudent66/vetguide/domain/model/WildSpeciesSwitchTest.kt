@@ -72,6 +72,38 @@ class WildSpeciesSwitchTest {
     }
 
     @Test
+    fun `assessment context follows a wild patient group instead of cattle`() {
+        val jackal = Patient(
+            id = "p2",
+            name = "Jackal",
+            animalCategory = AnimalCategory.WILD,
+            wildlifeGroup = WildlifeGroup.WILD_CANIDS.label,
+            species = Species.OTHER,
+            breed = "Side-Striped Jackal",
+            sex = PatientSex.UNKNOWN,
+            neuterStatus = NeuterStatus.UNKNOWN,
+            dateOfBirthEpochMs = null,
+            ageValue = null,
+            ageUnit = null,
+            weightKg = 15.0,
+            weightUpdatedAtEpochMs = null,
+            ownerName = null,
+            ownerPhone = null,
+            ownerNotes = null,
+            createdAtEpochMs = 0L,
+            updatedAtEpochMs = 0L,
+        )
+        val (category, group) = ClinicalSpeciesCatalog.assessmentContext(jackal)
+        assertEquals(AnimalCategory.WILD, category)
+        assertEquals("Jackal / Fox / Wild Dog", group)
+        assertEquals(group, AnimalSubject.fromPatient(jackal).groupLabel)
+        assertEquals("Side-Striped Jackal", AnimalSubject.fromPatient(jackal).wildAnimal)
+
+        val (domestic, _) = ClinicalSpeciesCatalog.assessmentContext(null)
+        assertEquals(AnimalCategory.DOMESTIC, domestic)
+    }
+
+    @Test
     fun `wild patient displays its group in lists and pickers`() {
         val patient = Patient(
             id = "p1",

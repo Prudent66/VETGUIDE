@@ -17,10 +17,11 @@ data class WildMedication(
 fun wildMedicationsFor(text: String, group: WildlifeGroup): List<WildMedication> =
     recommendedMedicationMentions(text, wildAnalyzedNames)
         .map { mention ->
+            val ocular = AdministrationRoute.ocular(AdministrationRoute.ocularEvidence(mention))
             WildMedication(
-                label = medicationLabel(mention),
+                label = medicationLabel(mention, ocular),
                 drug = wildDrugFor(mention, group),
-                ocular = AdministrationRoute.ocular(mention.context),
+                ocular = ocular,
             )
         }
         .distinctBy { it.drug.id }
@@ -48,8 +49,8 @@ fun wildHasAlternatives(text: String): Boolean =
     hasReplaceableAlternatives(recommendedMedicationMentions(text, wildAnalyzedNames))
 
 /** Carries an explicitly stated preparation site into the visible label. */
-private fun medicationLabel(mention: AnalyzedMention): String = when {
-    AdministrationRoute.ocular(mention.context) -> "${mention.name} (ophthalmic)"
+private fun medicationLabel(mention: AnalyzedMention, ocular: Boolean): String = when {
+    ocular -> "${mention.name} (ophthalmic)"
     "wound" in mention.context.lowercase() ||
         "lesion" in mention.context.lowercase() -> "${mention.name} (wound care)"
     else -> mention.name

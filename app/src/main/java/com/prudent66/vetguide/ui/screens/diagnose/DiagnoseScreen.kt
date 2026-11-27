@@ -243,12 +243,14 @@ private fun StartPhase(
     onAnalyzeImage: (AnimalSubject?, String?, Double?) -> Unit,
 ) {
     val patients by viewModel.patients.collectAsState()
-    var category by rememberSaveable { mutableStateOf(AnimalCategory.DOMESTIC) }
-    var wildGroup by rememberSaveable {
-        mutableStateOf(ClinicalSpeciesCatalog.first(AnimalCategory.WILD))
-    }
-    val selectedPatient = patients.firstOrNull { it.id == start.patientId }
-    val subject = animalSubjectFor(category, selectedPatient, start.species, wildGroup)
+    // Patient-keyed overrides: manual switches survive plain recomposition.
+    var category by rememberSaveable(start.patientId) { mutableStateOf<AnimalCategory?>(null) }
+    var group by rememberSaveable(start.patientId) { mutableStateOf<String?>(null) }
+    val patient = patients.firstOrNull { it.id == start.patientId }
+    val context = ClinicalSpeciesCatalog.assessmentContext(patient)
+    val active = category ?: context.first
+    val wildGroup = group ?: context.second
+    val subject = animalSubjectFor(active, patient, start.species, wildGroup)
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -262,21 +264,19 @@ private fun StartPhase(
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.error,
         )
-        AnimalCategoryToggle(selected = category, onSelect = { category = it })
-        if (category == AnimalCategory.WILD) {
+        AnimalCategoryToggle(selected = active, onSelect = { category = it })
+        if (active == AnimalCategory.WILD) {
             WildlifePathwayPanel(
                 selectedGroup = ClinicalSpeciesCatalog.wildlifeGroup(wildGroup)
                     ?: WildlifeGroup.WILD_RUMINANTS,
-                onSelect = { wildGroup = it.label },
+                onSelect = { group = it.label },
             )
         } else {
             SpeciesSelection(start, viewModel)
         }
         PatientSelection(start, patients, viewModel)
         OutlinedButton(
-            onClick = {
-                onAnalyzeImage(subject, selectedPatient?.ageLabel(), selectedPatient?.weightKg)
-            },
+            onClick = { onAnalyzeImage(subject, patient?.ageLabel(), patient?.weightKg) },
             modifier = Modifier.fillMaxWidth(),
         ) { Text("Analyze a photo") }
         Button(
@@ -303,10 +303,14 @@ private fun animalSubjectFor(
     species: Species?,
     wildGroup: String,
 ): AnimalSubject? = when {
-    category == AnimalCategory.WILD ->
-        patient?.takeIf { it.animalCategory == AnimalCategory.WILD }
+    category == AnimalCategory.WILD -> {
+        val group = ClinicalSpeciesCatalog.wildlifeGroup(wildGroup)?.label ?: wildGroup
+        val fromPatient = patient?.takeIf { it.animalCategory == AnimalCategory.WILD }
             ?.let(AnimalSubject::fromPatient)
-            ?: AnimalSubject.wild(wildGroup)
+        // A manual group switch drops the patient's old-group subtype; without
+        // one, the patient keeps its exact group and wild animal.
+        if (fromPatient?.groupLabel == group) fromPatient else AnimalSubject.wild(group)
+    }
     patient?.animalCategory == AnimalCategory.DOMESTIC ->
         AnimalSubject.domestic(patient.species)
     species != null && species != Species.OTHER -> AnimalSubject.domestic(species)

@@ -39,6 +39,23 @@ class PrescriptionSheetMessageTest {
     }
 
     @Test
+    fun `semisolid topicals avoid syringe volume framing`() {
+        val ointment = "Topical Antibiotic Ointment (analyzed — verify dose)"
+        assertTrue(isSemisolidTopical(DoseRoute.TOPICAL, ointment))
+        assertEquals("Estimated Topical Amount", volumeLabel(DoseRoute.TOPICAL, true))
+        val application = topicalApplicationText(DoseRoute.TOPICAL, ointment)!!
+        assertTrue(application.contains("Thin layer"))
+        assertFalse(application.contains("mL"))
+        assertFalse(application.contains("bottle"))
+        val eye = topicalApplicationText(DoseRoute.TOPICAL, "Neosporin Eye Ointment", true)!!
+        assertTrue(eye.contains("affected eye"))
+        assertFalse(eye.contains("skin or wound"))
+        assertFalse(isSemisolidTopical(DoseRoute.TOPICAL, "Eye Drops"))
+        assertFalse(isSemisolidTopical(DoseRoute.IM, "Oxytetracycline Injection"))
+        assertEquals(null, topicalApplicationText(DoseRoute.TOPICAL, "Wound Spray"))
+    }
+
+    @Test
     fun `alternatives are explained as replaceable against weight`() {
         assertTrue(REPLACEABLE_ALTERNATIVES_NOTE.contains("replaceable alternatives"))
         assertTrue(REPLACEABLE_ALTERNATIVES_NOTE.contains("Weight (kg)"))
