@@ -114,9 +114,9 @@ internal fun CaseDetailContent(
 private fun CaseActionButtons(state: CaseDetailUiState.Success) {
     val context = LocalContext.current
     val scheduler = remember { ReminderScheduler() }
-    val plan = buildPrescriptionPlan(state.ai?.analysisData, state.ai?.narrative)
+    val plan = remember(state.ai) { buildPrescriptionPlan(state.ai?.analysisData, state.ai?.narrative) }
     val rxLine = plan.prescriptions.firstOrNull().orEmpty()
-    val narrative = analysisNarrative(state.ai?.analysisData, state.ai?.narrative)
+    val narrative = remember(state.ai) { analysisNarrative(state.ai?.analysisData, state.ai?.narrative) }
     val condition = state.ai?.analysisData?.suspectedConditions?.firstOrNull()?.name
     val subject = state.patient?.let(AnimalSubject::fromPatient)
     val drugName: String
@@ -347,9 +347,9 @@ private fun SoapField(
             minLines = 3,
         )
         if (onDictate != null) {
-            VoiceDictationButton(
-                onResult = { spoken -> onDictate(appendDictated(value, spoken)) },
-            )
+            // The caller already appends to its own field state; pre-appending
+            // here would duplicate the spoken text on every dictation result.
+            VoiceDictationButton(onResult = onDictate)
         }
     }
 }
