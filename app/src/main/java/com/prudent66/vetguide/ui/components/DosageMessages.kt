@@ -54,13 +54,12 @@ internal const val RESOLVED_DOSE_PRECEDENCE_NOTE =
 /** One dose narrative built from the very result the numeric lines display. */
 private fun doseNoteText(
     range: DoseRange,
-    selected: Double,
     doseMg: Double,
     amountMl: Double,
     concentration: Double,
     route: DoseRoute,
 ): String =
-    "Calculated at ${formatAmount(selected)} mg/kg " +
+    "Calculated at ${formatAmount(range.recommended())} mg/kg " +
         "(range ${formatAmount(range.minMgPerKg)}–${formatAmount(range.maxMgPerKg)} mg/kg): " +
         "${formatAmount(doseMg)} mg gives ${formatAmount(amountMl)} mL from a " +
         "${formatAmount(concentration)} mg/mL bottle by ${route.label}. " +
@@ -68,13 +67,13 @@ private fun doseNoteText(
 
 /** Domestic note derived from the already-calculated result. */
 internal fun domesticDoseNote(result: DosageResult): String = doseNoteText(
-    result.doseRange, result.selectedMgPerKg, result.doseMg, result.syringeMl,
+    result.doseRange, result.doseMg, result.syringeMl,
     result.concentrationMgPerMl, result.route,
 )
 
 /** Wildlife note derived from the already-calculated result. */
 internal fun wildDoseNote(result: WildlifeDosageResult): String = doseNoteText(
-    result.doseRange, result.selectedMgPerKg, result.doseMg, result.syringeMl,
+    result.doseRange, result.doseMg, result.syringeMl,
     result.concentrationMgPerMl, result.route,
 )
 
