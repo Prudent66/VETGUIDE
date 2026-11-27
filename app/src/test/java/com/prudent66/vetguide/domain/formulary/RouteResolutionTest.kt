@@ -34,12 +34,14 @@ class RouteResolutionTest {
         val text = "Apply Flurbiprofen ointment to the skin lesion twice daily."
         val domestic = domesticMedicationsFor(text).single()
         val wild = wildMedicationsFor(text, WildlifeGroup.WILD_CANIDS).single()
-        listOf(domestic, wild).forEach { medication ->
-            assertEquals(DoseRoute.TOPICAL, medication.drug.route)
-            assertFalse(medication.ocular)
-            assertFalse(medication.label.contains("ophthalmic"))
-            assertTrue(medication.label.contains("wound care"))
-        }
+        assertEquals(DoseRoute.TOPICAL, domestic.drug.route)
+        assertEquals(DoseRoute.TOPICAL, wild.drug.route)
+        assertFalse(domestic.ocular)
+        assertFalse(wild.ocular)
+        assertFalse(domestic.label.contains("ophthalmic"))
+        assertFalse(wild.label.contains("ophthalmic"))
+        assertTrue(domestic.label.contains("wound care"))
+        assertTrue(wild.label.contains("wound care"))
     }
 
     @Test

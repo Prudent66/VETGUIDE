@@ -17,7 +17,7 @@ class MedicationExtractionHygieneTest {
     @Test
     fun `generic wrapper is replaced by its specific active ingredients`() {
         val mentions = recommendedMedicationMentions(wrapperText, domesticAnalyzedNames)
-        val names = mentions.map(::normalizedDrugName)
+        val names = mentions.map { normalizedDrugName(it.name) }
         assertEquals(2, mentions.size)
         assertTrue(names.containsAll(listOf("neomycin", "bacitracin")))
         assertFalse(names.contains("topical antibiotic ointment"))
@@ -54,9 +54,9 @@ class MedicationExtractionHygieneTest {
     fun `antimicrobial and antiparasitic supportive options are captured`() {
         val text = "Supportive options include Albendazole 10 mg/kg PO and Enrofloxacin 5 mg/kg PO."
         val domestic = recommendedMedicationMentions(text, domesticAnalyzedNames)
-            .map(::normalizedDrugName)
+            .map { normalizedDrugName(it.name) }
         val wild = recommendedMedicationMentions(text, wildAnalyzedNames)
-            .map(::normalizedDrugName)
+            .map { normalizedDrugName(it.name) }
         assertTrue(domestic.containsAll(listOf("albendazole", "enrofloxacin")))
         assertTrue(wild.containsAll(listOf("albendazole", "enrofloxacin")))
     }
@@ -77,7 +77,7 @@ class MedicationExtractionHygieneTest {
     fun `generic wrapper is retained when no specific agent is named`() {
         val text = "Apply Topical Antibiotic Ointment to the wound twice daily."
         val names = recommendedMedicationMentions(text, domesticAnalyzedNames)
-            .map(::normalizedDrugName)
+            .map { normalizedDrugName(it.name) }
         assertEquals(listOf("topical antibiotic ointment"), names)
     }
 
