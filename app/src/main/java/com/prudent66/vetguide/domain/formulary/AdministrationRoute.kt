@@ -1,5 +1,13 @@
 package com.prudent66.vetguide.domain.formulary
 
+/** Preparations applied as a layer or ribbon rather than drawn into a syringe. */
+internal val semisolidPreparationTerms =
+    listOf("ointment", "cream", "paste", "gel", "salve", "powder")
+
+/** Liquid preparations keep mL/drop/bottle framing even on an eye route. */
+internal val liquidPreparationTerms =
+    listOf("drop", "solution", "liquid", "suspension")
+
 /**
  * Route resolution for medications extracted from a clinical plan. A route
  * explicitly stated in the plan always outranks a drug-class hint or a product
@@ -31,14 +39,6 @@ object AdministrationRoute {
     private val topicalClasses = listOf(
         "ointment", "oil", "spray", "cream", "liniment", "solution", "drops",
     )
-
-    /** Preparations applied as a layer or ribbon rather than drawn into a syringe. */
-    internal val semisolidPreparationTerms =
-        listOf("ointment", "cream", "paste", "gel", "salve", "powder")
-
-    /** Liquid preparations keep mL/drop/bottle framing even on an eye route. */
-    internal val liquidPreparationTerms =
-        listOf("drop", "solution", "liquid", "suspension")
 
     /** Semisolid wording only when no liquid preparation is named in the same text. */
     internal fun semisolidPreparation(text: String): Boolean {

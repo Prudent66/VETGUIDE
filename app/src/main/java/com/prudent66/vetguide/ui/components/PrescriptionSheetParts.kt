@@ -23,6 +23,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.prudent66.vetguide.domain.formulary.DoseRoute
+import com.prudent66.vetguide.domain.formulary.liquidPreparationTerms
+import com.prudent66.vetguide.domain.formulary.semisolidPreparationTerms
 import java.util.Locale
 
 /** Shared pieces of the prescription sheet, split out to keep file size low. */
