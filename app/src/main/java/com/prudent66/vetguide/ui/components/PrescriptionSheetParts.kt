@@ -131,23 +131,36 @@ internal fun formatAmount(value: Double): String =
         String.format(Locale.US, "%.2f", value)
     }
 
-/** Semisolids are applied as a layer, not drawn up in a syringe. */
-internal fun isSemisolidTopical(route: DoseRoute, drugName: String): Boolean =
-    route == DoseRoute.TOPICAL &&
-        listOf("ointment", "cream", "paste", "gel", "salve", "powder")
-            .any { it in drugName.lowercase() }
+/**
+ * Semisolids are applied as a layer, not drawn up in a syringe. An ophthalmic
+ * label often carries only "(ophthalmic)" after the drug name, so it counts as
+ * a semisolid ointment unless an explicit liquid cue (drops, solution, …) is
+ * present. True eye drops and ophthalmic solutions keep their mL framing.
+ */
+internal fun isSemisolidTopical(
+    route: DoseRoute,
+    drugName: String,
+    ocular: Boolean = false,
+): Boolean {
+    val lower = drugName.lowercase()
+    val liquid = liquidPreparationTerms.any { it in lower }
+    val semisolid = semisolidPreparationTerms.any { it in lower }
+    val ophthalmic = "ophthalmic" in lower || (ocular && "eye" in lower)
+    return route == DoseRoute.TOPICAL && !liquid && (semisolid || ophthalmic)
+}
 
 /** Non-syringe value for semisolid topicals; null keeps the mL line for liquids. */
 internal fun topicalApplicationText(
     route: DoseRoute,
     drugName: String,
     ocular: Boolean = false,
-): String? = if (isSemisolidTopical(route, drugName)) {
-    if (ocular) {
-        "Thin layer on the affected eye as directed — do not draw into a syringe"
+): String? = if (isSemisolidTopical(route, drugName, ocular)) {
+    if (ocular || "ophthalmic" in drugName.lowercase()) {
+        "Estimated thin layer/ribbon — apply the calculated amount to the affected eye " +
+            "as directed. Do not draw this preparation into a syringe."
     } else {
-        "Thin layer on cleaned skin or wound — apply enough to cover the treated area; " +
-            "do not draw into a syringe"
+        "Estimated thin layer/ribbon on cleaned skin or wound — apply enough to cover " +
+            "the treated area; do not draw into a syringe."
     }
 } else {
     null
@@ -162,9 +175,11 @@ internal fun administrationPhrase(
     ocular: Boolean = false,
 ): String = if (semisolid) {
     if (ocular) {
-        "as an estimated thin layer on the affected eye; do not draw into a syringe"
+        "as an estimated thin layer or ribbon on the affected eye; " +
+            "do not draw into a syringe"
     } else {
-        "as an estimated thin layer on cleaned skin or wound; do not draw into a syringe"
+        "as an estimated thin layer or ribbon on cleaned skin or wound; " +
+            "do not draw into a syringe"
     }
 } else {
     "gives ${formatAmount(amountMl)} mL from a ${formatAmount(concentration)} mg/mL bottle " +

@@ -99,6 +99,34 @@ class DoseRuleConsistencyTest {
     }
 
     @Test
+    fun `ophthalmic ointment card uses eye application wording without syringe volume`() {
+        val text = "Apply Oxytetracycline ophthalmic ointment to the affected eye twice daily."
+        val medication = domesticMedicationsFor(text).single()
+        val result = calculateDosage(medication.drug, Species.CATTLE, 10.0)!!
+        assertTrue(medication.ocular)
+        assertTrue(isSemisolidTopical(result.route, result.drugName, medication.ocular))
+        assertEquals("Estimated Topical Amount", volumeLabel(result.route, true))
+        val note = domesticDoseNote(result, medication.ocular)
+        assertTrue(note.contains("affected eye"))
+        assertTrue(note.contains("thin layer"))
+        assertFalse(note.contains("mL"))
+        assertFalse(note.contains("bottle"))
+    }
+
+    @Test
+    fun `liquid ophthalmic solution keeps mL bottle note framing`() {
+        val text = "Apply Flurbiprofen 0.03% ophthalmic solution to the affected eye twice daily."
+        val medication = domesticMedicationsFor(text).single()
+        val result = calculateDosage(medication.drug, Species.CATTLE, 10.0)!!
+        assertTrue(medication.ocular)
+        assertFalse(isSemisolidTopical(result.route, result.drugName, medication.ocular))
+        val note = domesticDoseNote(result, medication.ocular)
+        assertTrue(note.contains("mL"))
+        assertTrue(note.contains("mg/mL bottle"))
+        assertFalse(note.contains("affected eye"))
+    }
+
+    @Test
     fun `missing species preset explains how to adjust or verify`() {
         val drug = findDrug("ivermectin-1")!!
         val message = domesticDoseFallback(drug, Species.POULTRY, DoseRoute.SC, 10.0)

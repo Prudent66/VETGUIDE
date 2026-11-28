@@ -32,6 +32,44 @@ object AdministrationRoute {
         "ointment", "oil", "spray", "cream", "liniment", "solution", "drops",
     )
 
+    /** Preparations applied as a layer or ribbon rather than drawn into a syringe. */
+    internal val semisolidPreparationTerms =
+        listOf("ointment", "cream", "paste", "gel", "salve", "powder")
+
+    /** Liquid preparations keep mL/drop/bottle framing even on an eye route. */
+    internal val liquidPreparationTerms =
+        listOf("drop", "solution", "liquid", "suspension")
+
+    /** Semisolid wording only when no liquid preparation is named in the same text. */
+    internal fun semisolidPreparation(text: String): Boolean {
+        val lower = text.lowercase()
+        val liquid = liquidPreparationTerms.any { it in lower }
+        return !liquid && semisolidPreparationTerms.any { it in lower }
+    }
+
+    /**
+     * Keeps the assessed preparation on synthetic topical products so cards and
+     * pickers still know an ointment from a solution when the drug name alone
+     * carries only the (ophthalmic)/(wound care) context label.
+     */
+    internal fun preparationDisplayName(
+        mention: AnalyzedMention,
+        stripWild: Boolean = false,
+    ): String {
+        val base = if (stripWild) mention.name.removeSuffix(" (wild)") else mention.name
+        val lowerBase = base.lowercase()
+        val lowerContext = mention.context.lowercase()
+        val eligible = mention.route == DoseRoute.TOPICAL &&
+            semisolidPreparationTerms.none { it in lowerBase } &&
+            semisolidPreparation(mention.context)
+        val preparation = if (eligible) {
+            semisolidPreparationTerms.firstOrNull { it in lowerContext }
+        } else {
+            null
+        }
+        return if (preparation == null) base else "$base $preparation"
+    }
+
     /** Route the clinician actually wrote, before any product or class default. */
     fun explicit(text: String): DoseRoute? {
         val lower = text.lowercase()

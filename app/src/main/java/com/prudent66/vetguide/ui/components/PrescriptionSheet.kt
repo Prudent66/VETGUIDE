@@ -346,7 +346,7 @@ private fun DosageResultPanel(
                         "(range ${formatAmount(result.doseRange.minMgPerKg)}–" +
                         "${formatAmount(result.doseRange.maxMgPerKg)} mg/kg)",
                 )
-                val semisolid = isSemisolidTopical(result.route, result.drugName)
+                val semisolid = isSemisolidTopical(result.route, result.drugName, ocular)
                 ResultLine(
                     volumeLabel(result.route, semisolid),
                     topicalApplicationText(result.route, result.drugName, ocular)
@@ -396,7 +396,7 @@ private fun WildlifeDosagePanel(
                         "(range ${formatAmount(result.doseRange.minMgPerKg)}–" +
                         "${formatAmount(result.doseRange.maxMgPerKg)} mg/kg)",
                 )
-                val semisolid = isSemisolidTopical(result.route, result.drugName)
+                val semisolid = isSemisolidTopical(result.route, result.drugName, ocular)
                 ResultLine(
                     volumeLabel(result.route, semisolid),
                     topicalApplicationText(result.route, result.drugName, ocular)

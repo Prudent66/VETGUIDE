@@ -172,7 +172,8 @@ internal fun syntheticDomesticDrug(mention: AnalyzedMention): FormularyDrug {
     val topical = listOf("ointment", "oil", "spray", "drench").any { it in lower }
     return FormularyDrug(
         id = "analyzed-domestic-" + lower.replace(idSlugRegex, "-").trim('-'),
-        name = "${mention.name} (analyzed — verify dose)",
+        name = "${AdministrationRoute.preparationDisplayName(mention)} " +
+            "(analyzed — verify dose)",
         doseBySpecies = Species.entries.filter { it != Species.OTHER }
             .associateWith { mention.doseRange ?: DoseRange(5.0, 10.0) },
         concentrationsMgPerMl = listOf(50.0),
@@ -192,7 +193,8 @@ internal fun syntheticWildDrug(
     val topical = listOf("ointment", "oil", "spray", "drench").any { it in lower }
     return WildlifeFormularyEntry(
         id = "analyzed-wild-" + lower.replace(idSlugRegex, "-").trim('-'),
-        name = "${mention.name.removeSuffix(" (wild)")} (wild; analyzed — verify dose)",
+        name = "${AdministrationRoute.preparationDisplayName(mention, stripWild = true)} " +
+            "(wild; analyzed — verify dose)",
         doseByGroup = WildlifeGroup.entries.associateWith {
             mention.doseRange ?: DoseRange(5.0, 10.0)
         },

@@ -56,6 +56,52 @@ class PrescriptionSheetMessageTest {
     }
 
     @Test
+    fun `ophthalmic ointment uses estimated topical wording with eye instructions`() {
+        val label = "Oxytetracycline Ophthalmic Ointment (analyzed — verify dose)"
+        assertTrue(isSemisolidTopical(DoseRoute.TOPICAL, label, true))
+        assertEquals("Estimated Topical Amount", volumeLabel(DoseRoute.TOPICAL, true))
+        val value = topicalApplicationText(DoseRoute.TOPICAL, label, true)!!
+        assertTrue(value.contains("Estimated thin layer/ribbon"))
+        assertTrue(value.contains("affected eye"))
+        assertTrue(value.contains("Do not draw this preparation into a syringe"))
+        assertFalse(value.contains("mL"))
+        assertFalse(value.contains("bottle"))
+    }
+
+    @Test
+    fun `ophthalmic label without a preparation word is treated as an ointment`() {
+        val label = "Oxytetracycline (ophthalmic)"
+        assertTrue(isSemisolidTopical(DoseRoute.TOPICAL, label))
+        assertTrue(isSemisolidTopical(DoseRoute.TOPICAL, label, true))
+        val value = topicalApplicationText(DoseRoute.TOPICAL, label, true)!!
+        assertTrue(value.contains("affected eye"))
+        assertFalse(value.contains("mL"))
+    }
+
+    @Test
+    fun `liquid ophthalmic preparations keep mL and bottle framing`() {
+        assertFalse(isSemisolidTopical(DoseRoute.TOPICAL, "Flurbiprofen Eye Drops", true))
+        assertFalse(isSemisolidTopical(
+            DoseRoute.TOPICAL, "Oxytetracycline Ophthalmic Solution", true,
+        ))
+        assertEquals("Application Amount (mL)", volumeLabel(DoseRoute.TOPICAL, false))
+        assertEquals(null, topicalApplicationText(
+            DoseRoute.TOPICAL, "Oxytetracycline Ophthalmic Solution", true,
+        ))
+    }
+
+    @Test
+    fun `dermal wound ointments keep skin wording without syringe volume`() {
+        val label = "Neosporin Ointment (wound care)"
+        assertTrue(isSemisolidTopical(DoseRoute.TOPICAL, label))
+        assertEquals("Estimated Topical Amount", volumeLabel(DoseRoute.TOPICAL, true))
+        val value = topicalApplicationText(DoseRoute.TOPICAL, label)!!
+        assertTrue(value.contains("skin or wound"))
+        assertFalse(value.contains("mL"))
+        assertFalse(value.contains("bottle"))
+    }
+
+    @Test
     fun `alternatives are explained as replaceable against weight`() {
         assertTrue(REPLACEABLE_ALTERNATIVES_NOTE.contains("replaceable alternatives"))
         assertTrue(REPLACEABLE_ALTERNATIVES_NOTE.contains("Weight (kg)"))
