@@ -61,7 +61,7 @@ class PrescriptionSheetMessageTest {
         assertTrue(isSemisolidTopical(DoseRoute.TOPICAL, label, true))
         assertEquals("Estimated Topical Amount", volumeLabel(DoseRoute.TOPICAL, true))
         val value = topicalApplicationText(DoseRoute.TOPICAL, label, true)!!
-        assertTrue(value.contains("Estimated thin layer/ribbon"))
+        assertTrue(value.contains("Thin layer/ribbon (estimated)"))
         assertTrue(value.contains("affected eye"))
         assertTrue(value.contains("Do not draw this preparation into a syringe"))
         assertFalse(value.contains("mL"))

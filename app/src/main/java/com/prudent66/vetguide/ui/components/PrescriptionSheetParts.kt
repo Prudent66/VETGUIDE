@@ -158,10 +158,10 @@ internal fun topicalApplicationText(
     ocular: Boolean = false,
 ): String? = if (isSemisolidTopical(route, drugName, ocular)) {
     if (ocular || "ophthalmic" in drugName.lowercase()) {
-        "Estimated thin layer/ribbon — apply the calculated amount to the affected eye " +
+        "Thin layer/ribbon (estimated) — apply the calculated amount to the affected eye " +
             "as directed. Do not draw this preparation into a syringe."
     } else {
-        "Estimated thin layer/ribbon on cleaned skin or wound — apply enough to cover " +
+        "Thin layer/ribbon (estimated) on cleaned skin or wound — apply enough to cover " +
             "the treated area; do not draw into a syringe."
     }
 } else {
